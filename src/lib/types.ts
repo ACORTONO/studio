@@ -19,6 +19,10 @@ export interface JobOrder {
   paidAmount?: number;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
+  paymentMethod?: 'Cash' | 'Cheque';
+  bankName?: string;
+  chequeNumber?: string;
+  chequeDate?: string; // Using string to be serializable
 }
 
 export interface Expense {

@@ -12,7 +12,7 @@ const jobOrderItemSchema = z.object({
   remarks: z.string().optional(),
 });
 
-const jobOrderSchema = z.object({
+const jobOrderSchemaBase = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactNumber: z.string().min(1, "Contact number is required."),
   date: z.date({ required_error: "An order date is required." }),
@@ -22,9 +22,28 @@ const jobOrderSchema = z.object({
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   paidAmount: z.coerce.number().min(0).optional().default(0),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
+  paymentMethod: z.enum(["Cash", "Cheque"]).default("Cash"),
+  bankName: z.string().optional(),
+  chequeNumber: z.string().optional(),
+  chequeDate: z.date().optional(),
 });
 
-const updateJobOrderSchema = jobOrderSchema.extend({
+const jobOrderSchema = jobOrderSchemaBase.superRefine((data, ctx) => {
+    if (data.paymentMethod === 'Cheque') {
+        if (!data.bankName) {
+            ctx.addIssue({ code: 'custom', message: 'Bank name is required for cheque payments.', path: ['bankName']});
+        }
+        if (!data.chequeNumber) {
+            ctx.addIssue({ code: 'custom', message: 'Cheque number is required for cheque payments.', path: ['chequeNumber']});
+        }
+        if (!data.chequeDate) {
+            ctx.addIssue({ code: 'custom', message: 'Cheque date is required for cheque payments.', path: ['chequeDate']});
+        }
+    }
+});
+
+
+const updateJobOrderSchema = jobOrderSchemaBase.extend({
     id: z.string(),
     jobOrderNumber: z.string(),
 });
@@ -50,23 +69,29 @@ export async function createJobOrderAction(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
+    
+    const validatedData = validation.data;
 
     const newOrder: JobOrder = {
       id: crypto.randomUUID(),
       jobOrderNumber,
-      clientName: validation.data.clientName,
-      contactNumber: validation.data.contactNumber,
-      date: validation.data.date.toISOString(),
-      startDate: validation.data.startDate.toISOString(),
-      dueDate: validation.data.dueDate.toISOString(),
-      notes: validation.data.notes,
-      status: validation.data.status,
-      paidAmount: validation.data.paidAmount,
-      items: validation.data.items.map((item) => ({
+      clientName: validatedData.clientName,
+      contactNumber: validatedData.contactNumber,
+      date: validatedData.date.toISOString(),
+      startDate: validatedData.startDate.toISOString(),
+      dueDate: validatedData.dueDate.toISOString(),
+      notes: validatedData.notes,
+      status: validatedData.status,
+      paidAmount: validatedData.paidAmount,
+      items: validatedData.items.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
       })),
       totalAmount,
+      paymentMethod: validatedData.paymentMethod,
+      bankName: validatedData.bankName,
+      chequeNumber: validatedData.chequeNumber,
+      chequeDate: validatedData.chequeDate?.toISOString(),
     };
 
     return { success: true, data: newOrder };
@@ -91,6 +116,8 @@ export async function updateJobOrderAction(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
+        
+        const validatedData = validation.data;
 
         const updatedOrder: JobOrder = {
             id: existingOrder.id,
@@ -108,6 +135,10 @@ export async function updateJobOrderAction(
                 id: item.id || crypto.randomUUID(),
             })),
             totalAmount,
+            paymentMethod: validatedData.paymentMethod,
+            bankName: validatedData.bankName,
+            chequeNumber: validatedData.chequeNumber,
+            chequeDate: validatedData.chequeDate?.toISOString(),
         };
         
         return { success: true, data: updatedOrder };

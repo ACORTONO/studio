@@ -10,6 +10,8 @@ import {
   Loader2,
   Save,
   Printer,
+  Banknote,
+  Building,
 } from "lucide-react";
 import {
   Form,
@@ -60,6 +62,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -70,6 +73,10 @@ const formSchema = z.object({
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   paidAmount: z.coerce.number().min(0, "Paid amount must be non-negative.").optional(),
+  paymentMethod: z.enum(["Cash", "Cheque"]).default("Cash"),
+  bankName: z.string().optional(),
+  chequeNumber: z.string().optional(),
+  chequeDate: z.date().optional(),
   items: z
     .array(
       z.object({
@@ -81,6 +88,18 @@ const formSchema = z.object({
       })
     )
     .min(1, "At least one item is required."),
+}).superRefine((data, ctx) => {
+    if (data.paymentMethod === 'Cheque') {
+        if (!data.bankName) {
+            ctx.addIssue({ code: 'custom', message: 'Bank name is required for cheque payments.', path: ['bankName']});
+        }
+        if (!data.chequeNumber) {
+            ctx.addIssue({ code: 'custom', message: 'Cheque number is required for cheque payments.', path: ['chequeNumber']});
+        }
+        if (!data.chequeDate) {
+            ctx.addIssue({ code: 'custom', message: 'Cheque date is required for cheque payments.', path: ['chequeDate']});
+        }
+    }
 });
 
 type JobOrderFormValues = z.infer<typeof formSchema>;
@@ -110,6 +129,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       notes: "",
       status: "Pending",
       paidAmount: 0,
+      paymentMethod: "Cash",
       items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
     },
   });
@@ -121,9 +141,12 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         date: new Date(initialData.date),
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
       });
     }
   }, [initialData, form]);
+  
+  const paymentMethod = form.watch('paymentMethod');
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -466,20 +489,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 Add Item
               </Button>
             </CardContent>
-            <CardFooter className="flex justify-between items-center bg-muted/50 p-6">
-               <FormField
-                control={form.control}
-                name="paidAmount"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-2">
-                    <FormLabel>Paid Amount</FormLabel>
-                    <FormControl>
-                      <Input type="number" className="w-32" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <CardFooter className="flex justify-end items-center bg-muted/50 p-6">
               <div className="text-xl font-bold">
                 Total Amount:{" "}
                 <span className="text-primary">
@@ -488,28 +498,156 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               </div>
             </CardFooter>
           </Card>
-          
-          <Card>
-            <CardHeader>
-                <CardTitle>Additional Information</CardTitle>
-                <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                 <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Payment Details</CardTitle>
+                    <CardDescription>Record payment information for this order.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <FormField
+                      control={form.control}
+                      name="paidAmount"
+                      render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Notes</FormLabel>
-                            <FormControl>
-                                <Textarea rows={4} placeholder="e.g., Special delivery instructions." {...field} />
-                            </FormControl>
-                            <FormMessage />
+                          <FormLabel>Paid Amount</FormLabel>
+                          <FormControl>
+                            <Input type="number" placeholder="0.00" {...field} />
+                          </FormControl>
+                          <FormMessage />
                         </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="paymentMethod"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Payment Method</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex gap-4"
+                            >
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Cash" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Cash</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Cheque" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Cheque</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {paymentMethod === 'Cheque' && (
+                        <div className="space-y-4 border-l-2 border-primary pl-4">
+                             <FormField
+                                control={form.control}
+                                name="bankName"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bank Name</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                            <Input placeholder="e.g., BDO Unibank" {...field} className="pl-10"/>
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="chequeNumber"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Cheque No.</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                             <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                             <Input placeholder="e.g., 123456789" {...field} className="pl-10"/>
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="chequeDate"
+                                render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                    <FormLabel>Cheque Date</FormLabel>
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {field.value ? (
+                                            format(field.value, "PPP")
+                                            ) : (
+                                            <span>Pick a date</span>
+                                            )}
+                                        </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
                     )}
-                 />
-            </CardContent>
-          </Card>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Additional Information</CardTitle>
+                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+          </div>
 
           <div className="flex justify-end">
             <Button type="submit" size="lg" disabled={isSubmitting}>

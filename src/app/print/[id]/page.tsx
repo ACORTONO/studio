@@ -102,12 +102,25 @@ export default function PrintPage() {
                 </TableFooter>
             </Table>
         </section>
-        
-        {order.notes && (
-             <section className="mt-10">
-                <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Additional Notes</h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
-             </section>
+
+        {(order.notes || order.paymentMethod === 'Cheque') && (
+          <section className="mt-10 grid grid-cols-2 gap-8">
+            {order.notes && (
+                 <div>
+                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Additional Notes</h3>
+                    <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
+                 </div>
+            )}
+            {order.paymentMethod === 'Cheque' && (
+                <div>
+                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Payment Details</h3>
+                    <p><span className="font-semibold">Method:</span> Cheque</p>
+                    {order.bankName && <p><span className="font-semibold">Bank:</span> {order.bankName}</p>}
+                    {order.chequeNumber && <p><span className="font-semibold">Cheque No:</span> {order.chequeNumber}</p>}
+                    {order.chequeDate && <p><span className="font-semibold">Cheque Date:</span> {new Date(order.chequeDate).toLocaleDateString()}</p>}
+                </div>
+            )}
+          </section>
         )}
 
         <footer className="mt-20 pt-8 border-t border-gray-200 text-gray-500 grid grid-cols-2">
