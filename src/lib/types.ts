@@ -34,12 +34,13 @@ export interface ExpenseItem {
   amount: number;
 }
 
+export type ExpenseCategory = 'General' | 'Cash Advance' | 'Salary' | 'Fixed Expense';
+
 export interface Expense {
   id: string;
   date: string; // Using string to be serializable
   description: string;
+  category: ExpenseCategory;
   items: ExpenseItem[];
   totalAmount: number;
 }
-
-    

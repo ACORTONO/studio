@@ -2,7 +2,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import type { JobOrder, Expense, ExpenseItem } from "@/lib/types";
+import type { JobOrder, Expense, ExpenseItem, ExpenseCategory } from "@/lib/types";
 
 // Mock data for initial state
 const mockJobOrders: JobOrder[] = [
@@ -93,6 +93,7 @@ const mockExpenses: Expense[] = [
         id: 'e1', 
         date: new Date().toISOString(), 
         description: 'Software Subscription', 
+        category: 'Fixed Expense',
         items: [{ id: 'ei1', description: 'Genkit AI Plan', amount: 50 }],
         totalAmount: 50 
     },
@@ -100,6 +101,7 @@ const mockExpenses: Expense[] = [
         id: 'e2', 
         date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), 
         description: 'Office Supplies', 
+        category: 'General',
         items: [
             { id: 'ei2', description: 'Bond Paper Ream', amount: 5 },
             { id: 'ei3', description: 'Printer Ink', amount: 115 },
@@ -164,5 +166,3 @@ export const useJobOrders = () => {
   }
   return context;
 };
-
-    

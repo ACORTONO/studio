@@ -28,9 +28,11 @@ import {
   startOfToday,
   startOfWeek,
   startOfMonth,
+  startOfYear,
   endOfToday,
   endOfWeek,
   endOfMonth,
+  endOfYear,
   isWithinInterval,
   parseISO,
 } from "date-fns";
@@ -49,6 +51,8 @@ import { Label } from "@/components/ui/label";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { ExpenseCategory } from "@/lib/types";
 
 
 const expenseItemSchema = z.object({
@@ -58,6 +62,7 @@ const expenseItemSchema = z.object({
 
 const expenseSchema = z.object({
     description: z.string().min(1, 'Main description is required'),
+    category: z.enum(['General', 'Cash Advance', 'Salary', 'Fixed Expense']),
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
 });
 
@@ -83,6 +88,7 @@ export function DashboardClient() {
     resolver: zodResolver(expenseSchema),
     defaultValues: { 
         description: '', 
+        category: 'General',
         items: [{ description: '', amount: 0 }] 
     }
   });
@@ -102,6 +108,9 @@ export function DashboardClient() {
         break;
       case "monthly":
         interval = { start: startOfMonth(now), end: endOfMonth(now) };
+        break;
+      case "yearly":
+        interval = { start: startOfYear(now), end: endOfYear(now) };
         break;
       default:
         interval = { start: startOfToday(), end: endOfToday() };
@@ -126,7 +135,7 @@ export function DashboardClient() {
 
   const handleAddExpense = (values: z.infer<typeof expenseSchema>) => {
     addExpense(values);
-    expenseForm.reset({ description: '', items: [{ description: '', amount: 0 }] });
+    expenseForm.reset({ description: '', category: 'General', items: [{ description: '', amount: 0 }] });
     setIsExpenseDialogOpen(false);
   }
 
@@ -157,6 +166,21 @@ export function DashboardClient() {
                                 <Label htmlFor="description" className="text-right">Description</Label>
                                 <Input id="description" {...expenseForm.register('description')} className="col-span-3" placeholder="e.g., Office Supplies"/>
                                 {expenseForm.formState.errors.description && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.description.message}</p>}
+                            </div>
+                            <div className="grid grid-cols-4 items-center gap-4">
+                                <Label htmlFor="category" className="text-right">Category</Label>
+                                 <Select onValueChange={(value: ExpenseCategory) => expenseForm.setValue('category', value)} defaultValue={expenseForm.getValues('category')}>
+                                    <SelectTrigger className="col-span-3">
+                                        <SelectValue placeholder="Select a category" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="General">General</SelectItem>
+                                        <SelectItem value="Cash Advance">Cash Advance</SelectItem>
+                                        <SelectItem value="Salary">Salary</SelectItem>
+                                        <SelectItem value="Fixed Expense">Fixed Expense</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {expenseForm.formState.errors.category && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.category.message}</p>}
                             </div>
                             
                             <Card>
@@ -230,6 +254,7 @@ export function DashboardClient() {
             <TabsTrigger value="today">Today</TabsTrigger>
             <TabsTrigger value="weekly">This Week</TabsTrigger>
             <TabsTrigger value="monthly">This Month</TabsTrigger>
+            <TabsTrigger value="yearly">This Year</TabsTrigger>
         </TabsList>
         
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -310,6 +335,7 @@ export function DashboardClient() {
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Date</TableHead>
+                                    <TableHead>Category</TableHead>
                                     <TableHead>Description</TableHead>
                                     <TableHead>Items</TableHead>
                                     <TableHead className="text-right">Total Amount</TableHead>
@@ -320,6 +346,7 @@ export function DashboardClient() {
                                     filteredExpenses.map((expense) => (
                                         <TableRow key={expense.id}>
                                             <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+                                            <TableCell><Badge variant="secondary">{expense.category}</Badge></TableCell>
                                             <TableCell className="font-medium">{expense.description}</TableCell>
                                             <TableCell>
                                                 <ul className="list-disc list-inside text-sm text-muted-foreground">
@@ -333,7 +360,7 @@ export function DashboardClient() {
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={4} className="h-24 text-center">
+                                        <TableCell colSpan={5} className="h-24 text-center">
                                             No expenses for this period.
                                         </TableCell>
                                     </TableRow>
@@ -347,7 +374,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
-
-    
