@@ -71,7 +71,6 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactNumber: z.string().min(1, "Contact number is required."),
-  date: z.date({ required_error: "An order date is required." }),
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
@@ -135,7 +134,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     defaultValues: {
       clientName: "",
       contactNumber: "",
-      date: new Date(),
       startDate: new Date(),
       dueDate: new Date(),
       notes: "",
@@ -154,7 +152,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     if (initialData) {
       form.reset({
         ...initialData,
-        date: new Date(initialData.date),
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
         chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
@@ -268,47 +265,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           <Card>
             <CardHeader>
               <CardTitle>Dates</CardTitle>
-              <CardDescription>Select the order, start, and due dates.</CardDescription>
+              <CardDescription>Select the start and due dates.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-3 gap-6">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Order Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <CardContent className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="startDate"

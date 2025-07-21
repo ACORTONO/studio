@@ -71,7 +71,7 @@ export function ReportsClient() {
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
-    const sortedJobOrders = [...jobOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sortedJobOrders = [...jobOrders].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 
     return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedJobOrders };
   }, [jobOrders, expenses]);
@@ -90,7 +90,7 @@ export function ReportsClient() {
     }));
 
     jobOrders.forEach(order => {
-        const orderDate = parseISO(order.date);
+        const orderDate = parseISO(order.startDate);
         if (orderDate >= weekStart && orderDate <= weekEnd) {
             const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(orderDate, 'yyyy-MM-dd'));
             if(dayIndex > -1) {
@@ -117,7 +117,7 @@ export function ReportsClient() {
     const data: { [key: string]: { month: string, sales: number; collectibles: number; expenses: number } } = {};
 
     jobOrders.forEach(order => {
-        const date = parseISO(order.date);
+        const date = parseISO(order.startDate);
         const monthKey = format(date, 'yyyy-MM');
         if (!data[monthKey]) {
             data[monthKey] = { month: format(date, 'MMM yyyy'), sales: 0, collectibles: 0, expenses: 0 };
@@ -142,7 +142,7 @@ export function ReportsClient() {
     const data: { [key: string]: { year: string, sales: number; collectibles: number; expenses: number } } = {};
     
     jobOrders.forEach(order => {
-        const year = getYear(parseISO(order.date)).toString();
+        const year = getYear(parseISO(order.startDate)).toString();
         if(!data[year]) {
             data[year] = { year, sales: 0, collectibles: 0, expenses: 0 };
         }
@@ -188,7 +188,7 @@ export function ReportsClient() {
                         <TableHeader>
                         <TableRow>
                             <TableHead>Job Order #</TableHead>
-                            <TableHead>Date</TableHead>
+                            <TableHead>Start Date</TableHead>
                             <TableHead>Client Name</TableHead>
                             <TableHead className="text-right">Total Amount</TableHead>
                             <TableHead className="text-right">Paid</TableHead>
@@ -207,7 +207,7 @@ export function ReportsClient() {
                                         <Badge variant="outline">{order.jobOrderNumber}</Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {new Date(order.date).toLocaleDateString()}
+                                        {new Date(order.startDate).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
                                         <span className="font-medium">{order.clientName}</span>

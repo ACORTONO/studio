@@ -128,7 +128,6 @@ export default function PrintPage() {
                 <p>{order.contactNumber}</p>
             </div>
             <div className="text-right col-span-2">
-                 <p><span className="font-semibold text-gray-600">Order Date:</span> {new Date(order.date).toLocaleDateString()}</p>
                  <p><span className="font-semibold text-gray-600">Start Date:</span> {new Date(order.startDate).toLocaleDateString()}</p>
                  <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(order.dueDate).toLocaleDateString()}</p>
             </div>

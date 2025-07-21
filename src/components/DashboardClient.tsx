@@ -131,7 +131,7 @@ export function DashboardClient() {
         interval = { start: startOfToday(), end: endOfToday() };
     }
 
-    const filteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.date), interval));
+    const filteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), interval));
     const filteredExpenses = expenses.filter(expense => isWithinInterval(parseISO(expense.date), interval));
 
     const totalSales = filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);

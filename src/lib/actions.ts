@@ -16,7 +16,6 @@ const jobOrderItemSchema = z.object({
 const jobOrderSchemaBase = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactNumber: z.string().min(1, "Contact number is required."),
-  date: z.date({ required_error: "An order date is required." }),
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
@@ -87,7 +86,6 @@ export async function createJobOrderAction(
       jobOrderNumber,
       clientName: validatedData.clientName,
       contactNumber: validatedData.contactNumber,
-      date: validatedData.date.toISOString(),
       startDate: validatedData.startDate.toISOString(),
       dueDate: validatedData.dueDate.toISOString(),
       notes: validatedData.notes,
@@ -136,7 +134,6 @@ export async function updateJobOrderAction(
             jobOrderNumber: existingOrder.jobOrderNumber,
             clientName: existingOrder.clientName,
             contactNumber: existingOrder.contactNumber,
-            date: existingOrder.date.toISOString(),
             startDate: existingOrder.startDate.toISOString(),
             dueDate: existingOrder.dueDate.toISOString(),
             notes: existingOrder.notes,

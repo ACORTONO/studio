@@ -12,7 +12,6 @@ export interface JobOrder {
   jobOrderNumber: string;
   clientName: string;
   contactNumber: string;
-  date: string; // Using string to be serializable
   startDate: string;
   dueDate: string;
   items: JobOrderItem[];
