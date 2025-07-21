@@ -2,7 +2,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import type { JobOrder, Expense, ExpenseItem, ExpenseCategory } from "@/lib/types";
+import type { JobOrder, Expense, SalaryPayment } from "@/lib/types";
+import { v4 as uuidv4 } from 'uuid';
+
 
 // Mock data for initial state
 const mockJobOrders: JobOrder[] = [
@@ -110,14 +112,22 @@ const mockExpenses: Expense[] = [
     },
 ];
 
+const mockSalaries: SalaryPayment[] = [
+    { id: 's1', date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), employeeName: 'John Doe', amount: 1200 },
+    { id: 's2', date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), employeeName: 'Jane Smith', amount: 1250 },
+    { id: 's3', date: new Date(Date.now() - 32 * 24 * 60 * 60 * 1000).toISOString(), employeeName: 'John Doe', amount: 1200 },
+];
+
 
 interface JobOrderContextType {
   jobOrders: JobOrder[];
   expenses: Expense[];
+  salaries: SalaryPayment[];
   addJobOrder: (order: JobOrder) => void;
   updateJobOrder: (order: JobOrder) => void;
   getJobOrderById: (id: string) => JobOrder | undefined;
   addExpense: (expense: Omit<Expense, 'id' | 'date' | 'totalAmount'>) => void;
+  addSalaryPayment: (payment: Omit<SalaryPayment, 'id' | 'date'>) => void;
 }
 
 const JobOrderContext = createContext<JobOrderContextType | undefined>(
@@ -127,6 +137,7 @@ const JobOrderContext = createContext<JobOrderContextType | undefined>(
 export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
   const [jobOrders, setJobOrders] = useState<JobOrder[]>(mockJobOrders);
   const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
+  const [salaries, setSalaries] = useState<SalaryPayment[]>(mockSalaries);
 
   const addJobOrder = (order: JobOrder) => {
     setJobOrders((prev) => [...prev, order]);
@@ -152,8 +163,17 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     setExpenses(prev => [...prev, newExpense]);
   }
 
+  const addSalaryPayment = (payment: Omit<SalaryPayment, 'id' | 'date'>) => {
+    const newPayment: SalaryPayment = {
+        ...payment,
+        id: uuidv4(),
+        date: new Date().toISOString(),
+    };
+    setSalaries(prev => [...prev, newPayment]);
+  };
+
   return (
-    <JobOrderContext.Provider value={{ jobOrders, expenses, addJobOrder, updateJobOrder, getJobOrderById, addExpense }}>
+    <JobOrderContext.Provider value={{ jobOrders, expenses, salaries, addJobOrder, updateJobOrder, getJobOrderById, addExpense, addSalaryPayment }}>
       {children}
     </JobOrderContext.Provider>
   );
