@@ -12,7 +12,7 @@ import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function PrintPage() {
   const { id } = useParams();
@@ -94,14 +94,14 @@ export default function PrintPage() {
   }
 
   return (
-    <div className='bg-muted/40 p-4 sm:p-6 lg:p-8 min-h-screen'>
+    <div className='bg-gray-100 p-4 sm:p-6 lg:p-8 min-h-screen'>
       <div className="max-w-2xl mx-auto space-y-4">
-        <div className="flex justify-between items-center no-print">
+        <div className="flex justify-between items-center no-print text-gray-800">
             <div>
                 <h1 className="text-2xl font-bold">Print Preview</h1>
-                <p className="text-muted-foreground">Review the job order before printing.</p>
+                <p className="text-gray-500">Review the job order before printing.</p>
             </div>
-            <Button onClick={handlePrint}>
+            <Button onClick={handlePrint} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Printer className="mr-2 h-4 w-4"/>
                 Print Now
             </Button>
