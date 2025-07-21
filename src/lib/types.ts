@@ -3,7 +3,7 @@ export interface JobOrderItem {
   description: string;
   quantity: number;
   amount: number;
-  remarks: string;
+  remarks?: string;
 }
 
 export interface JobOrder {
@@ -16,6 +16,7 @@ export interface JobOrder {
   dueDate: string;
   items: JobOrderItem[];
   totalAmount: number;
+  notes?: string;
 }
 
 export interface Expense {

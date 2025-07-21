@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useJobOrders } from '@/contexts/JobOrderContext';
 import { JobOrder } from '@/lib/types';
@@ -10,18 +10,26 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PrintPage() {
   const { id } = useParams();
-  const { jobOrders } = useJobOrders();
+  const { jobOrders, getJobOrderById } = useJobOrders();
+  const [order, setOrder] = useState<JobOrder | undefined>(undefined);
   
   // Use a ref to ensure print is only called once
   const printCalled = React.useRef(false);
 
-  const order = jobOrders.find((o) => o.id === id);
+  // This effect ensures we have the latest data from the context.
+  useLayoutEffect(() => {
+    const foundOrder = getJobOrderById(id as string);
+    setOrder(foundOrder);
+  }, [id, jobOrders, getJobOrderById]);
 
   useEffect(() => {
     if (order && !printCalled.current) {
-        printCalled.current = true;
-        // Delay print slightly to ensure content is rendered
-        setTimeout(() => window.print(), 500);
+        // Check if we are in a browser environment
+        if (typeof window !== 'undefined') {
+            printCalled.current = true;
+            // Delay print slightly to ensure content is rendered
+            setTimeout(() => window.print(), 500);
+        }
     }
   }, [order]);
 
@@ -52,7 +60,7 @@ export default function PrintPage() {
             </div>
         </header>
         
-        <Separator className="my-8" />
+        <Separator className="my-8 bg-gray-200" />
 
         <section className="grid grid-cols-3 gap-8 mb-10">
             <div>
@@ -60,7 +68,7 @@ export default function PrintPage() {
                 <p className="font-bold text-lg">{order.clientName}</p>
                 <p>{order.contactNumber}</p>
             </div>
-            <div className="text-right">
+            <div className="text-right col-span-2">
                  <p><span className="font-semibold text-gray-600">Order Date:</span> {new Date(order.date).toLocaleDateString()}</p>
                  <p><span className="font-semibold text-gray-600">Start Date:</span> {new Date(order.startDate).toLocaleDateString()}</p>
                  <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(order.dueDate).toLocaleDateString()}</p>
@@ -98,10 +106,21 @@ export default function PrintPage() {
                 </TableFooter>
             </Table>
         </section>
+        
+        {order.notes && (
+             <section className="mt-10">
+                <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Additional Notes</h3>
+                <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
+             </section>
+        )}
 
-        <footer className="mt-20 pt-8 border-t text-center text-gray-500">
-            <p>Thank you for your business!</p>
-            <p className="text-sm mt-4">Customer Signature: _________________________</p>
+        <footer className="mt-20 pt-8 border-t border-gray-200 text-gray-500 grid grid-cols-2">
+            <div>
+                 <p>Prepared by: _________________________</p>
+            </div>
+            <div className="text-right">
+                <p>Customer Signature: _________________________</p>
+            </div>
         </footer>
     </div>
   );

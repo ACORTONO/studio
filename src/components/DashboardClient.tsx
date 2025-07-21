@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -192,7 +192,12 @@ export function DashboardClient() {
                     <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
                     <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
                     <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right space-x-2">
+                       <Link href={`/edit/${order.id}`}>
+                        <Button variant="ghost" size="icon">
+                           <Pencil className="h-4 w-4" />
+                        </Button>
+                       </Link>
                        <Link href={`/print/${order.id}`} target="_blank">
                         <Button variant="ghost" size="icon">
                            <Printer className="h-4 w-4" />
