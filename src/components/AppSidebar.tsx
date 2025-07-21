@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FilePlus2, LayoutDashboard, Briefcase } from "lucide-react";
+import { FilePlus2, LayoutDashboard, Briefcase, BarChart2 } from "lucide-react";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -26,6 +26,11 @@ export function AppSidebar() {
       label: "Dashboard",
       icon: LayoutDashboard,
     },
+    {
+        href: "/reports",
+        label: "Reports",
+        icon: BarChart2
+    }
   ];
 
   return (
