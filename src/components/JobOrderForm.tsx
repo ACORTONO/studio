@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -141,6 +142,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       status: "Pending",
       paidAmount: 0,
       paymentMethod: "Cash",
+      bankName: "",
+      chequeNumber: "",
+      eWalletReference: "",
+      bankTransferReference: "",
       items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
     },
   });
