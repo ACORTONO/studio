@@ -21,7 +21,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2 } from "lucide-react";
 import {
@@ -64,6 +64,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Expense, ExpenseCategory } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 
 const expenseItemSchema = z.object({
@@ -178,6 +179,16 @@ export function DashboardClient() {
     (acc, item) => acc + (item.amount || 0),
     0
   );
+
+  const getCategoryBadge = (category: ExpenseCategory) => {
+    const variants: { [key in ExpenseCategory]: Parameters<typeof badgeVariants>[0]['variant'] } = {
+        'General': 'secondary',
+        'Salary': 'success',
+        'Cash Advance': 'warning',
+        'Fixed Expense': 'info'
+    };
+    return <Badge variant={variants[category]}>{category}</Badge>
+  }
 
   return (
     <div className="space-y-4">
@@ -389,7 +400,7 @@ export function DashboardClient() {
                                     filteredExpenses.map((expense) => (
                                         <TableRow key={expense.id}>
                                             <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-                                            <TableCell><Badge variant="secondary">{expense.category}</Badge></TableCell>
+                                            <TableCell>{getCategoryBadge(expense.category)}</TableCell>
                                             <TableCell className="font-medium">{expense.description}</TableCell>
                                             <TableCell>
                                                 <ul className="list-disc list-inside text-sm text-muted-foreground">
