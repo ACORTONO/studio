@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,6 +12,7 @@ import {
   SidebarContent,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -37,8 +39,7 @@ export function AppSidebar() {
     <>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-            <Briefcase className="w-8 h-8 text-primary"/>
-            <h1 className="text-xl font-headline font-semibold">Job Order</h1>
+            <Image src="/logo.png" alt="Company Logo" width={100} height={100} className="w-24 h-auto"/>
         </div>
       </SidebarHeader>
       <SidebarContent>

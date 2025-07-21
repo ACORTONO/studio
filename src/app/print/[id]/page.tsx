@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useEffect, useLayoutEffect, useState } from 'react';
@@ -7,6 +8,7 @@ import { JobOrder } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import Image from 'next/image';
 
 export default function PrintPage() {
   const { id } = useParams();
@@ -83,7 +85,7 @@ export default function PrintPage() {
                 <p className="text-gray-500">{order.jobOrderNumber}</p>
             </div>
             <div className="text-right">
-                <h2 className="text-2xl font-headline font-semibold">Your Company Name</h2>
+                <Image src="/logo.png" alt="Company Logo" width={150} height={150} className="w-32 h-auto ml-auto mb-2"/>
                 <p className="text-sm text-gray-600">123 Business Rd, City, State 12345</p>
                 <p className="text-sm text-gray-600">contact@yourcompany.com</p>
             </div>
