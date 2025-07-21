@@ -40,17 +40,18 @@ export function AppSidebar() {
         <SidebarMenu>
           {menuItems.map((item) => (
             <SidebarMenuItem key={item.href}>
-              <Link href={item.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname === item.href}
-                  className={cn(
-                    "w-full justify-start",
-                  )}
-                >
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === item.href}
+                className={cn(
+                  "w-full justify-start",
+                )}
+              >
+                <Link href={item.href}>
                   <item.icon className="h-5 w-5 mr-2" />
                   <span>{item.label}</span>
-                </SidebarMenuButton>
-              </Link>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
