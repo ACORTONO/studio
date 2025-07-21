@@ -1,12 +1,10 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
 import type { JobOrder, Expense, SalaryPayment, ExpenseCategory } from "@/lib/types";
-import { v4 as uuidv4 } from 'uuid';
 
-
-// Mock data for initial state
+// Mock data for initial state, used only if localStorage is empty
 const mockJobOrders: JobOrder[] = [
   {
     id: "1",
@@ -125,8 +123,55 @@ const JobOrderContext = createContext<JobOrderContextType | undefined>(
 );
 
 export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
-  const [jobOrders, setJobOrders] = useState<JobOrder[]>(mockJobOrders);
-  const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
+  const [jobOrders, setJobOrders] = useState<JobOrder[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+        try {
+            const storedJobOrders = localStorage.getItem('jobOrders');
+            const storedExpenses = localStorage.getItem('expenses');
+
+            if (storedJobOrders) {
+                setJobOrders(JSON.parse(storedJobOrders));
+            } else {
+                setJobOrders(mockJobOrders);
+            }
+
+            if (storedExpenses) {
+                setExpenses(JSON.parse(storedExpenses));
+            } else {
+                setExpenses(mockExpenses);
+            }
+        } catch (error) {
+            console.error("Failed to parse data from localStorage", error);
+            setJobOrders(mockJobOrders);
+            setExpenses(mockExpenses);
+        }
+        setIsDataLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isDataLoaded && typeof window !== 'undefined') {
+        try {
+            localStorage.setItem('jobOrders', JSON.stringify(jobOrders));
+        } catch (error) {
+            console.error("Failed to save job orders to localStorage", error);
+        }
+    }
+  }, [jobOrders, isDataLoaded]);
+
+  useEffect(() => {
+    if (isDataLoaded && typeof window !== 'undefined') {
+        try {
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        } catch (error) {
+            console.error("Failed to save expenses to localStorage", error);
+        }
+    }
+  }, [expenses, isDataLoaded]);
 
   const addJobOrder = (order: JobOrder) => {
     setJobOrders((prev) => [...prev, order]);
@@ -154,13 +199,17 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
 
   const updateExpense = (expense: Omit<Expense, 'date' | 'totalAmount'>) => {
     const totalAmount = expense.items.reduce((sum, item) => sum + item.amount, 0);
-    const updatedExpense: Expense = {
-        ...expense,
-        date: new Date().toISOString(),
-        items: expense.items.map(item => ({...item, id: item.id || crypto.randomUUID() })),
-        totalAmount
-    }
-    setExpenses(prev => prev.map(e => e.id === updatedExpense.id ? updatedExpense : e));
+    setExpenses(prev => prev.map(e => {
+        if (e.id === expense.id) {
+            return {
+                ...e, // keep original date
+                ...expense,
+                items: expense.items.map(item => ({...item, id: item.id || crypto.randomUUID() })),
+                totalAmount
+            };
+        }
+        return e;
+    }));
   }
 
   const deleteExpense = (expenseId: string) => {
