@@ -14,6 +14,7 @@ const GenerateJobOrderNumberInputSchema = z.object({
   existingJobOrderNumbers: z
     .array(z.string())
     .describe('A list of existing job order numbers to avoid collisions.'),
+  currentDate: z.string().describe('The current date in YYYY-MM-DD format.')
 });
 export type GenerateJobOrderNumberInput = z.infer<
   typeof GenerateJobOrderNumberInputSchema
@@ -40,12 +41,14 @@ const generateJobOrderNumberPrompt = ai.definePrompt({
   output: {schema: GenerateJobOrderNumberOutputSchema},
   prompt: `You are a job order number generator.
 
+  The current date is {{currentDate}}.
+
   Given a list of existing job order numbers:
   {{#each existingJobOrderNumbers}}
   - {{this}}
   {{/each}}
 
-  Generate a new job order number that is unique and does not exist in the list.  The job order number should be in the format JO-YYYYMMDD-NNNN where YYYY is the current year, MM is the current month, DD is the current day, and NNNN is a 4-digit sequence number.
+  Generate a new job order number that is unique and does not exist in the list. The job order number should be in the format JO-YYYYMMDD-NNNN where YYYY, MM, and DD are from the current date, and NNNN is a 4-digit sequence number.
   Do not generate a job order number that already exists in the list.
   `,
 });

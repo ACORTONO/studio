@@ -104,7 +104,7 @@ export function JobOrderForm() {
         title: "Success",
         description: "Job order created successfully.",
         variant: 'default',
-        className: 'bg-accent text-accent-foreground'
+        className: 'bg-green-500 text-white'
       });
       form.reset();
     } else {
@@ -117,6 +117,8 @@ export function JobOrderForm() {
     }
     setIsSubmitting(false);
   };
+
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
   return (
     <Form {...form}>
@@ -261,10 +263,7 @@ export function JobOrderForm() {
                       />
                     </TableCell>
                     <TableCell>
-                      {new Intl.NumberFormat("en-US", {
-                        style: "currency",
-                        currency: "USD",
-                      }).format(
+                      {formatCurrency(
                         (watchItems[index]?.quantity || 0) *
                           (watchItems[index]?.amount || 0)
                       )}
@@ -316,14 +315,11 @@ export function JobOrderForm() {
               Add Item
             </Button>
           </CardContent>
-          <CardFooter className="flex justify-end bg-secondary/50 p-6">
+          <CardFooter className="flex justify-end bg-muted/50 p-6">
             <div className="text-xl font-bold">
               Total Amount:{" "}
               <span className="text-primary">
-                {new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: "USD",
-                }).format(totalAmount)}
+                {formatCurrency(totalAmount)}
               </span>
             </div>
           </CardFooter>

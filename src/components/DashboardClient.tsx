@@ -107,7 +107,7 @@ export function DashboardClient() {
     };
   }, [jobOrders, expenses, timeFilter]);
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
   const handleAddExpense = (values: z.infer<typeof expenseSchema>) => {
     addExpense(values);
@@ -191,11 +191,11 @@ export function DashboardClient() {
                     <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
                     <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                     <TableCell className="text-right">
+                       <Link href={`/print/${order.id}`} target="_blank" passHref>
                         <Button asChild variant="ghost" size="icon">
-                           <Link href={`/print/${order.id}`} target="_blank">
-                            <Printer className="h-4 w-4" />
-                           </Link>
+                           <div><Printer className="h-4 w-4" /></div>
                         </Button>
+                       </Link>
                     </TableCell>
                   </TableRow>
                 ))

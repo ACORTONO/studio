@@ -1,7 +1,7 @@
 "use server";
 
 import { generateJobOrderNumber } from "@/ai/flows/generate-job-order-number";
-import type { JobOrder, JobOrderItem } from "@/lib/types";
+import type { JobOrder } from "@/lib/types";
 import { z } from "zod";
 
 const jobOrderItemSchema = z.object({
@@ -28,7 +28,8 @@ export async function createJobOrderAction(
   }
 
   try {
-    const { output } = await generateJobOrderNumber({ existingJobOrderNumbers });
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const { output } = await generateJobOrderNumber({ existingJobOrderNumbers, currentDate });
     if (!output?.jobOrderNumber) {
       throw new Error("Failed to generate job order number.");
     }

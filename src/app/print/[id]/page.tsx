@@ -36,7 +36,7 @@ export default function PrintPage() {
     );
   }
   
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
   return (
     <div className="p-8 sm:p-12 font-sans text-gray-800 bg-white">
