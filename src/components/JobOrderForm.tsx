@@ -131,11 +131,16 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
   const form = useForm<JobOrderFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
+    defaultValues: initialData ? {
+        ...initialData,
+        startDate: new Date(initialData.startDate),
+        dueDate: new Date(initialData.dueDate),
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
+    } : {
       clientName: "",
       contactNumber: "",
-      startDate: new Date(),
-      dueDate: new Date(),
+      startDate: undefined, // Set to undefined initially to avoid hydration mismatch
+      dueDate: undefined,
       notes: "",
       status: "Pending",
       paidAmount: 0,
@@ -147,6 +152,17 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
     },
   });
+
+  useEffect(() => {
+    if (!isEditMode) {
+      // Set the date only on the client side
+      form.reset({
+        ...form.getValues(),
+        startDate: new Date(),
+        dueDate: new Date(),
+      });
+    }
+  }, [isEditMode, form]);
 
   useEffect(() => {
     if (initialData) {
@@ -194,6 +210,22 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       setIsSuccessDialogOpen(true);
       if (!isEditMode) {
         form.reset();
+        // Reset again with new dates for the next form
+         form.reset({
+            ...form.getValues(),
+            clientName: "",
+            contactNumber: "",
+            notes: "",
+            paidAmount: 0,
+            paymentMethod: "Cash",
+            bankName: "",
+            chequeNumber: "",
+            eWalletReference: "",
+            bankTransferReference: "",
+            items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
+            startDate: new Date(),
+            dueDate: new Date(),
+        });
       }
     } else {
       toast({
