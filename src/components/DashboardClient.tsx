@@ -9,7 +9,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
+  CardDescription,
+  CardFooter
 } from "@/components/ui/card";
 import {
   Table,
@@ -40,7 +41,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogFooter,
   DialogClose
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
