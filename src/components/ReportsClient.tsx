@@ -68,7 +68,7 @@ export function ReportsClient() {
     const grandTotalSales = jobOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.paidAmount || 0), 0);
     const totalUnpaid = grandTotalSales - totalCollectibles;
-    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
     const sortedJobOrders = [...jobOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -95,7 +95,7 @@ export function ReportsClient() {
         if (!data[monthKey]) {
             data[monthKey] = { month: format(date, 'MMM yyyy'), sales: 0, collectibles: 0, expenses: 0 };
         }
-        data[monthKey].expenses += expense.amount;
+        data[monthKey].expenses += expense.totalAmount;
     });
 
     return Object.values(data).sort((a,b) => a.month.localeCompare(b.month));
@@ -118,7 +118,7 @@ export function ReportsClient() {
         if(!data[year]) {
             data[year] = { year, sales: 0, collectibles: 0, expenses: 0 };
         }
-        data[year].expenses += expense.amount;
+        data[year].expenses += expense.totalAmount;
     });
 
     return Object.values(data).sort((a,b) => a.year.localeCompare(b.year));
@@ -252,3 +252,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    

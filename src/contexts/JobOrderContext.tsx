@@ -1,7 +1,8 @@
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback } from "react";
-import type { JobOrder, Expense } from "@/lib/types";
+import type { JobOrder, Expense, ExpenseItem } from "@/lib/types";
 
 // Mock data for initial state
 const mockJobOrders: JobOrder[] = [
@@ -88,8 +89,23 @@ const mockJobOrders: JobOrder[] = [
 ];
 
 const mockExpenses: Expense[] = [
-    { id: 'e1', date: new Date().toISOString(), description: 'Software Subscription', amount: 50 },
-    { id: 'e2', date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), description: 'Office Supplies', amount: 120 },
+    { 
+        id: 'e1', 
+        date: new Date().toISOString(), 
+        description: 'Software Subscription', 
+        items: [{ id: 'ei1', description: 'Genkit AI Plan', amount: 50 }],
+        totalAmount: 50 
+    },
+    { 
+        id: 'e2', 
+        date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), 
+        description: 'Office Supplies', 
+        items: [
+            { id: 'ei2', description: 'Bond Paper Ream', amount: 5 },
+            { id: 'ei3', description: 'Printer Ink', amount: 115 },
+        ],
+        totalAmount: 120
+    },
 ];
 
 
@@ -99,7 +115,7 @@ interface JobOrderContextType {
   addJobOrder: (order: JobOrder) => void;
   updateJobOrder: (order: JobOrder) => void;
   getJobOrderById: (id: string) => JobOrder | undefined;
-  addExpense: (expense: Omit<Expense, 'id' | 'date'>) => void;
+  addExpense: (expense: Omit<Expense, 'id' | 'date' | 'totalAmount'>) => void;
 }
 
 const JobOrderContext = createContext<JobOrderContextType | undefined>(
@@ -122,11 +138,14 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     return jobOrders.find(order => order.id === id);
   }, [jobOrders]);
 
-  const addExpense = (expense: Omit<Expense, 'id'|'date'>) => {
+  const addExpense = (expense: Omit<Expense, 'id'|'date'|'totalAmount'>) => {
+    const totalAmount = expense.items.reduce((sum, item) => sum + item.amount, 0);
     const newExpense: Expense = {
         ...expense,
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
+        items: expense.items.map(item => ({...item, id: crypto.randomUUID() })),
+        totalAmount
     }
     setExpenses(prev => [...prev, newExpense]);
   }
@@ -145,3 +164,5 @@ export const useJobOrders = () => {
   }
   return context;
 };
+
+    

@@ -1,3 +1,4 @@
+
 export interface JobOrderItem {
   id: string;
   description: string;
@@ -27,9 +28,18 @@ export interface JobOrder {
   bankTransferReference?: string;
 }
 
+export interface ExpenseItem {
+  id: string;
+  description: string;
+  amount: number;
+}
+
 export interface Expense {
   id: string;
   date: string; // Using string to be serializable
-  amount: number;
   description: string;
+  items: ExpenseItem[];
+  totalAmount: number;
 }
+
+    
