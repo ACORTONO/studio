@@ -19,6 +19,7 @@ const jobOrderSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
+  status: z.string(),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
 });
 
@@ -38,11 +39,10 @@ export async function createJobOrderAction(
 
   try {
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const { output } = await generateJobOrderNumber({ existingJobOrderNumbers, currentDate });
-    if (!output?.jobOrderNumber) {
+    const { jobOrderNumber } = await generateJobOrderNumber({ existingJobOrderNumbers, currentDate });
+    if (!jobOrderNumber) {
       throw new Error("Failed to generate job order number.");
     }
-    const jobOrderNumber = output.jobOrderNumber;
 
     const totalAmount = validation.data.items.reduce(
       (acc, item) => acc + item.quantity * item.amount,
@@ -58,6 +58,7 @@ export async function createJobOrderAction(
       startDate: validation.data.startDate.toISOString(),
       dueDate: validation.data.dueDate.toISOString(),
       notes: validation.data.notes,
+      status: validation.data.status,
       items: validation.data.items.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
@@ -76,36 +77,38 @@ export async function createJobOrderAction(
 export async function updateJobOrderAction(
   formData: z.infer<typeof updateJobOrderSchema>
 ): Promise<{ success: boolean; data?: JobOrder; error?: any }> {
-  const validation = updateJobOrderSchema.safeParse(formData);
-  if (!validation.success) {
-    return { success: false, error: validation.error.format() };
-  }
+    const validation = updateJobOrderSchema.safeParse(formData);
+    if (!validation.success) {
+        return { success: false, error: validation.error.format() };
+    }
 
-  try {
-    // We assume the jobOrderNumber does not change on update.
-    // If it could change, logic to regenerate would be needed.
-    const totalAmount = validation.data.items.reduce(
-      (acc, item) => acc + item.quantity * item.amount,
-      0
-    );
+    try {
+        const existingOrder = validation.data;
+        const totalAmount = existingOrder.items.reduce(
+            (acc, item) => acc + item.quantity * item.amount,
+            0
+        );
 
-    const updatedOrder: JobOrder = {
-      ...validation.data,
-      date: validation.data.date.toISOString(),
-      startDate: validation.data.startDate.toISOString(),
-      dueDate: validation.data.dueDate.toISOString(),
-      items: validation.data.items.map((item) => ({
-        ...item,
-        id: item.id || crypto.randomUUID(),
-      })),
-      totalAmount,
-    };
-
-    // In a real app, you would fetch the existing order to get the jobOrderNumber
-    // For this context, we will just return the updated data. The context will handle the merge.
-    return { success: true, data: updatedOrder };
-  } catch (error) {
-    console.error(error);
-    return { success: false, error: "An unexpected error occurred." };
-  }
+        const updatedOrder: JobOrder = {
+            id: existingOrder.id,
+            jobOrderNumber: "JO-UPDATING-TEMP", // This should be fetched from existing data
+            clientName: existingOrder.clientName,
+            contactNumber: existingOrder.contactNumber,
+            date: existingOrder.date.toISOString(),
+            startDate: existingOrder.startDate.toISOString(),
+            dueDate: existingOrder.dueDate.toISOString(),
+            notes: existingOrder.notes,
+            status: existingOrder.status,
+            items: existingOrder.items.map((item) => ({
+                ...item,
+                id: item.id || crypto.randomUUID(),
+            })),
+            totalAmount,
+        };
+        
+        return { success: true, data: updatedOrder };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: "An unexpected error occurred." };
+    }
 }

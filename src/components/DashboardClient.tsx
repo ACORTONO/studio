@@ -193,16 +193,16 @@ export function DashboardClient() {
                     <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
                     <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                     <TableCell className="text-right space-x-2">
-                       <Link href={`/edit/${order.id}`}>
-                        <Button variant="ghost" size="icon">
+                       <Button asChild variant="ghost" size="icon">
+                         <Link href={`/edit/${order.id}`}>
                            <Pencil className="h-4 w-4" />
-                        </Button>
-                       </Link>
-                       <Link href={`/print/${order.id}`} target="_blank">
-                        <Button variant="ghost" size="icon">
+                         </Link>
+                       </Button>
+                       <Button asChild variant="ghost" size="icon">
+                         <Link href={`/print/${order.id}`} target="_blank">
                            <Printer className="h-4 w-4" />
-                        </Button>
-                       </Link>
+                         </Link>
+                       </Button>
                     </TableCell>
                   </TableRow>
                 ))

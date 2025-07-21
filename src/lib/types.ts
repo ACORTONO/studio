@@ -16,6 +16,7 @@ export interface JobOrder {
   dueDate: string;
   items: JobOrderItem[];
   totalAmount: number;
+  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
 }
 
