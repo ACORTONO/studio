@@ -52,7 +52,9 @@ import React from "react";
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactNumber: z.string().min(1, "Contact number is required."),
-  date: z.date({ required_error: "A date is required." }),
+  date: z.date({ required_error: "An order date is required." }),
+  startDate: z.date({ required_error: "A start date is required." }),
+  dueDate: z.date({ required_error: "A due date is required." }),
   items: z
     .array(
       z.object({
@@ -78,6 +80,8 @@ export function JobOrderForm() {
       clientName: "",
       contactNumber: "",
       date: new Date(),
+      startDate: new Date(),
+      dueDate: new Date(),
       items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
     },
   });
@@ -130,7 +134,7 @@ export function JobOrderForm() {
               Enter the client's details for the job order.
             </CardDescription>
           </CardHeader>
-          <CardContent className="grid md:grid-cols-3 gap-6">
+          <CardContent className="grid md:grid-cols-2 gap-6">
             <FormField
               control={form.control}
               name="clientName"
@@ -157,12 +161,97 @@ export function JobOrderForm() {
                 </FormItem>
               )}
             />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Dates</CardTitle>
+            <CardDescription>Select the order, start, and due dates.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid md:grid-cols-3 gap-6">
             <FormField
               control={form.control}
               name="date"
               render={({ field }) => (
-                <FormItem className="flex flex-col pt-2">
-                  <FormLabel>Date</FormLabel>
+                <FormItem className="flex flex-col">
+                  <FormLabel>Order Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Start Date</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !field.value && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {field.value ? (
+                            format(field.value, "PPP")
+                          ) : (
+                            <span>Pick a date</span>
+                          )}
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={field.value}
+                        onSelect={field.onChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Due Date</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild>
                       <FormControl>

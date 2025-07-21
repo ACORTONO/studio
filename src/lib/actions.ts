@@ -14,7 +14,9 @@ const jobOrderItemSchema = z.object({
 const jobOrderSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactNumber: z.string().min(1, "Contact number is required."),
-  date: z.date({ required_error: "A date is required." }),
+  date: z.date({ required_error: "An order date is required." }),
+  startDate: z.date({ required_error: "A start date is required." }),
+  dueDate: z.date({ required_error: "A due date is required." }),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
 });
 
@@ -46,6 +48,8 @@ export async function createJobOrderAction(
       clientName: validation.data.clientName,
       contactNumber: validation.data.contactNumber,
       date: validation.data.date.toISOString(),
+      startDate: validation.data.startDate.toISOString(),
+      dueDate: validation.data.dueDate.toISOString(),
       items: validation.data.items.map((item) => ({
         ...item,
         id: crypto.randomUUID(),

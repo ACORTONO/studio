@@ -27,11 +27,11 @@ export default function PrintPage() {
 
   if (!order) {
     return (
-        <div className="p-12 space-y-8">
-            <Skeleton className="h-12 w-1/2" />
-            <Skeleton className="h-8 w-1/3" />
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-48 w-full" />
+        <div className="p-12 space-y-8 bg-white text-black">
+            <Skeleton className="h-12 w-1/2 bg-gray-300" />
+            <Skeleton className="h-8 w-1/3 bg-gray-300" />
+            <Skeleton className="h-32 w-full bg-gray-300" />
+            <Skeleton className="h-48 w-full bg-gray-300" />
         </div>
     );
   }
@@ -54,14 +54,16 @@ export default function PrintPage() {
         
         <Separator className="my-8" />
 
-        <section className="grid grid-cols-2 gap-8 mb-10">
+        <section className="grid grid-cols-3 gap-8 mb-10">
             <div>
                 <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Bill To</h3>
                 <p className="font-bold text-lg">{order.clientName}</p>
                 <p>{order.contactNumber}</p>
             </div>
             <div className="text-right">
-                <p><span className="font-semibold text-gray-600">Date:</span> {new Date(order.date).toLocaleDateString()}</p>
+                 <p><span className="font-semibold text-gray-600">Order Date:</span> {new Date(order.date).toLocaleDateString()}</p>
+                 <p><span className="font-semibold text-gray-600">Start Date:</span> {new Date(order.startDate).toLocaleDateString()}</p>
+                 <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(order.dueDate).toLocaleDateString()}</p>
             </div>
         </section>
 
@@ -90,8 +92,8 @@ export default function PrintPage() {
                 </TableBody>
                 <TableFooter>
                     <TableRow className="font-bold text-lg">
-                        <TableCell colSpan={3} className="text-right">Grand Total</TableCell>
-                        <TableCell className="text-right text-primary">{formatCurrency(order.totalAmount)}</TableCell>
+                        <TableCell colSpan={3} className="text-right text-gray-800">Grand Total</TableCell>
+                        <TableCell className="text-right text-purple-600">{formatCurrency(order.totalAmount)}</TableCell>
                     </TableRow>
                 </TableFooter>
             </Table>

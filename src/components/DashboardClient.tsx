@@ -175,7 +175,8 @@ export function DashboardClient() {
               <TableRow>
                 <TableHead>Job Order #</TableHead>
                 <TableHead>Client Name</TableHead>
-                <TableHead>Date</TableHead>
+                <TableHead>Start Date</TableHead>
+                <TableHead>Due Date</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -188,12 +189,13 @@ export function DashboardClient() {
                       <Badge variant="outline">{order.jobOrderNumber}</Badge>
                     </TableCell>
                     <TableCell className="font-medium">{order.clientName}</TableCell>
-                    <TableCell>{new Date(order.date).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
                     <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                     <TableCell className="text-right">
-                       <Link href={`/print/${order.id}`} target="_blank" passHref>
-                        <Button asChild variant="ghost" size="icon">
-                           <div><Printer className="h-4 w-4" /></div>
+                       <Link href={`/print/${order.id}`} target="_blank">
+                        <Button variant="ghost" size="icon">
+                           <Printer className="h-4 w-4" />
                         </Button>
                        </Link>
                     </TableCell>
@@ -201,7 +203,7 @@ export function DashboardClient() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No job orders for this period.
                   </TableCell>
                 </TableRow>
