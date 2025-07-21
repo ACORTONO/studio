@@ -121,6 +121,8 @@ interface JobOrderContextType {
   updateJobOrder: (order: JobOrder) => void;
   getJobOrderById: (id: string) => JobOrder | undefined;
   addExpense: (expense: Omit<Expense, 'id' | 'date' | 'totalAmount'>) => void;
+  updateExpense: (expense: Omit<Expense, 'date' | 'totalAmount'>) => void;
+  deleteExpense: (expenseId: string) => void;
 }
 
 const JobOrderContext = createContext<JobOrderContextType | undefined>(
@@ -155,8 +157,23 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     setExpenses(prev => [...prev, newExpense]);
   }
 
+  const updateExpense = (expense: Omit<Expense, 'date' | 'totalAmount'>) => {
+    const totalAmount = expense.items.reduce((sum, item) => sum + item.amount, 0);
+    const updatedExpense: Expense = {
+        ...expense,
+        date: new Date().toISOString(),
+        items: expense.items.map(item => ({...item, id: item.id || crypto.randomUUID() })),
+        totalAmount
+    }
+    setExpenses(prev => prev.map(e => e.id === updatedExpense.id ? updatedExpense : e));
+  }
+
+  const deleteExpense = (expenseId: string) => {
+    setExpenses(prev => prev.filter(e => e.id !== expenseId));
+  }
+
   return (
-    <JobOrderContext.Provider value={{ jobOrders, expenses, addJobOrder, updateJobOrder, getJobOrderById, addExpense }}>
+    <JobOrderContext.Provider value={{ jobOrders, expenses, addJobOrder, updateJobOrder, getJobOrderById, addExpense, updateExpense, deleteExpense }}>
       {children}
     </JobOrderContext.Provider>
   );

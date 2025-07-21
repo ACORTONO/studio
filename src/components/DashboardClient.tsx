@@ -46,21 +46,34 @@ import {
   DialogClose,
   DialogFooter
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { ExpenseCategory } from "@/lib/types";
+import { Expense, ExpenseCategory } from "@/lib/types";
 
 
 const expenseItemSchema = z.object({
+    id: z.string().optional(),
     description: z.string().min(1, 'Description is required'),
     amount: z.coerce.number().min(0.01, 'Amount must be positive')
 });
 
 const expenseSchema = z.object({
+    id: z.string().optional(),
     description: z.string().min(1, 'Main description is required'),
     category: z.enum(['General', 'Cash Advance', 'Salary', 'Fixed Expense']),
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
@@ -80,16 +93,17 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
 );
 
 export function DashboardClient() {
-  const { jobOrders, expenses, addExpense } = useJobOrders();
+  const { jobOrders, expenses, addExpense, updateExpense, deleteExpense } = useJobOrders();
   const [timeFilter, setTimeFilter] = useState("today");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
-    defaultValues: { 
-        description: '', 
+    defaultValues: {
+        description: '',
         category: 'General',
-        items: [{ description: '', amount: 0 }] 
+        items: [{ description: '', amount: 0 }]
     }
   });
 
@@ -133,10 +147,30 @@ export function DashboardClient() {
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
-  const handleAddExpense = (values: z.infer<typeof expenseSchema>) => {
-    addExpense(values);
+  const handleExpenseSubmit = (values: z.infer<typeof expenseSchema>) => {
+    if (editingExpense) {
+      updateExpense({ ...values, id: editingExpense.id });
+    } else {
+      addExpense(values);
+    }
     expenseForm.reset({ description: '', category: 'General', items: [{ description: '', amount: 0 }] });
     setIsExpenseDialogOpen(false);
+    setEditingExpense(null);
+  }
+  
+  const handleOpenExpenseDialog = (expense?: Expense) => {
+    if (expense) {
+        setEditingExpense(expense);
+        expenseForm.reset(expense);
+    } else {
+        setEditingExpense(null);
+        expenseForm.reset({ description: '', category: 'General', items: [{ description: '', amount: 0 }] });
+    }
+    setIsExpenseDialogOpen(true);
+  }
+
+  const handleDeleteExpense = (expenseId: string) => {
+    deleteExpense(expenseId);
   }
 
   const watchExpenseItems = expenseForm.watch("items");
@@ -149,17 +183,25 @@ export function DashboardClient() {
     <div className="space-y-4">
         <div className="flex items-center justify-between">
             <h1 className="text-3xl font-headline font-bold">Dashboard</h1>
-            <Dialog open={isExpenseDialogOpen} onOpenChange={setIsExpenseDialogOpen}>
+            <Dialog open={isExpenseDialogOpen} onOpenChange={(isOpen) => {
+                 setIsExpenseDialogOpen(isOpen);
+                 if (!isOpen) {
+                    setEditingExpense(null);
+                    expenseForm.reset();
+                 }
+            }}>
                 <DialogTrigger asChild>
-                    <Button>
+                    <Button onClick={() => handleOpenExpenseDialog()}>
                         <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-xl">
-                    <form onSubmit={expenseForm.handleSubmit(handleAddExpense)}>
+                    <form onSubmit={expenseForm.handleSubmit(handleExpenseSubmit)}>
                         <DialogHeader>
-                            <DialogTitle>Add New Expense</DialogTitle>
-                            <DialogDescription>Record a new expense with multiple items.</DialogDescription>
+                            <DialogTitle>{editingExpense ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
+                            <DialogDescription>
+                                {editingExpense ? 'Update the details of your expense.' : 'Record a new expense with multiple items.'}
+                            </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid grid-cols-4 items-center gap-4">
@@ -182,7 +224,7 @@ export function DashboardClient() {
                                 </Select>
                                 {expenseForm.formState.errors.category && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.category.message}</p>}
                             </div>
-                            
+
                             <Card>
                                 <CardHeader>
                                     <CardTitle className="text-base">Expense Items</CardTitle>
@@ -242,7 +284,7 @@ export function DashboardClient() {
                             <DialogClose asChild>
                                 <Button type="button" variant="secondary">Cancel</Button>
                             </DialogClose>
-                            <Button type="submit">Save Expense</Button>
+                            <Button type="submit">{editingExpense ? 'Update' : 'Save'} Expense</Button>
                         </DialogFooter>
                     </form>
                 </DialogContent>
@@ -256,14 +298,14 @@ export function DashboardClient() {
             <TabsTrigger value="monthly">This Month</TabsTrigger>
             <TabsTrigger value="yearly">This Year</TabsTrigger>
         </TabsList>
-        
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={TrendingUp} description={`For the selected period`} />
             <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description={`For the selected period`} />
             <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={DollarSign} description={`For the selected period`}/>
         </div>
         </Tabs>
-        
+
         <Tabs defaultValue="jobOrders" className="space-y-4">
             <TabsList>
                 <TabsTrigger value="jobOrders">Job Orders</TabsTrigger>
@@ -339,6 +381,7 @@ export function DashboardClient() {
                                     <TableHead>Description</TableHead>
                                     <TableHead>Items</TableHead>
                                     <TableHead className="text-right">Total Amount</TableHead>
+                                    <TableHead className="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -356,11 +399,35 @@ export function DashboardClient() {
                                                 </ul>
                                             </TableCell>
                                             <TableCell className="text-right">{formatCurrency(expense.totalAmount)}</TableCell>
+                                            <TableCell className="text-right space-x-2">
+                                                <Button variant="ghost" size="icon" onClick={() => handleOpenExpenseDialog(expense)}>
+                                                    <Pencil className="h-4 w-4" />
+                                                </Button>
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                                        </Button>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                        <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will permanently delete this expense record.
+                                                        </AlertDialogDescription>
+                                                        </AlertDialogHeader>
+                                                        <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteExpense(expense.id)}>Delete</AlertDialogAction>
+                                                        </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                </AlertDialog>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="h-24 text-center">
+                                        <TableCell colSpan={6} className="h-24 text-center">
                                             No expenses for this period.
                                         </TableCell>
                                     </TableRow>
