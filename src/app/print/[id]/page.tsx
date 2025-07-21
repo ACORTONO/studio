@@ -9,13 +9,32 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import Image from 'next/image';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, Printer } from 'lucide-react';
 
 export default function PrintPage() {
   const { id } = useParams();
   const { jobOrders, getJobOrderById } = useJobOrders();
   const [order, setOrder] = useState<JobOrder | undefined>(undefined);
+  const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);
   
   const printCalled = React.useRef(false);
+
+  useEffect(() => {
+    async function checkPrinter() {
+      if (typeof window !== 'undefined' && 'getPrinters' in navigator) {
+        try {
+          const printers = await (navigator as any).getPrinters();
+          setPrinterAvailable(printers.length > 0);
+        } catch (error) {
+          console.warn('Could not detect printers.', error);
+          // Assume a printer is available if the API fails, to not block users.
+          setPrinterAvailable(true);
+        }
+      }
+    }
+    checkPrinter();
+  }, []);
 
   useLayoutEffect(() => {
     const foundOrder = getJobOrderById(id as string);
@@ -23,21 +42,21 @@ export default function PrintPage() {
   }, [id, jobOrders, getJobOrderById]);
 
   useEffect(() => {
-    if (order && !printCalled.current) {
+    if (order && printerAvailable && !printCalled.current) {
         if (typeof window !== 'undefined') {
             printCalled.current = true;
             setTimeout(() => window.print(), 500);
         }
     }
-  }, [order]);
+  }, [order, printerAvailable]);
 
   if (!order) {
     return (
-        <div className="p-12 space-y-8 bg-white text-black">
-            <Skeleton className="h-12 w-1/2 bg-gray-300" />
-            <Skeleton className="h-8 w-1/3 bg-gray-300" />
+        <div className="p-4 space-y-4 bg-white text-black text-xs">
+            <Skeleton className="h-8 w-1/2 bg-gray-300" />
+            <Skeleton className="h-6 w-1/3 bg-gray-300" />
+            <Skeleton className="h-24 w-full bg-gray-300" />
             <Skeleton className="h-32 w-full bg-gray-300" />
-            <Skeleton className="h-48 w-full bg-gray-300" />
         </div>
     );
   }
@@ -48,8 +67,8 @@ export default function PrintPage() {
     switch (order.paymentMethod) {
         case 'Cheque':
             return (
-                <div>
-                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Payment Details</h3>
+                <div className="text-xxs">
+                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
                     <p><span className="font-semibold">Method:</span> Cheque</p>
                     {order.bankName && <p><span className="font-semibold">Bank:</span> {order.bankName}</p>}
                     {order.chequeNumber && <p><span className="font-semibold">Cheque No:</span> {order.chequeNumber}</p>}
@@ -58,16 +77,16 @@ export default function PrintPage() {
             );
         case 'E-Wallet':
              return (
-                <div>
-                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Payment Details</h3>
+                <div className="text-xxs">
+                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
                     <p><span className="font-semibold">Method:</span> E-Wallet</p>
                     {order.eWalletReference && <p><span className="font-semibold">Reference:</span> {order.eWalletReference}</p>}
                 </div>
             );
         case 'Bank Transfer':
             return (
-                <div>
-                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Payment Details</h3>
+                <div className="text-xxs">
+                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
                     <p><span className="font-semibold">Method:</span> Bank Transfer</p>
                     {order.bankTransferReference && <p><span className="font-semibold">Reference:</span> {order.bankTransferReference}</p>}
                 </div>
@@ -78,25 +97,34 @@ export default function PrintPage() {
   }
 
   return (
-    <div className="p-8 sm:p-12 font-sans text-gray-800 bg-white">
-        <header className="flex justify-between items-start mb-10">
+    <div className="p-2 font-sans text-gray-800 bg-white text-[8px] leading-tight">
+        {!printerAvailable && (
+            <Alert variant="destructive" className="mb-4 no-print">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>No Printer Detected</AlertTitle>
+                <AlertDescription>
+                    Your browser could not detect any available printers. Please ensure a printer is connected and configured.
+                </AlertDescription>
+            </Alert>
+        )}
+        <header className="flex justify-between items-start mb-4">
             <div>
-                <h1 className="text-4xl font-headline font-bold text-gray-900">JOB ORDER</h1>
-                <p className="text-gray-500">{order.jobOrderNumber}</p>
+                <h1 className="text-lg font-headline font-bold text-gray-900">JOB ORDER</h1>
+                <p className="text-gray-500 text-xs">{order.jobOrderNumber}</p>
             </div>
             <div className="text-right">
-                <Image src="/logo.png" alt="Company Logo" width={150} height={150} className="w-32 h-auto ml-auto mb-2"/>
-                <p className="text-sm text-gray-600">123 Business Rd, City, State 12345</p>
-                <p className="text-sm text-gray-600">contact@yourcompany.com</p>
+                <Image src="/logo.png" alt="Company Logo" width={80} height={80} className="w-16 h-auto ml-auto mb-1"/>
+                <p className="text-xxs text-gray-600">123 Business Rd, City, State 12345</p>
+                <p className="text-xxs text-gray-600">contact@yourcompany.com</p>
             </div>
         </header>
         
-        <Separator className="my-8 bg-gray-200" />
+        <Separator className="my-2 bg-gray-200" />
 
-        <section className="grid grid-cols-3 gap-8 mb-10">
+        <section className="grid grid-cols-3 gap-4 mb-4 text-xxs">
             <div>
-                <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Bill To</h3>
-                <p className="font-bold text-lg">{order.clientName}</p>
+                <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Bill To</h3>
+                <p className="font-bold text-xs">{order.clientName}</p>
                 <p>{order.contactNumber}</p>
             </div>
             <div className="text-right col-span-2">
@@ -110,50 +138,50 @@ export default function PrintPage() {
             <Table>
                 <TableHeader>
                     <TableRow className="bg-gray-100">
-                        <TableHead className="w-2/5 font-bold text-gray-700">Description</TableHead>
-                        <TableHead className="text-center font-bold text-gray-700">Quantity</TableHead>
-                        <TableHead className="text-right font-bold text-gray-700">Unit Price</TableHead>
-                        <TableHead className="text-right font-bold text-gray-700">Total</TableHead>
+                        <TableHead className="w-2/5 font-bold text-gray-700 p-1 h-auto">Description</TableHead>
+                        <TableHead className="text-center font-bold text-gray-700 p-1 h-auto">Qty</TableHead>
+                        <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Price</TableHead>
+                        <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Total</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
                     {order.items.map(item => (
                         <TableRow key={item.id}>
-                            <TableCell>
+                            <TableCell className="p-1">
                                 <p className="font-medium">{item.description}</p>
-                                {item.remarks && <p className="text-sm text-gray-500">{item.remarks}</p>}
+                                {item.remarks && <p className="text-xxs text-gray-500">{item.remarks}</p>}
                             </TableCell>
-                            <TableCell className="text-center">{item.quantity}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
+                            <TableCell className="text-center p-1">{item.quantity}</TableCell>
+                            <TableCell className="text-right p-1">{formatCurrency(item.amount)}</TableCell>
+                            <TableCell className="text-right p-1">{formatCurrency(item.quantity * item.amount)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
                 <TableFooter>
-                    <TableRow className="font-bold text-lg">
-                        <TableCell colSpan={3} className="text-right text-gray-800">Grand Total</TableCell>
-                        <TableCell className="text-right text-purple-600">{formatCurrency(order.totalAmount)}</TableCell>
+                    <TableRow className="font-bold text-xs">
+                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Grand Total</TableCell>
+                        <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(order.totalAmount)}</TableCell>
                     </TableRow>
                 </TableFooter>
             </Table>
         </section>
 
-        <section className="mt-10 grid grid-cols-2 gap-8">
+        <section className="mt-4 grid grid-cols-2 gap-4 text-xxs">
             {order.notes && (
                     <div>
-                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider text-sm mb-2">Additional Notes</h3>
+                    <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Notes</h3>
                     <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
                     </div>
             )}
             {renderPaymentDetails()}
         </section>
 
-        <footer className="mt-20 pt-8 border-t border-gray-200 text-gray-500 grid grid-cols-2">
+        <footer className="mt-8 pt-4 border-t border-gray-200 text-gray-500 grid grid-cols-2 text-xxs">
             <div>
-                 <p>Prepared by: _________________________</p>
+                 <p>Prepared by: _________________</p>
             </div>
             <div className="text-right">
-                <p>Customer Signature: _________________________</p>
+                <p>Signature: _________________</p>
             </div>
         </footer>
     </div>
