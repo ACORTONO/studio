@@ -69,6 +69,7 @@ const formSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
+  paidAmount: z.coerce.number().min(0, "Paid amount must be non-negative.").optional(),
   items: z
     .array(
       z.object({
@@ -108,6 +109,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       dueDate: new Date(),
       notes: "",
       status: "Pending",
+      paidAmount: 0,
       items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
     },
   });
@@ -464,7 +466,20 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 Add Item
               </Button>
             </CardContent>
-            <CardFooter className="flex justify-end bg-muted/50 p-6">
+            <CardFooter className="flex justify-between items-center bg-muted/50 p-6">
+               <FormField
+                control={form.control}
+                name="paidAmount"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-2">
+                    <FormLabel>Paid Amount</FormLabel>
+                    <FormControl>
+                      <Input type="number" className="w-32" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="text-xl font-bold">
                 Total Amount:{" "}
                 <span className="text-primary">

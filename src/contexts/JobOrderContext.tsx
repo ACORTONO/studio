@@ -15,7 +15,8 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i1", description: "Logo Design", quantity: 1, amount: 500, remarks: "Initial concept" }],
     totalAmount: 500,
-    status: 'In Progress',
+    paidAmount: 500,
+    status: 'Completed',
     notes: "Client wants a modern, minimalist logo. Prefers blue and silver."
   },
   {
@@ -28,8 +29,23 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i2", description: "Website Development", quantity: 1, amount: 2500, remarks: "5 pages" }, { id: 'i3', description: 'Hosting (1 year)', quantity: 1, amount: 150, remarks: ''}],
     totalAmount: 2650,
-    status: 'Pending',
+    paidAmount: 1000,
+    status: 'In Progress',
     notes: ""
+  },
+   {
+    id: "3",
+    jobOrderNumber: "JO-20230117-0003",
+    clientName: "Charlie Brown",
+    contactNumber: "555-555-5555",
+    date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    startDate: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    items: [{ id: "i4", description: "Business Cards", quantity: 200, amount: 50, remarks: "Matte finish" }],
+    totalAmount: 50,
+    paidAmount: 0,
+    status: 'Pending',
+    notes: "Awaiting payment before printing."
   },
 ];
 

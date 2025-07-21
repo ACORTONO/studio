@@ -17,14 +17,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { DollarSign } from "lucide-react";
-
-interface ClientSales {
-  clientName: string;
-  totalSales: number;
-  jobOrderCount: number;
-}
+import { Badge } from "@/components/ui/badge";
+import { DollarSign, TrendingUp, TrendingDown, Package, Banknote, AlertCircle, CheckCircle } from "lucide-react";
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card>
@@ -39,75 +33,90 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
     </Card>
 );
 
-
 export function ReportsClient() {
-  const { jobOrders } = useJobOrders();
+  const { jobOrders, expenses } = useJobOrders();
 
-  const { clientSales, grandTotalSales } = useMemo(() => {
-    const salesByClient: { [key: string]: { totalSales: number, jobOrderCount: number } } = {};
+  const { 
+    grandTotalSales,
+    totalCollectibles,
+    totalUnpaid,
+    totalExpenses,
+    cashOnHand,
+    sortedJobOrders
+   } = useMemo(() => {
+    const grandTotalSales = jobOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.paidAmount || 0), 0);
+    const totalUnpaid = grandTotalSales - totalCollectibles;
+    const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+    const cashOnHand = totalCollectibles - totalExpenses;
+    
+    // Sort by date descending
+    const sortedJobOrders = [...jobOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-    jobOrders.forEach(order => {
-      if (!salesByClient[order.clientName]) {
-        salesByClient[order.clientName] = { totalSales: 0, jobOrderCount: 0 };
-      }
-      salesByClient[order.clientName].totalSales += order.totalAmount;
-      salesByClient[order.clientName].jobOrderCount += 1;
-    });
-
-    const clientSales: ClientSales[] = Object.entries(salesByClient).map(([clientName, data]) => ({
-      clientName,
-      ...data
-    })).sort((a, b) => b.totalSales - a.totalSales); // Sort by total sales descending
-
-    const grandTotalSales = clientSales.reduce((sum, client) => sum + client.totalSales, 0);
-
-    return { clientSales, grandTotalSales };
-  }, [jobOrders]);
+    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedJobOrders };
+  }, [jobOrders, expenses]);
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
   return (
     <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-3">
-             <StatCard title="Grand Total Sales" value={formatCurrency(grandTotalSales)} icon={DollarSign} description="Total revenue from all job orders"/>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+             <StatCard title="Total Sales" value={formatCurrency(grandTotalSales)} icon={TrendingUp} description="Total revenue from all job orders"/>
+             <StatCard title="Total Collectibles" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
+             <StatCard title="Total Unpaid" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
+             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
         </div>
       <Card>
         <CardHeader>
-          <CardTitle>Sales by Client</CardTitle>
-          <CardDescription>A summary of total sales from each client.</CardDescription>
+          <CardTitle>All Job Orders</CardTitle>
+          <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">Rank</TableHead>
+                <TableHead>Job Order #</TableHead>
                 <TableHead>Client Name</TableHead>
-                <TableHead className="text-center">Job Orders</TableHead>
-                <TableHead className="text-right">Total Sales</TableHead>
+                <TableHead className="text-right">Total Amount</TableHead>
+                <TableHead className="text-right">Paid</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
+                <TableHead className="text-center">Status</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {clientSales.length > 0 ? (
-                clientSales.map((client, index) => (
-                  <TableRow key={client.clientName}>
-                    <TableCell className="font-bold text-lg text-muted-foreground">
-                        {index + 1}
-                    </TableCell>
-                    <TableCell>
-                        <div className="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarFallback>{client.clientName.charAt(0)}</AvatarFallback>
-                            </Avatar>
-                            <span className="font-medium">{client.clientName}</span>
-                        </div>
-                    </TableCell>
-                    <TableCell className="text-center">{client.jobOrderCount}</TableCell>
-                    <TableCell className="text-right font-semibold">{formatCurrency(client.totalSales)}</TableCell>
-                  </TableRow>
-                ))
+              {sortedJobOrders.length > 0 ? (
+                sortedJobOrders.map((order) => {
+                  const balance = order.totalAmount - (order.paidAmount || 0);
+                  const isPaid = balance <= 0;
+                  return (
+                    <TableRow key={order.id}>
+                        <TableCell>
+                            <Badge variant="outline">{order.jobOrderNumber}</Badge>
+                        </TableCell>
+                        <TableCell>
+                            <span className="font-medium">{order.clientName}</span>
+                            {order.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{order.notes}</p>}
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(order.totalAmount)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(order.paidAmount || 0)}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
+                        <TableCell className="text-center">
+                            {isPaid ? (
+                                <Badge className="bg-green-600/80 text-white">
+                                    <CheckCircle className="mr-1 h-3 w-3"/> Paid
+                                </Badge>
+                            ) : (
+                                <Badge variant="destructive">
+                                    <AlertCircle className="mr-1 h-3 w-3"/> Unpaid
+                                </Badge>
+                            )}
+                        </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+                  <TableCell colSpan={6} className="h-24 text-center">
                     No sales data available. Create a job order to see reports.
                   </TableCell>
                 </TableRow>

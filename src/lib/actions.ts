@@ -20,6 +20,7 @@ const jobOrderSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
+  paidAmount: z.coerce.number().min(0).optional().default(0),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
 });
 
@@ -60,6 +61,7 @@ export async function createJobOrderAction(
       dueDate: validation.data.dueDate.toISOString(),
       notes: validation.data.notes,
       status: validation.data.status,
+      paidAmount: validation.data.paidAmount,
       items: validation.data.items.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
@@ -100,6 +102,7 @@ export async function updateJobOrderAction(
             dueDate: existingOrder.dueDate.toISOString(),
             notes: existingOrder.notes,
             status: existingOrder.status,
+            paidAmount: existingOrder.paidAmount,
             items: existingOrder.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),
