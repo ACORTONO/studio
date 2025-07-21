@@ -1,3 +1,4 @@
+
 "use server";
 
 import { generateJobOrderNumber } from "@/ai/flows/generate-job-order-number";
@@ -22,13 +23,15 @@ const jobOrderSchemaBase = z.object({
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   paidAmount: z.coerce.number().min(0).optional().default(0),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
-  paymentMethod: z.enum(["Cash", "Cheque"]).default("Cash"),
+  paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
   bankName: z.string().optional(),
   chequeNumber: z.string().optional(),
   chequeDate: z.date().optional(),
+  eWalletReference: z.string().optional(),
+  bankTransferReference: z.string().optional(),
 });
 
-const jobOrderSchema = jobOrderSchemaBase.superRefine((data, ctx) => {
+const refinement = (data: z.infer<typeof jobOrderSchemaBase>, ctx: z.RefinementCtx) => {
     if (data.paymentMethod === 'Cheque') {
         if (!data.bankName) {
             ctx.addIssue({ code: 'custom', message: 'Bank name is required for cheque payments.', path: ['bankName']});
@@ -40,13 +43,20 @@ const jobOrderSchema = jobOrderSchemaBase.superRefine((data, ctx) => {
             ctx.addIssue({ code: 'custom', message: 'Cheque date is required for cheque payments.', path: ['chequeDate']});
         }
     }
-});
+    if (data.paymentMethod === 'E-Wallet' && !data.eWalletReference) {
+        ctx.addIssue({ code: 'custom', message: 'E-Wallet reference is required.', path: ['eWalletReference']});
+    }
+    if (data.paymentMethod === 'Bank Transfer' && !data.bankTransferReference) {
+        ctx.addIssue({ code: 'custom', message: 'Bank transfer reference is required.', path: ['bankTransferReference']});
+    }
+};
 
+const jobOrderSchema = jobOrderSchemaBase.superRefine(refinement);
 
 const updateJobOrderSchema = jobOrderSchemaBase.extend({
     id: z.string(),
     jobOrderNumber: z.string(),
-});
+}).superRefine(refinement);
 
 
 export async function createJobOrderAction(
@@ -92,6 +102,8 @@ export async function createJobOrderAction(
       bankName: validatedData.bankName,
       chequeNumber: validatedData.chequeNumber,
       chequeDate: validatedData.chequeDate?.toISOString(),
+      eWalletReference: validatedData.eWalletReference,
+      bankTransferReference: validatedData.bankTransferReference,
     };
 
     return { success: true, data: newOrder };
@@ -139,6 +151,8 @@ export async function updateJobOrderAction(
             bankName: validatedData.bankName,
             chequeNumber: validatedData.chequeNumber,
             chequeDate: validatedData.chequeDate?.toISOString(),
+            eWalletReference: validatedData.eWalletReference,
+            bankTransferReference: validatedData.bankTransferReference,
         };
         
         return { success: true, data: updatedOrder };

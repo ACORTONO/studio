@@ -12,6 +12,9 @@ import {
   Printer,
   Banknote,
   Building,
+  Wallet,
+  Landmark,
+  FileText
 } from "lucide-react";
 import {
   Form,
@@ -73,10 +76,12 @@ const formSchema = z.object({
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   paidAmount: z.coerce.number().min(0, "Paid amount must be non-negative.").optional(),
-  paymentMethod: z.enum(["Cash", "Cheque"]).default("Cash"),
+  paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
   bankName: z.string().optional(),
   chequeNumber: z.string().optional(),
   chequeDate: z.date().optional(),
+  eWalletReference: z.string().optional(),
+  bankTransferReference: z.string().optional(),
   items: z
     .array(
       z.object({
@@ -99,6 +104,12 @@ const formSchema = z.object({
         if (!data.chequeDate) {
             ctx.addIssue({ code: 'custom', message: 'Cheque date is required for cheque payments.', path: ['chequeDate']});
         }
+    }
+    if (data.paymentMethod === 'E-Wallet' && !data.eWalletReference) {
+        ctx.addIssue({ code: 'custom', message: 'E-Wallet reference is required.', path: ['eWalletReference']});
+    }
+    if (data.paymentMethod === 'Bank Transfer' && !data.bankTransferReference) {
+        ctx.addIssue({ code: 'custom', message: 'Bank transfer reference is required.', path: ['bankTransferReference']});
     }
 });
 
@@ -529,19 +540,31 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             <RadioGroup
                               onValueChange={field.onChange}
                               defaultValue={field.value}
-                              className="flex gap-4"
+                              className="grid grid-cols-2 gap-4"
                             >
                               <FormItem className="flex items-center space-x-2 space-y-0">
                                 <FormControl>
                                   <RadioGroupItem value="Cash" />
                                 </FormControl>
-                                <FormLabel className="font-normal">Cash</FormLabel>
+                                <FormLabel className="font-normal flex items-center gap-2"><Banknote/>Cash</FormLabel>
                               </FormItem>
                               <FormItem className="flex items-center space-x-2 space-y-0">
                                 <FormControl>
                                   <RadioGroupItem value="Cheque" />
                                 </FormControl>
-                                <FormLabel className="font-normal">Cheque</FormLabel>
+                                <FormLabel className="font-normal flex items-center gap-2"><FileText/>Cheque</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="E-Wallet" />
+                                </FormControl>
+                                <FormLabel className="font-normal flex items-center gap-2"><Wallet/>E-Wallet</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Bank Transfer" />
+                                </FormControl>
+                                <FormLabel className="font-normal flex items-center gap-2"><Landmark/>Bank Transfer</FormLabel>
                               </FormItem>
                             </RadioGroup>
                           </FormControl>
@@ -617,6 +640,46 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                         />
                                     </PopoverContent>
                                     </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                    )}
+                     {paymentMethod === 'E-Wallet' && (
+                        <div className="space-y-4 border-l-2 border-primary pl-4">
+                             <FormField
+                                control={form.control}
+                                name="eWalletReference"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>E-Wallet Reference</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                            <Input placeholder="e.g., GCash Ref: 12345" {...field} className="pl-10"/>
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                    )}
+                    {paymentMethod === 'Bank Transfer' && (
+                        <div className="space-y-4 border-l-2 border-primary pl-4">
+                             <FormField
+                                control={form.control}
+                                name="bankTransferReference"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Bank Transfer Reference</FormLabel>
+                                    <FormControl>
+                                        <div className="relative">
+                                            <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
+                                            <Input placeholder="e.g., BDO Ref: 67890" {...field} className="pl-10"/>
+                                        </div>
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                                 )}

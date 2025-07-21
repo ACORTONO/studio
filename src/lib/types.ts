@@ -19,10 +19,12 @@ export interface JobOrder {
   paidAmount?: number;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
-  paymentMethod?: 'Cash' | 'Cheque';
+  paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
   bankName?: string;
   chequeNumber?: string;
   chequeDate?: string; // Using string to be serializable
+  eWalletReference?: string;
+  bankTransferReference?: string;
 }
 
 export interface Expense {

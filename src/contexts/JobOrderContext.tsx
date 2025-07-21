@@ -53,6 +53,38 @@ const mockJobOrders: JobOrder[] = [
     status: 'Pending',
     notes: "Awaiting payment before printing."
   },
+  {
+    id: "4",
+    jobOrderNumber: "JO-20230118-0004",
+    clientName: "Diana Prince",
+    contactNumber: "111-222-3333",
+    date: new Date().toISOString(),
+    startDate: new Date().toISOString(),
+    dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    items: [{ id: 'i5', description: 'Social Media Campaign', quantity: 1, amount: 1200, remarks: '1 month management' }],
+    totalAmount: 1200,
+    paidAmount: 1200,
+    paymentMethod: 'E-Wallet',
+    eWalletReference: 'GCash Ref: 987654321',
+    status: 'Completed',
+    notes: 'Campaign for new product launch'
+  },
+  {
+    id: "5",
+    jobOrderNumber: "JO-20230119-0005",
+    clientName: "Ethan Hunt",
+    contactNumber: "444-555-6666",
+    date: new Date().toISOString(),
+    startDate: new Date().toISOString(),
+    dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    items: [{ id: 'i6', description: 'Video Production', quantity: 1, amount: 5000, remarks: '3-minute corporate video' }],
+    totalAmount: 5000,
+    paidAmount: 2500,
+    paymentMethod: 'Bank Transfer',
+    bankTransferReference: 'BDO Ref: ABC12345',
+    status: 'In Progress',
+    notes: 'First half paid upfront.'
+  },
 ];
 
 const mockExpenses: Expense[] = [
