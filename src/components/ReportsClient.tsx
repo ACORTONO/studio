@@ -23,7 +23,7 @@ import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle } from "luci
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { format, getMonth, getYear, parseISO } from 'date-fns';
+import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card>
@@ -74,6 +74,43 @@ export function ReportsClient() {
     const sortedJobOrders = [...jobOrders].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedJobOrders };
+  }, [jobOrders, expenses]);
+
+  const weeklyData = useMemo(() => {
+    const now = new Date();
+    const weekStart = startOfWeek(now);
+    const weekEnd = endOfWeek(now);
+    const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
+
+    const data = daysInWeek.map(day => ({
+        date: format(day, 'EEE'),
+        sales: 0,
+        collectibles: 0,
+        expenses: 0
+    }));
+
+    jobOrders.forEach(order => {
+        const orderDate = parseISO(order.date);
+        if (orderDate >= weekStart && orderDate <= weekEnd) {
+            const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(orderDate, 'yyyy-MM-dd'));
+            if(dayIndex > -1) {
+                data[dayIndex].sales += order.totalAmount;
+                data[dayIndex].collectibles += order.paidAmount || 0;
+            }
+        }
+    });
+
+    expenses.forEach(expense => {
+        const expenseDate = parseISO(expense.date);
+        if (expenseDate >= weekStart && expenseDate <= weekEnd) {
+            const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(expenseDate, 'yyyy-MM-dd'));
+            if(dayIndex > -1) {
+                data[dayIndex].expenses += expense.totalAmount;
+            }
+        }
+    });
+    
+    return data;
   }, [jobOrders, expenses]);
 
   const monthlyData = useMemo(() => {
@@ -136,8 +173,9 @@ export function ReportsClient() {
         <Tabs defaultValue="overall">
             <TabsList>
                 <TabsTrigger value="overall">Overall</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly Sales</TabsTrigger>
-                <TabsTrigger value="yearly">Yearly Sales</TabsTrigger>
+                <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                <TabsTrigger value="yearly">Yearly</TabsTrigger>
             </TabsList>
             <TabsContent value="overall" className="mt-4">
                 <Card>
@@ -150,6 +188,7 @@ export function ReportsClient() {
                         <TableHeader>
                         <TableRow>
                             <TableHead>Job Order #</TableHead>
+                            <TableHead>Date</TableHead>
                             <TableHead>Client Name</TableHead>
                             <TableHead className="text-right">Total Amount</TableHead>
                             <TableHead className="text-right">Paid</TableHead>
@@ -166,6 +205,9 @@ export function ReportsClient() {
                                 <TableRow key={order.id}>
                                     <TableCell>
                                         <Badge variant="outline">{order.jobOrderNumber}</Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {new Date(order.date).toLocaleDateString()}
                                     </TableCell>
                                     <TableCell>
                                         <span className="font-medium">{order.clientName}</span>
@@ -190,7 +232,7 @@ export function ReportsClient() {
                             })
                         ) : (
                             <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">
+                            <TableCell colSpan={7} className="h-24 text-center">
                                 No sales data available. Create a job order to see reports.
                             </TableCell>
                             </TableRow>
@@ -199,6 +241,30 @@ export function ReportsClient() {
                     </Table>
                     </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="weekly" className="mt-4">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Weekly Sales Report</CardTitle>
+                        <CardDescription>A breakdown of sales, collectibles, and expenses for the current week.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                             <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={weeklyData}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
+                                    <YAxis tickFormatter={(value) => `₱${value / 1000}k`} />
+                                    <Tooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
+                                    <Legend />
+                                    <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="collectibles" fill="var(--color-collectibles)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                 </Card>
             </TabsContent>
             <TabsContent value="monthly" className="mt-4">
                  <Card>
@@ -252,5 +318,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
