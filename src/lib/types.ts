@@ -44,10 +44,3 @@ export interface Expense {
   items: ExpenseItem[];
   totalAmount: number;
 }
-
-export interface SalaryPayment {
-    id: string;
-    date: string; // ISO string
-    employeeName: string;
-    amount: number;
-}
