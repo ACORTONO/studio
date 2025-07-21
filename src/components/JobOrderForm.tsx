@@ -68,6 +68,7 @@ const formSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
+  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   items: z
     .array(
       z.object({
@@ -90,7 +91,7 @@ interface JobOrderFormProps {
 export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const { addJobOrder, updateJobOrder, jobOrders } = useJobOrders();
+  const { addJobOrder, updateJobOrder, jobOrders, getJobOrderById } = useJobOrders();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [lastSavedOrder, setLastSavedOrder] = React.useState<JobOrder | null>(null);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = React.useState(false);
@@ -106,6 +107,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       startDate: new Date(),
       dueDate: new Date(),
       notes: "",
+      status: "Pending",
       items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
     },
   });
@@ -136,8 +138,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     setIsSubmitting(true);
     
     let result;
-    if (isEditMode) {
-        result = await updateJobOrderAction({ ...data, id: initialData.id });
+    if (isEditMode && initialData) {
+        const existingOrder = getJobOrderById(initialData.id);
+        result = await updateJobOrderAction({ ...data, id: initialData.id, jobOrderNumber: existingOrder?.jobOrderNumber || "" });
     } else {
         const existingJobOrderNumbers = jobOrders.map((jo) => jo.jobOrderNumber);
         result = await createJobOrderAction(data, existingJobOrderNumbers);

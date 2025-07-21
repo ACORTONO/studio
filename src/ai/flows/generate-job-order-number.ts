@@ -48,7 +48,7 @@ const generateJobOrderNumberPrompt = ai.definePrompt({
   - {{this}}
   {{/each}}
 
-  Generate a new job order number that is unique and does not exist in the list. The job order number should be in the format JO-YYYYMMDD-NNNN where YYYY, MM, and DD are from the current date, and NNNN is a 4-digit sequence number.
+  Generate a new job order number that is unique and does not exist in the list. The job order number should be in the format JO-YYYYMMDD-NNNN where YYYY, MM, and DD are from the current date, and NNNN is a 4-digit sequence number, starting from 0001.
   Do not generate a job order number that already exists in the list.
   `,
 });

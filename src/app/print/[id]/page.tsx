@@ -13,10 +13,8 @@ export default function PrintPage() {
   const { jobOrders, getJobOrderById } = useJobOrders();
   const [order, setOrder] = useState<JobOrder | undefined>(undefined);
   
-  // Use a ref to ensure print is only called once
   const printCalled = React.useRef(false);
 
-  // This effect ensures we have the latest data from the context.
   useLayoutEffect(() => {
     const foundOrder = getJobOrderById(id as string);
     setOrder(foundOrder);
@@ -24,10 +22,8 @@ export default function PrintPage() {
 
   useEffect(() => {
     if (order && !printCalled.current) {
-        // Check if we are in a browser environment
         if (typeof window !== 'undefined') {
             printCalled.current = true;
-            // Delay print slightly to ensure content is rendered
             setTimeout(() => window.print(), 500);
         }
     }

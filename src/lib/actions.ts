@@ -19,12 +19,13 @@ const jobOrderSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.string(),
+  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
 });
 
 const updateJobOrderSchema = jobOrderSchema.extend({
-    id: z.string()
+    id: z.string(),
+    jobOrderNumber: z.string(),
 });
 
 
@@ -91,7 +92,7 @@ export async function updateJobOrderAction(
 
         const updatedOrder: JobOrder = {
             id: existingOrder.id,
-            jobOrderNumber: "JO-UPDATING-TEMP", // This should be fetched from existing data
+            jobOrderNumber: existingOrder.jobOrderNumber,
             clientName: existingOrder.clientName,
             contactNumber: existingOrder.contactNumber,
             date: existingOrder.date.toISOString(),
