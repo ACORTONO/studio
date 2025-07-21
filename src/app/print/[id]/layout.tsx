@@ -24,7 +24,7 @@ export default function PrintLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-body bg-white">
+      <body className="font-body bg-background">
         {children}
       </body>
     </html>
