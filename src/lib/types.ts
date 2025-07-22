@@ -16,7 +16,8 @@ export interface JobOrder {
   dueDate: string;
   items: JobOrderItem[];
   totalAmount: number;
-  paidAmount?: number;
+  discount?: number;
+  downpayment?: number;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
   paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';

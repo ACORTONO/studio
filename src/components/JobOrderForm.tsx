@@ -75,7 +75,8 @@ const formSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
-  paidAmount: z.coerce.number().min(0, "Paid amount must be non-negative.").optional(),
+  discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
+  downpayment: z.coerce.number().min(0, "Downpayment must be non-negative.").optional(),
   paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
   bankName: z.string().optional(),
   chequeNumber: z.string().optional(),
@@ -143,7 +144,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       dueDate: undefined,
       notes: "",
       status: "Pending",
-      paidAmount: 0,
+      discount: 0,
+      downpayment: 0,
       paymentMethod: "Cash",
       bankName: "",
       chequeNumber: "",
@@ -183,10 +185,15 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   });
 
   const watchItems = form.watch("items");
-  const totalAmount = watchItems.reduce(
+  const watchDiscount = form.watch("discount") || 0;
+  const watchDownpayment = form.watch("downpayment") || 0;
+
+  const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
     0
   );
+
+  const amountDue = subTotal - watchDiscount - watchDownpayment;
 
   const onSubmit = async (data: JobOrderFormValues) => {
     setIsSubmitting(true);
@@ -216,7 +223,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             clientName: "",
             contactNumber: "",
             notes: "",
-            paidAmount: 0,
+            discount: 0,
+            downpayment: 0,
             paymentMethod: "Cash",
             bankName: "",
             chequeNumber: "",
@@ -496,12 +504,44 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 Add Item
               </Button>
             </CardContent>
-            <CardFooter className="flex justify-end items-center bg-muted/50 p-6">
-              <div className="text-xl font-bold">
-                Total Amount:{" "}
-                <span className="text-primary">
-                  {formatCurrency(totalAmount)}
-                </span>
+            <CardFooter className="flex flex-col items-end space-y-2 bg-muted/50 p-6">
+              <div className="flex justify-between w-full max-w-xs">
+                <span className="text-muted-foreground">Subtotal:</span>
+                <span className="font-medium">{formatCurrency(subTotal)}</span>
+              </div>
+              <div className="flex justify-between w-full max-w-xs">
+                 <FormField
+                  control={form.control}
+                  name="discount"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 w-full">
+                      <FormLabel className="text-muted-foreground">Discount:</FormLabel>
+                      <FormControl>
+                        <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+               <div className="flex justify-between w-full max-w-xs">
+                 <FormField
+                  control={form.control}
+                  name="downpayment"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center gap-2 w-full">
+                      <FormLabel className="text-muted-foreground">Downpayment:</FormLabel>
+                      <FormControl>
+                        <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex justify-between w-full max-w-xs border-t pt-2 mt-2 border-border">
+                <span className="text-xl font-bold">Amount Due:</span>
+                <span className="text-xl font-bold text-primary">{formatCurrency(amountDue)}</span>
               </div>
             </CardFooter>
           </Card>
@@ -515,23 +555,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 <CardContent className="space-y-6">
                     <FormField
                       control={form.control}
-                      name="paidAmount"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Paid Amount</FormLabel>
-                          <FormControl>
-                            <Input type="number" placeholder="0.00" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
                       name="paymentMethod"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
-                          <FormLabel>Payment Method</FormLabel>
+                          <FormLabel>Payment Method for Downpayment</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}

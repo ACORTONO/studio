@@ -66,8 +66,9 @@ export function ReportsClient() {
     sortedJobOrders
    } = useMemo(() => {
     const grandTotalSales = jobOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.paidAmount || 0), 0);
-    const totalUnpaid = grandTotalSales - totalCollectibles;
+    const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.downpayment || 0), 0);
+    const totalDiscount = jobOrders.reduce((sum, order) => sum + (order.discount || 0), 0);
+    const totalUnpaid = grandTotalSales - totalCollectibles - totalDiscount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
@@ -95,7 +96,7 @@ export function ReportsClient() {
             const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(orderDate, 'yyyy-MM-dd'));
             if(dayIndex > -1) {
                 data[dayIndex].sales += order.totalAmount;
-                data[dayIndex].collectibles += order.paidAmount || 0;
+                data[dayIndex].collectibles += order.downpayment || 0;
             }
         }
     });
@@ -123,7 +124,7 @@ export function ReportsClient() {
             data[monthKey] = { month: format(date, 'MMM yyyy'), sales: 0, collectibles: 0, expenses: 0 };
         }
         data[monthKey].sales += order.totalAmount;
-        data[monthKey].collectibles += order.paidAmount || 0;
+        data[monthKey].collectibles += order.downpayment || 0;
     });
 
     expenses.forEach(expense => {
@@ -147,7 +148,7 @@ export function ReportsClient() {
             data[year] = { year, sales: 0, collectibles: 0, expenses: 0 };
         }
         data[year].sales += order.totalAmount;
-        data[year].collectibles += order.paidAmount || 0;
+        data[year].collectibles += order.downpayment || 0;
     });
 
     expenses.forEach(expense => {
@@ -199,7 +200,7 @@ export function ReportsClient() {
                         <TableBody>
                         {sortedJobOrders.length > 0 ? (
                             sortedJobOrders.map((order) => {
-                            const balance = order.totalAmount - (order.paidAmount || 0);
+                            const balance = order.totalAmount - (order.downpayment || 0) - (order.discount || 0);
                             const isPaid = balance <= 0;
                             return (
                                 <TableRow key={order.id}>
@@ -214,7 +215,7 @@ export function ReportsClient() {
                                         {order.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{order.notes}</p>}
                                     </TableCell>
                                     <TableCell className="text-right">{formatCurrency(order.totalAmount)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(order.paidAmount || 0)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(order.downpayment || 0)}</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                                     <TableCell className="text-center">
                                         {isPaid ? (

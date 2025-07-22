@@ -59,6 +59,11 @@ export default function PrintPage() {
   }
   
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
+  
+  const subtotal = order.totalAmount;
+  const discount = order.discount || 0;
+  const downpayment = order.downpayment || 0;
+  const amountDue = subtotal - discount - downpayment;
 
   const renderPaymentDetails = () => {
     switch (order.paymentMethod) {
@@ -170,9 +175,25 @@ export default function PrintPage() {
                                 ))}
                             </TableBody>
                             <TableFooter>
-                                <TableRow className="font-bold text-xs">
-                                    <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Grand Total</TableCell>
-                                    <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(order.totalAmount)}</TableCell>
+                                <TableRow>
+                                    <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Subtotal</TableCell>
+                                    <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(subtotal)}</TableCell>
+                                </TableRow>
+                                {discount > 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Discount</TableCell>
+                                        <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(discount)}</TableCell>
+                                    </TableRow>
+                                )}
+                                 {downpayment > 0 && (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Downpayment</TableCell>
+                                        <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(downpayment)}</TableCell>
+                                    </TableRow>
+                                 )}
+                                <TableRow className="font-bold text-xs bg-gray-50">
+                                    <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Amount Due</TableCell>
+                                    <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(amountDue)}</TableCell>
                                 </TableRow>
                             </TableFooter>
                         </Table>
