@@ -581,7 +581,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           </Card>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <Card className="bg-[hsl(var(--accent-teal))]">
+            <Card>
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
                     <CardDescription>Record payment information for this order.</CardDescription>
@@ -800,5 +800,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
 
     
