@@ -514,90 +514,74 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 Add Item
               </Button>
             </CardContent>
-            <CardFooter className="flex flex-col items-end space-y-2 bg-muted/50 p-6">
-                <div className="flex justify-between w-full max-w-xs">
-                    <span className="text-muted-foreground">Subtotal:</span>
-                    <span className="font-medium">{formatCurrency(subTotal)}</span>
-                </div>
-                <div className="flex justify-between items-center w-full max-w-xs">
+            <CardFooter className="flex flex-col items-end space-y-4 bg-muted/50 p-6">
+                <div className="w-full max-w-sm space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="font-medium">{formatCurrency(subTotal)}</span>
+                    </div>
+
                     <FormField
                         control={form.control}
                         name="discount"
                         render={({ field }) => (
-                           <FormItem className="flex items-center justify-between w-full">
-                           <FormLabel className="text-muted-foreground flex items-center gap-2">
-                                Discount:
-                                <div className="flex items-center space-x-2">
-                                    <Label htmlFor="discount-type" className="text-xs">
-                                        {discountType === 'amount' ? '₱' : '%'}
-                                    </Label>
+                           <FormItem>
+                            <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Discount</FormLabel>
+                                <div className="flex items-center gap-2">
+                                    <FormControl>
+                                        <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                    </FormControl>
                                     <FormField
                                         control={form.control}
                                         name="discountType"
                                         render={({ field: switchField }) => (
-                                            <Switch
-                                                id="discount-type"
-                                                checked={switchField.value === 'percent'}
-                                                onCheckedChange={(checked) => {
-                                                    switchField.onChange(checked ? 'percent' : 'amount');
-                                                }}
-                                            />
+                                           <div className="flex items-center space-x-2">
+                                                <Switch
+                                                    id="discount-type"
+                                                    checked={switchField.value === 'percent'}
+                                                    onCheckedChange={(checked) => {
+                                                        switchField.onChange(checked ? 'percent' : 'amount');
+                                                    }}
+                                                />
+                                                <Label htmlFor="discount-type" className="text-xs">
+                                                    {discountType === 'amount' ? '₱' : '%'}
+                                                </Label>
+                                            </div>
                                         )}
                                     />
                                 </div>
-                            </FormLabel>
-                            <FormControl>
-                                <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
-                            </FormControl>
-                            <FormMessage />
+                            </div>
+                             <FormMessage className="text-right" />
                             </FormItem>
                         )}
                     />
-                </div>
-                <div className="flex justify-between items-center w-full max-w-xs">
+
                     <FormField
                         control={form.control}
                         name="downpayment"
                         render={({ field }) => (
-                             <FormItem className="flex items-center justify-between w-full">
-                            <FormLabel className="text-muted-foreground">Downpayment:</FormLabel>
-                            <FormControl>
-                                <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
-                            </FormControl>
-                            <FormMessage />
+                             <FormItem>
+                               <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
+                                <FormControl>
+                                    <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                </FormControl>
+                               </div>
+                               <FormMessage className="text-right" />
                             </FormItem>
                         )}
                     />
-                </div>
-                <div className="flex justify-between w-full max-w-xs border-t pt-2 mt-2 border-border">
-                    <span className="text-xl font-bold">Amount Due:</span>
-                    <span className="text-xl font-bold text-primary">{formatCurrency(amountDue)}</span>
+
+                    <div className="flex justify-between border-t pt-2 mt-2 border-border">
+                        <span className="text-lg font-bold">Amount Due</span>
+                        <span className="text-lg font-bold text-primary">{formatCurrency(amountDue)}</span>
+                    </div>
                 </div>
             </CardFooter>
           </Card>
 
           <div className="grid md:grid-cols-2 gap-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Additional Information</CardTitle>
-                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl>
-                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </CardContent>
-            </Card>
             <Card>
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
@@ -760,6 +744,27 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             />
                         </div>
                     )}
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Additional Information</CardTitle>
+                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                 </CardContent>
             </Card>
           </div>
