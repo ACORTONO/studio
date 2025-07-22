@@ -505,44 +505,44 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               </Button>
             </CardContent>
             <CardFooter className="flex flex-col items-end space-y-2 bg-muted/50 p-6">
-              <div className="flex justify-between w-full max-w-xs">
-                <span className="text-muted-foreground">Subtotal:</span>
-                <span className="font-medium">{formatCurrency(subTotal)}</span>
-              </div>
-              <div className="flex justify-between w-full max-w-xs">
-                 <FormField
-                  control={form.control}
-                  name="discount"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2 w-full">
-                      <FormLabel className="text-muted-foreground">Discount:</FormLabel>
-                      <FormControl>
-                        <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-               <div className="flex justify-between w-full max-w-xs">
-                 <FormField
-                  control={form.control}
-                  name="downpayment"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-2 w-full">
-                      <FormLabel className="text-muted-foreground">Downpayment:</FormLabel>
-                      <FormControl>
-                        <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="flex justify-between w-full max-w-xs border-t pt-2 mt-2 border-border">
-                <span className="text-xl font-bold">Amount Due:</span>
-                <span className="text-xl font-bold text-primary">{formatCurrency(amountDue)}</span>
-              </div>
+                <div className="flex justify-between w-full max-w-xs">
+                    <span className="text-muted-foreground">Subtotal:</span>
+                    <span className="font-medium">{formatCurrency(subTotal)}</span>
+                </div>
+                <div className="flex justify-between items-center w-full max-w-xs">
+                    <FormField
+                        control={form.control}
+                        name="discount"
+                        render={({ field }) => (
+                            <FormItem className="flex items-center justify-between w-full">
+                            <FormLabel className="text-muted-foreground">Discount:</FormLabel>
+                            <FormControl>
+                                <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className="flex justify-between items-center w-full max-w-xs">
+                    <FormField
+                        control={form.control}
+                        name="downpayment"
+                        render={({ field }) => (
+                             <FormItem className="flex items-center justify-between w-full">
+                            <FormLabel className="text-muted-foreground">Downpayment:</FormLabel>
+                            <FormControl>
+                                <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+                <div className="flex justify-between w-full max-w-xs border-t pt-2 mt-2 border-border">
+                    <span className="text-xl font-bold">Amount Due:</span>
+                    <span className="text-xl font-bold text-primary">{formatCurrency(amountDue)}</span>
+                </div>
             </CardFooter>
           </Card>
 
@@ -766,3 +766,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
