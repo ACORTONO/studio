@@ -526,31 +526,31 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         name="discount"
                         render={({ field }) => (
                            <FormItem>
-                            <div className="flex justify-between items-center">
+                             <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Discount</FormLabel>
                                 <div className="flex items-center gap-2">
-                                    <FormField
-                                        control={form.control}
-                                        name="discountType"
-                                        render={({ field: switchField }) => (
-                                           <div className="flex items-center space-x-2">
-                                                <Switch
-                                                    id="discount-type"
-                                                    checked={switchField.value === 'percent'}
-                                                    onCheckedChange={(checked) => {
-                                                        switchField.onChange(checked ? 'percent' : 'amount');
-                                                    }}
-                                                />
-                                                <Label htmlFor="discount-type" className="text-xs">
-                                                    {discountType === 'amount' ? '₱' : '%'}
-                                                </Label>
-                                            </div>
-                                        )}
-                                    />
-                                    <FormLabel className="text-muted-foreground">Discount</FormLabel>
+                                  <FormControl>
+                                      <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                  </FormControl>
+                                  <FormField
+                                      control={form.control}
+                                      name="discountType"
+                                      render={({ field: switchField }) => (
+                                          <div className="flex items-center space-x-2">
+                                              <Switch
+                                                  id="discount-type"
+                                                  checked={switchField.value === 'percent'}
+                                                  onCheckedChange={(checked) => {
+                                                      switchField.onChange(checked ? 'percent' : 'amount');
+                                                  }}
+                                              />
+                                              <Label htmlFor="discount-type" className="text-xs">
+                                                  {discountType === 'amount' ? '₱' : '%'}
+                                              </Label>
+                                          </div>
+                                      )}
+                                  />
                                 </div>
-                                <FormControl>
-                                    <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
-                                </FormControl>
                             </div>
                              <FormMessage className="text-right" />
                             </FormItem>
