@@ -67,8 +67,16 @@ export function ReportsClient() {
    } = useMemo(() => {
     const grandTotalSales = jobOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.downpayment || 0), 0);
-    const totalDiscount = jobOrders.reduce((sum, order) => sum + (order.discount || 0), 0);
-    const totalUnpaid = grandTotalSales - totalCollectibles - totalDiscount;
+    
+    const totalDiscountAmount = jobOrders.reduce((sum, order) => {
+        const discountValue = order.discount || 0;
+        const discountAmount = order.discountType === 'percent'
+            ? order.totalAmount * (discountValue / 100)
+            : discountValue;
+        return sum + discountAmount;
+    }, 0);
+    
+    const totalUnpaid = grandTotalSales - totalCollectibles - totalDiscountAmount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
@@ -200,7 +208,11 @@ export function ReportsClient() {
                         <TableBody>
                         {sortedJobOrders.length > 0 ? (
                             sortedJobOrders.map((order) => {
-                            const balance = order.totalAmount - (order.downpayment || 0) - (order.discount || 0);
+                            const discountValue = order.discount || 0;
+                            const discountAmount = order.discountType === 'percent'
+                                ? order.totalAmount * (discountValue / 100)
+                                : discountValue;
+                            const balance = order.totalAmount - (order.downpayment || 0) - discountAmount;
                             const isPaid = balance <= 0;
                             return (
                                 <TableRow key={order.id}>
@@ -319,3 +331,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    

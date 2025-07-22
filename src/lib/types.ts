@@ -17,6 +17,7 @@ export interface JobOrder {
   items: JobOrderItem[];
   totalAmount: number;
   discount?: number;
+  discountType?: 'amount' | 'percent';
   downpayment?: number;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
@@ -44,3 +45,5 @@ export interface Expense {
   items: ExpenseItem[];
   totalAmount: number;
 }
+
+    

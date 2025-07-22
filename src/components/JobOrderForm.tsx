@@ -15,7 +15,8 @@ import {
   Building,
   Wallet,
   Landmark,
-  FileText
+  FileText,
+  Percent,
 } from "lucide-react";
 import {
   Form,
@@ -67,6 +68,7 @@ import { cn } from "@/lib/utils";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
+import { Switch } from "./ui/switch";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -76,6 +78,7 @@ const formSchema = z.object({
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
+  discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0, "Downpayment must be non-negative.").optional(),
   paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
   bankName: z.string().optional(),
@@ -145,6 +148,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       notes: "",
       status: "Pending",
       discount: 0,
+      discountType: 'amount',
       downpayment: 0,
       paymentMethod: "Cash",
       bankName: "",
@@ -178,6 +182,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   }, [initialData, form]);
   
   const paymentMethod = form.watch('paymentMethod');
+  const discountType = form.watch('discountType');
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -185,7 +190,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   });
 
   const watchItems = form.watch("items");
-  const watchDiscount = form.watch("discount") || 0;
+  const watchDiscountValue = form.watch("discount") || 0;
   const watchDownpayment = form.watch("downpayment") || 0;
 
   const subTotal = watchItems.reduce(
@@ -193,7 +198,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     0
   );
 
-  const amountDue = subTotal - watchDiscount - watchDownpayment;
+  const calculatedDiscount = discountType === 'percent'
+    ? subTotal * (watchDiscountValue / 100)
+    : watchDiscountValue;
+
+  const amountDue = subTotal - calculatedDiscount - watchDownpayment;
 
   const onSubmit = async (data: JobOrderFormValues) => {
     setIsSubmitting(true);
@@ -224,6 +233,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             contactNumber: "",
             notes: "",
             discount: 0,
+            discountType: 'amount',
             downpayment: 0,
             paymentMethod: "Cash",
             bankName: "",
@@ -514,8 +524,28 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         control={form.control}
                         name="discount"
                         render={({ field }) => (
-                            <FormItem className="flex items-center justify-between w-full">
-                            <FormLabel className="text-muted-foreground">Discount:</FormLabel>
+                           <FormItem className="flex items-center justify-between w-full">
+                           <FormLabel className="text-muted-foreground flex items-center gap-2">
+                                Discount:
+                                <div className="flex items-center space-x-2">
+                                    <Label htmlFor="discount-type" className="text-xs">
+                                        {discountType === 'amount' ? '₱' : '%'}
+                                    </Label>
+                                    <FormField
+                                        control={form.control}
+                                        name="discountType"
+                                        render={({ field: switchField }) => (
+                                            <Switch
+                                                id="discount-type"
+                                                checked={switchField.value === 'percent'}
+                                                onCheckedChange={(checked) => {
+                                                    switchField.onChange(checked ? 'percent' : 'amount');
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                </div>
+                            </FormLabel>
                             <FormControl>
                                 <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
                             </FormControl>
@@ -547,6 +577,28 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           </Card>
 
           <div className="grid md:grid-cols-2 gap-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Additional Information</CardTitle>
+                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
@@ -712,27 +764,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Additional Information</CardTitle>
-                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl>
-                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </CardContent>
-            </Card>
           </div>
 
           <div className="flex justify-end">

@@ -61,9 +61,14 @@ export default function PrintPage() {
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
   
   const subtotal = order.totalAmount;
-  const discount = order.discount || 0;
+  const discountValue = order.discount || 0;
+  const discountAmount = order.discountType === 'percent'
+    ? subtotal * (discountValue / 100)
+    : discountValue;
+
   const downpayment = order.downpayment || 0;
-  const amountDue = subtotal - discount - downpayment;
+  const amountDue = subtotal - discountAmount - downpayment;
+
 
   const renderPaymentDetails = () => {
     switch (order.paymentMethod) {
@@ -179,10 +184,12 @@ export default function PrintPage() {
                                     <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Subtotal</TableCell>
                                     <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(subtotal)}</TableCell>
                                 </TableRow>
-                                {discount > 0 && (
+                                {discountValue > 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Discount</TableCell>
-                                        <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(discount)}</TableCell>
+                                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">
+                                            Discount {order.discountType === 'percent' ? `(${order.discount}%)` : ''}
+                                        </TableCell>
+                                        <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(discountAmount)}</TableCell>
                                     </TableRow>
                                 )}
                                  {downpayment > 0 && (
@@ -224,3 +231,5 @@ export default function PrintPage() {
     </div>
   );
 }
+
+    

@@ -21,6 +21,7 @@ const jobOrderSchemaBase = z.object({
   notes: z.string().optional(),
   status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0).optional().default(0),
+  discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0).optional().default(0),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
   paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
@@ -92,6 +93,7 @@ export async function createJobOrderAction(
       notes: validatedData.notes,
       status: validatedData.status,
       discount: validatedData.discount,
+      discountType: validatedData.discountType,
       downpayment: validatedData.downpayment,
       items: validatedData.items.map((item) => ({
         ...item,
@@ -141,6 +143,7 @@ export async function updateJobOrderAction(
             notes: existingOrder.notes,
             status: existingOrder.status,
             discount: validatedData.discount,
+            discountType: validatedData.discountType,
             downpayment: validatedData.downpayment,
             items: existingOrder.items.map((item) => ({
                 ...item,
@@ -161,3 +164,5 @@ export async function updateJobOrderAction(
         return { success: false, error: "An unexpected error occurred." };
     }
 }
+
+    

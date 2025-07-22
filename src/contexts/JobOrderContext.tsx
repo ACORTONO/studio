@@ -16,6 +16,7 @@ const mockJobOrders: JobOrder[] = [
     items: [{ id: "i1", description: "Logo Design", quantity: 1, amount: 500, remarks: "Initial concept" }],
     totalAmount: 500,
     discount: 50,
+    discountType: 'amount',
     downpayment: 200,
     paymentMethod: 'Cheque',
     bankName: 'BPI',
@@ -34,6 +35,7 @@ const mockJobOrders: JobOrder[] = [
     items: [{ id: "i2", description: "Website Development", quantity: 1, amount: 2500, remarks: "5 pages" }, { id: 'i3', description: 'Hosting (1 year)', quantity: 1, amount: 150, remarks: ''}],
     totalAmount: 2650,
     discount: 0,
+    discountType: 'amount',
     downpayment: 1000,
     paymentMethod: 'Cash',
     status: 'In Progress',
@@ -49,6 +51,7 @@ const mockJobOrders: JobOrder[] = [
     items: [{ id: "i4", description: "Business Cards", quantity: 200, amount: 50, remarks: "Matte finish" }],
     totalAmount: 50,
     discount: 0,
+    discountType: 'amount',
     downpayment: 0,
     paymentMethod: 'Cash',
     status: 'Pending',
@@ -64,6 +67,7 @@ const mockJobOrders: JobOrder[] = [
     items: [{ id: 'i5', description: 'Social Media Campaign', quantity: 1, amount: 1200, remarks: '1 month management' }],
     totalAmount: 1200,
     discount: 100,
+    discountType: 'amount',
     downpayment: 1100,
     paymentMethod: 'E-Wallet',
     eWalletReference: 'GCash Ref: 987654321',
@@ -79,7 +83,8 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i6', description: 'Video Production', quantity: 1, amount: 5000, remarks: '3-minute corporate video' }],
     totalAmount: 5000,
-    discount: 0,
+    discount: 10,
+    discountType: 'percent',
     downpayment: 2500,
     paymentMethod: 'Bank Transfer',
     bankTransferReference: 'BDO Ref: ABC12345',
@@ -235,3 +240,5 @@ export const useJobOrders = () => {
   }
   return context;
 };
+
+    
