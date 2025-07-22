@@ -58,6 +58,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useJobOrders } from "@/contexts/JobOrderContext";
@@ -579,28 +580,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           <div className="grid md:grid-cols-2 gap-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Additional Information</CardTitle>
-                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl>
-                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
                     <CardDescription>Record payment information for this order.</CardDescription>
                 </CardHeader>
@@ -764,6 +743,28 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 </CardContent>
             </Card>
 
+            <Card>
+                <CardHeader>
+                    <CardTitle>Additional Information</CardTitle>
+                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
+
           </div>
 
           <div className="flex justify-end">
@@ -797,5 +798,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
-
-    
