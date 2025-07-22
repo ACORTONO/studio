@@ -529,10 +529,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                              <div className="flex justify-between items-center">
                                 <FormLabel className="text-muted-foreground">Discount</FormLabel>
                                 <div className="flex items-center gap-2">
-                                  <FormControl>
-                                      <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
-                                  </FormControl>
-                                  <FormField
+                                   <FormField
                                       control={form.control}
                                       name="discountType"
                                       render={({ field: switchField }) => (
@@ -550,6 +547,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                           </div>
                                       )}
                                   />
+                                  <FormControl>
+                                      <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                  </FormControl>
                                 </div>
                             </div>
                              <FormMessage className="text-right" />
