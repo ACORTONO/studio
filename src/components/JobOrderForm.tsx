@@ -275,7 +275,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card className="bg-[hsl(var(--accent-neon-blue))]">
+          <Card className="bg-black">
             <CardHeader>
               <CardTitle>Client Information</CardTitle>
               <CardDescription>
@@ -804,3 +804,4 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
     
+
