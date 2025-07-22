@@ -530,7 +530,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                 <FormLabel className="text-muted-foreground">Discount</FormLabel>
                                 <div className="flex items-center gap-2">
                                     <FormControl>
-                                        <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                        <Input type="number" className="w-24 h-8 text-center" placeholder="0.00" {...field} />
                                     </FormControl>
                                     <FormField
                                         control={form.control}
@@ -582,6 +582,27 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           </Card>
 
           <div className="grid md:grid-cols-2 gap-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Additional Information</CardTitle>
+                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <FormField
+                        control={form.control}
+                        name="notes"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Notes</FormLabel>
+                                <FormControl>
+                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                     <CardTitle>Payment Details</CardTitle>
@@ -746,27 +767,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     )}
                 </CardContent>
             </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Additional Information</CardTitle>
-                    <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <FormField
-                        control={form.control}
-                        name="notes"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Notes</FormLabel>
-                                <FormControl>
-                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                </CardContent>
-            </Card>
           </div>
 
           <div className="flex justify-end">
@@ -800,3 +800,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
