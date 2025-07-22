@@ -19,6 +19,7 @@
     --accent: 210 35% 28%;
     --accent-foreground: 210 40% 98%;
     --accent-teal: 145 63% 42%;
+    --accent-neon-blue: 220 89% 61%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 210 35% 28%;
@@ -54,6 +55,7 @@
     --accent: 210 35% 28%;
     --accent-foreground: 210 40% 98%;
     --accent-teal: 145 63% 42%;
+    --accent-neon-blue: 220 89% 61%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 210 35% 28%;
