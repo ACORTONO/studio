@@ -557,22 +557,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         )}
                     />
 
-                    <FormField
-                        control={form.control}
-                        name="downpayment"
-                        render={({ field }) => (
-                             <FormItem>
-                               <div className="flex justify-between items-center">
-                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
-                                <FormControl>
-                                    <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
-                                </FormControl>
-                               </div>
-                               <FormMessage className="text-right" />
-                            </FormItem>
-                        )}
-                    />
-
                     <div className="flex justify-between border-t pt-2 mt-2 border-border">
                         <span className="text-lg font-bold">Amount Due</span>
                         <span className="text-lg font-bold text-primary">{formatCurrency(amountDue)}</span>
@@ -610,11 +594,26 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <FormField
+                        control={form.control}
+                        name="downpayment"
+                        render={({ field }) => (
+                             <FormItem>
+                               <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
+                                <FormControl>
+                                    <Input type="number" className="w-full" placeholder="0.00" {...field} />
+                                </FormControl>
+                               </div>
+                               <FormMessage className="text-right" />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
                       control={form.control}
                       name="paymentMethod"
                       render={({ field }) => (
                         <FormItem className="space-y-3">
-                          <FormLabel>Payment Method for Downpayment</FormLabel>
+                          <FormLabel>Payment Method</FormLabel>
                           <FormControl>
                             <RadioGroup
                               onValueChange={field.onChange}
@@ -800,5 +799,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
-
-    
