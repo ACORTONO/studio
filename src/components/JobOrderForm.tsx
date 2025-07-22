@@ -556,6 +556,21 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             </FormItem>
                         )}
                     />
+                     <FormField
+                        control={form.control}
+                        name="downpayment"
+                        render={({ field }) => (
+                             <FormItem>
+                               <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
+                                <FormControl>
+                                    <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                </FormControl>
+                               </div>
+                               <FormMessage className="text-right" />
+                            </FormItem>
+                        )}
+                    />
 
                     <div className="flex justify-between border-t pt-2 mt-2 border-border">
                         <span className="text-lg font-bold">Amount Due</span>
@@ -593,21 +608,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     <CardDescription>Record payment information for this order.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <FormField
-                        control={form.control}
-                        name="downpayment"
-                        render={({ field }) => (
-                             <FormItem>
-                               <div className="flex justify-between items-center">
-                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
-                                <FormControl>
-                                    <Input type="number" className="w-full" placeholder="0.00" {...field} />
-                                </FormControl>
-                               </div>
-                               <FormMessage className="text-right" />
-                            </FormItem>
-                        )}
-                    />
+                    
                     <FormField
                       control={form.control}
                       name="paymentMethod"
