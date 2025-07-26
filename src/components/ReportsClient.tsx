@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
@@ -57,6 +57,21 @@ const chartConfig = {
     color: "hsl(var(--chart-3))",
   },
 } satisfies ChartConfig;
+
+const getStatusBadge = (status: JobOrder['status']) => {
+    switch (status) {
+        case 'Completed':
+            return <Badge className="bg-green-600/80 text-white"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
+        case 'In Progress':
+            return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
+        case 'Pending':
+            return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
+        case 'Cancelled':
+            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
+        default:
+            return <Badge>{status}</Badge>;
+    }
+}
 
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
@@ -303,7 +318,7 @@ export function ReportsClient() {
                             <SortableHeader title="Total Amount" sortKey="totalAmount" />
                             <SortableHeader title="Paid" sortKey="downpayment" />
                             <TableHead className="text-right">Balance</TableHead>
-                            <TableHead>Status</TableHead>
+                            <SortableHeader title="Status" sortKey="status" />
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -314,7 +329,6 @@ export function ReportsClient() {
                                 ? order.totalAmount * (discountValue / 100)
                                 : discountValue;
                             const balance = order.totalAmount - (order.downpayment || 0) - discountAmount;
-                            const isPaid = balance <= 0;
                             return (
                                 <TableRow key={order.id}>
                                     <TableCell>
@@ -331,15 +345,7 @@ export function ReportsClient() {
                                     <TableCell className="text-right">{formatCurrency(order.downpayment || 0)}</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                                     <TableCell className="text-center">
-                                        {isPaid ? (
-                                            <Badge className="bg-green-600/80 text-white">
-                                                <CheckCircle className="mr-1 h-3 w-3"/> Paid
-                                            </Badge>
-                                        ) : (
-                                            <Badge variant="destructive">
-                                                <AlertCircle className="mr-1 h-3 w-3"/> Unpaid
-                                            </Badge>
-                                        )}
+                                        {getStatusBadge(order.status)}
                                     </TableCell>
                                 </TableRow>
                             );
