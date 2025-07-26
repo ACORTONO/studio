@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -63,7 +63,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Expense, ExpenseCategory } from "@/lib/types";
+import { Expense, ExpenseCategory, JobOrder } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 
@@ -79,6 +79,8 @@ const expenseSchema = z.object({
     category: z.enum(['General', 'Cash Advance', 'Salary', 'Fixed Expense']),
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
 });
+
+type SortableJobOrderKeys = keyof JobOrder;
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card>
@@ -99,6 +101,8 @@ export function DashboardClient() {
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
+
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -134,24 +138,54 @@ export function DashboardClient() {
 
     const dateFilteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), interval));
     
-    const filteredOrders = dateFilteredOrders.filter(order => 
+    let sortedAndFilteredOrders = dateFilteredOrders.filter(order => 
       order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       order.jobOrderNumber.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    if (sortConfig !== null) {
+        sortedAndFilteredOrders.sort((a, b) => {
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+
+            if (aValue === undefined || bValue === undefined) return 0;
+
+            let comparison = 0;
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                if (sortConfig.key === 'startDate' || sortConfig.key === 'dueDate') {
+                    comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+                } else {
+                    comparison = aValue.localeCompare(bValue);
+                }
+            } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+                comparison = aValue - bValue;
+            }
+            
+            return sortConfig.direction === 'ascending' ? comparison : -comparison;
+        });
+    }
+
     const filteredExpenses = expenses.filter(expense => isWithinInterval(parseISO(expense.date), interval));
 
-    const totalSales = filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+    const totalSales = sortedAndFilteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
 
     return {
-      filteredOrders,
+      filteredOrders: sortedAndFilteredOrders,
       filteredExpenses,
       totalSales,
       totalExpenses,
       netProfit: totalSales - totalExpenses
     };
-  }, [jobOrders, expenses, timeFilter, searchQuery]);
+  }, [jobOrders, expenses, timeFilter, searchQuery, sortConfig]);
+
+  const requestSort = (key: SortableJobOrderKeys) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+        direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  }
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -196,6 +230,15 @@ export function DashboardClient() {
     };
     return <Badge variant={variants[category]}>{category}</Badge>
   }
+  
+  const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
+     <TableHead>
+        <Button variant="ghost" onClick={() => requestSort(sortKey)}>
+            {title}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    </TableHead>
+  )
 
   return (
     <div className="space-y-4">
@@ -352,11 +395,11 @@ export function DashboardClient() {
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead>Job Order #</TableHead>
-                            <TableHead>Client Name</TableHead>
-                            <TableHead>Start Date</TableHead>
-                            <TableHead>Due Date</TableHead>
-                            <TableHead>Amount</TableHead>
+                            <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
+                            <SortableHeader title="Client Name" sortKey="clientName" />
+                            <SortableHeader title="Start Date" sortKey="startDate" />
+                            <SortableHeader title="Due Date" sortKey="dueDate" />
+                            <SortableHeader title="Amount" sortKey="totalAmount" />
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                         </TableHeader>
@@ -471,5 +514,7 @@ export function DashboardClient() {
         </Tabs>
     </div>
   );
+
+    
 
     
