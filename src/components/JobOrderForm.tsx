@@ -69,6 +69,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Switch } from "./ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -93,7 +94,7 @@ const formSchema = z.object({
         description: z.string().min(1, "Description is required."),
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
-        remarks: z.string().optional(),
+        status: z.enum(['Unpaid', 'Paid', 'Balance']).default('Unpaid'),
       })
     )
     .min(1, "At least one item is required."),
@@ -155,7 +156,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       chequeNumber: "",
       eWalletReference: "",
       bankTransferReference: "",
-      items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
+      items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
     },
   });
 
@@ -240,7 +241,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             chequeNumber: "",
             eWalletReference: "",
             bankTransferReference: "",
-            items: [{ description: "", quantity: 1, amount: 0, remarks: "" }],
+            items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
             startDate: new Date(),
             dueDate: new Date(),
         });
@@ -412,7 +413,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     <TableHead>Quantity</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Total</TableHead>
-                    <TableHead className="w-1/5">Remarks</TableHead>
+                    <TableHead className="w-1/5">Status</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -470,12 +471,21 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                       <TableCell>
                         <FormField
                           control={form.control}
-                          name={`items.${index}.remarks`}
+                          name={`items.${index}.status`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormControl>
-                                <Input {...field} placeholder="Optional" />
-                              </FormControl>
+                               <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select status" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="Unpaid">Unpaid</SelectItem>
+                                  <SelectItem value="Paid">Paid</SelectItem>
+                                  <SelectItem value="Balance">Balance</SelectItem>
+                                </SelectContent>
+                              </Select>
                               <FormMessage />
                             </FormItem>
                           )}
@@ -506,7 +516,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     description: "",
                     quantity: 1,
                     amount: 0,
-                    remarks: "",
+                    status: "Unpaid",
                   })
                 }
               >
@@ -804,4 +814,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
     
+
 
