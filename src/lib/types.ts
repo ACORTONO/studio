@@ -4,6 +4,7 @@ export interface JobOrderItem {
   description: string;
   quantity: number;
   amount: number;
+  remarks?: string;
   status: 'Unpaid' | 'Paid' | 'Balance';
 }
 

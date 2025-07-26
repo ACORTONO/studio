@@ -94,6 +94,7 @@ const formSchema = z.object({
         description: z.string().min(1, "Description is required."),
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
+        remarks: z.string().optional(),
         status: z.enum(['Unpaid', 'Paid', 'Balance']).default('Unpaid'),
       })
     )
@@ -156,7 +157,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       chequeNumber: "",
       eWalletReference: "",
       bankTransferReference: "",
-      items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
+      items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
 
@@ -273,7 +274,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             chequeNumber: "",
             eWalletReference: "",
             bankTransferReference: "",
-            items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
+            items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
             startDate: new Date(),
             dueDate: new Date(),
         });
@@ -293,6 +294,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     if (lastSavedOrder) {
         window.open(`/print/${lastSavedOrder.id}`, '_blank');
     }
+    handleDialogClose();
   }
   
   const handleDialogClose = () => {
@@ -571,6 +573,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     description: "",
                     quantity: 1,
                     amount: 0,
+                    remarks: "",
                     status: "Unpaid",
                   })
                 }
@@ -852,12 +855,16 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 <DialogTitle>Success!</DialogTitle>
                 <DialogDescription>
                     The job order has been {isEditMode ? 'updated' : 'created'} successfully.
+                    Do you want to print it now?
                 </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="sm:justify-start">
+            <DialogFooter className="sm:justify-end gap-2">
+                 <Button type="button" variant="secondary" onClick={handleDialogClose}>
+                    No
+                 </Button>
                 <Button onClick={handlePrint}>
                     <Printer className="mr-2 h-4 w-4"/>
-                    Print Job Order
+                    Yes, Print
                 </Button>
             </DialogFooter>
         </DialogContent>
