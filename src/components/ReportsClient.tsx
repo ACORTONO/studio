@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
   Card,
@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, Printer } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
@@ -27,11 +27,12 @@ import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfI
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
-    <Card>
+    <Card className="no-print">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -77,7 +78,26 @@ export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
-  
+  const [activeTab, setActiveTab] = useState("overall");
+
+  const overallPrintRef = useRef(null);
+  const todayPrintRef = useRef(null);
+  const weeklyPrintRef = useRef(null);
+  const monthlyPrintRef = useRef(null);
+  const yearlyPrintRef = useRef(null);
+
+  const handlePrint = useReactToPrint({
+    content: () => {
+        switch (activeTab) {
+            case 'today': return todayPrintRef.current;
+            case 'weekly': return weeklyPrintRef.current;
+            case 'monthly': return monthlyPrintRef.current;
+            case 'yearly': return yearlyPrintRef.current;
+            default: return overallPrintRef.current;
+        }
+    },
+  });
+
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
   const { 
@@ -145,10 +165,11 @@ export function ReportsClient() {
 
   const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
      <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(sortKey)}>
+        <Button variant="ghost" onClick={() => requestSort(sortKey)} className="no-print">
             {title}
             <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+        <span className="print-only font-bold text-gray-700 p-1 h-auto">{title}</span>
     </TableHead>
   )
 
@@ -274,6 +295,13 @@ export function ReportsClient() {
     return Object.values(data).sort((a,b) => a.year.localeCompare(b.year));
   }, [jobOrders, expenses]);
 
+  const renderPrintHeader = (title: string) => (
+    <div className="print-only text-center mb-4">
+        <h1 className="text-2xl font-bold">{title}</h1>
+        <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -283,17 +311,24 @@ export function ReportsClient() {
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
         </div>
         
-        <Tabs defaultValue="overall">
-            <TabsList>
-                <TabsTrigger value="overall">Overall</TabsTrigger>
-                <TabsTrigger value="today">Today</TabsTrigger>
-                <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                <TabsTrigger value="yearly">Yearly</TabsTrigger>
-            </TabsList>
-            <TabsContent value="overall" className="mt-4">
-                <Card>
-                    <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+        <Tabs defaultValue="overall" onValueChange={setActiveTab}>
+            <div className="flex justify-between items-center no-print">
+                <TabsList>
+                    <TabsTrigger value="overall">Overall</TabsTrigger>
+                    <TabsTrigger value="today">Today</TabsTrigger>
+                    <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                    <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                    <TabsTrigger value="yearly">Yearly</TabsTrigger>
+                </TabsList>
+                <Button onClick={handlePrint} variant="outline">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print Report
+                </Button>
+            </div>
+            <TabsContent value="overall" className="mt-4" ref={overallPrintRef}>
+                <Card className="print-area">
+                    {renderPrintHeader("Overall Job Orders Report")}
+                    <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
                         <div>
                             <CardTitle>All Job Orders</CardTitle>
                             <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
@@ -362,9 +397,10 @@ export function ReportsClient() {
                     </CardContent>
                 </Card>
             </TabsContent>
-            <TabsContent value="today" className="mt-4">
-                 <Card>
-                    <CardHeader>
+            <TabsContent value="today" className="mt-4" ref={todayPrintRef}>
+                 <Card className="print-area">
+                    {renderPrintHeader("Today's Sales Report")}
+                    <CardHeader className="no-print">
                         <CardTitle>Today's Sales Report</CardTitle>
                         <CardDescription>A breakdown of sales, collectibles, and expenses for today.</CardDescription>
                     </CardHeader>
@@ -386,9 +422,10 @@ export function ReportsClient() {
                     </CardContent>
                  </Card>
             </TabsContent>
-            <TabsContent value="weekly" className="mt-4">
-                 <Card>
-                    <CardHeader>
+            <TabsContent value="weekly" className="mt-4" ref={weeklyPrintRef}>
+                 <Card className="print-area">
+                    {renderPrintHeader("Weekly Sales Report")}
+                    <CardHeader className="no-print">
                         <CardTitle>Weekly Sales Report</CardTitle>
                         <CardDescription>A breakdown of sales, collectibles, and expenses for the current week.</CardDescription>
                     </CardHeader>
@@ -410,9 +447,10 @@ export function ReportsClient() {
                     </CardContent>
                  </Card>
             </TabsContent>
-            <TabsContent value="monthly" className="mt-4">
-                 <Card>
-                    <CardHeader>
+            <TabsContent value="monthly" className="mt-4" ref={monthlyPrintRef}>
+                 <Card className="print-area">
+                    {renderPrintHeader("Monthly Sales Report")}
+                    <CardHeader className="no-print">
                         <CardTitle>Monthly Sales Report</CardTitle>
                         <CardDescription>A breakdown of sales, collectibles, and expenses by month.</CardDescription>
                     </CardHeader>
@@ -434,9 +472,10 @@ export function ReportsClient() {
                     </CardContent>
                  </Card>
             </TabsContent>
-            <TabsContent value="yearly" className="mt-4">
-                 <Card>
-                    <CardHeader>
+            <TabsContent value="yearly" className="mt-4" ref={yearlyPrintRef}>
+                 <Card className="print-area">
+                    {renderPrintHeader("Yearly Sales Report")}
+                    <CardHeader className="no-print">
                         <CardTitle>Yearly Sales Report</CardTitle>
                         <CardDescription>A breakdown of sales, collectibles, and expenses by year.</CardDescription>
                     </CardHeader>
@@ -462,3 +501,4 @@ export function ReportsClient() {
     </div>
   );
 }
+

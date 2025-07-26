@@ -86,14 +86,15 @@
 
 @media print {
   @page {
-    size: 3in 5in;
-    margin: 0.25in;
+    size: auto;
+    margin: 0.5in;
   }
 
   body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
     background-color: #fff !important;
+    color: #000 !important;
   }
 
   .no-print {
@@ -103,9 +104,28 @@
   .print-area {
     box-shadow: none !important;
     border: none !important;
+    color: #000 !important;
   }
   
   .print-content {
     display: block !important;
   }
+
+  .print-only {
+    display: block !important;
+  }
+
+  .recharts-wrapper {
+    color: #000 !important;
+  }
+  .recharts-wrapper .recharts-cartesian-axis-tick-value {
+    fill: #000 !important;
+  }
+   .recharts-wrapper .recharts-legend-item-text {
+    color: #000 !important;
+  }
+}
+
+.print-only {
+    display: none;
 }
