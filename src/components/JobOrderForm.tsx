@@ -205,6 +205,27 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     }
   }, [watchItems, form]);
 
+  useEffect(() => {
+    const downpayment = watchDownpayment || 0;
+    if (downpayment > 0) {
+      let remainingDownpayment = downpayment;
+      const newItems = form.getValues('items').map(item => {
+        const itemTotal = item.quantity * item.amount;
+        if (remainingDownpayment >= itemTotal) {
+          remainingDownpayment -= itemTotal;
+          return { ...item, status: 'Paid' as const };
+        } else if (remainingDownpayment > 0) {
+          remainingDownpayment = 0;
+          return { ...item, status: 'Balance' as const };
+        }
+        return { ...item, status: 'Unpaid' as const };
+      });
+      form.setValue('items', newItems, { shouldDirty: true });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchDownpayment]);
+
+
   const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
     0
