@@ -81,6 +81,7 @@ const expenseSchema = z.object({
 });
 
 type SortableJobOrderKeys = keyof JobOrder;
+type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card>
@@ -100,8 +101,10 @@ export function DashboardClient() {
   const [timeFilter, setTimeFilter] = useState("today");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
+  const [jobOrderSearchQuery, setJobOrderSearchQuery] = useState("");
+  const [expenseSearchQuery, setExpenseSearchQuery] = useState("");
+  const [jobOrderSortConfig, setJobOrderSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
+  const [expenseSortConfig, setExpenseSortConfig] = useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
 
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
@@ -139,20 +142,20 @@ export function DashboardClient() {
     const dateFilteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), interval));
     
     let sortedAndFilteredOrders = dateFilteredOrders.filter(order => 
-      order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.jobOrderNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      order.clientName.toLowerCase().includes(jobOrderSearchQuery.toLowerCase()) ||
+      order.jobOrderNumber.toLowerCase().includes(jobOrderSearchQuery.toLowerCase())
     );
 
-    if (sortConfig !== null) {
+    if (jobOrderSortConfig !== null) {
         sortedAndFilteredOrders.sort((a, b) => {
-            const aValue = a[sortConfig.key];
-            const bValue = b[sortConfig.key];
+            const aValue = a[jobOrderSortConfig.key];
+            const bValue = b[jobOrderSortConfig.key];
 
             if (aValue === undefined || bValue === undefined) return 0;
 
             let comparison = 0;
             if (typeof aValue === 'string' && typeof bValue === 'string') {
-                if (sortConfig.key === 'startDate' || sortConfig.key === 'dueDate') {
+                if (jobOrderSortConfig.key === 'startDate' || jobOrderSortConfig.key === 'dueDate') {
                     comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
                 } else {
                     comparison = aValue.localeCompare(bValue);
@@ -161,30 +164,67 @@ export function DashboardClient() {
                 comparison = aValue - bValue;
             }
             
-            return sortConfig.direction === 'ascending' ? comparison : -comparison;
+            return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
         });
     }
 
-    const filteredExpenses = expenses.filter(expense => isWithinInterval(parseISO(expense.date), interval));
+    const dateFilteredExpenses = expenses.filter(expense => isWithinInterval(parseISO(expense.date), interval));
+
+    let sortedAndFilteredExpenses = dateFilteredExpenses.filter(expense => 
+        expense.description.toLowerCase().includes(expenseSearchQuery.toLowerCase()) ||
+        expense.category.toLowerCase().includes(expenseSearchQuery.toLowerCase()) ||
+        expense.items.some(item => item.description.toLowerCase().includes(expenseSearchQuery.toLowerCase()))
+    );
+
+     if (expenseSortConfig !== null) {
+        sortedAndFilteredExpenses.sort((a, b) => {
+            const aValue = a[expenseSortConfig.key];
+            const bValue = b[expenseSortConfig.key];
+
+            if (aValue === undefined || bValue === undefined) return 0;
+
+            let comparison = 0;
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                if (expenseSortConfig.key === 'date') {
+                    comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+                } else {
+                    comparison = aValue.localeCompare(bValue);
+                }
+            } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+                comparison = aValue - bValue;
+            }
+            
+            return expenseSortConfig.direction === 'ascending' ? comparison : -comparison;
+        });
+    }
+
 
     const totalSales = sortedAndFilteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
-    const totalExpenses = filteredExpenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
+    const totalExpenses = sortedAndFilteredExpenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
 
     return {
       filteredOrders: sortedAndFilteredOrders,
-      filteredExpenses,
+      filteredExpenses: sortedAndFilteredExpenses,
       totalSales,
       totalExpenses,
       netProfit: totalSales - totalExpenses
     };
-  }, [jobOrders, expenses, timeFilter, searchQuery, sortConfig]);
+  }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
-  const requestSort = (key: SortableJobOrderKeys) => {
+  const requestJobOrderSort = (key: SortableJobOrderKeys) => {
     let direction: 'ascending' | 'descending' = 'ascending';
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+    if (jobOrderSortConfig && jobOrderSortConfig.key === key && jobOrderSortConfig.direction === 'ascending') {
         direction = 'descending';
     }
-    setSortConfig({ key, direction });
+    setJobOrderSortConfig({ key, direction });
+  }
+
+  const requestExpenseSort = (key: SortableExpenseKeys) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (expenseSortConfig && expenseSortConfig.key === key && expenseSortConfig.direction === 'ascending') {
+        direction = 'descending';
+    }
+    setExpenseSortConfig({ key, direction });
   }
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
@@ -231,9 +271,18 @@ export function DashboardClient() {
     return <Badge variant={variants[category]}>{category}</Badge>
   }
   
-  const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
+  const SortableJobOrderHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
      <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(sortKey)}>
+        <Button variant="ghost" onClick={() => requestJobOrderSort(sortKey)}>
+            {title}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    </TableHead>
+  )
+
+  const SortableExpenseHeader = ({ title, sortKey }: { title: string, sortKey: SortableExpenseKeys }) => (
+     <TableHead>
+        <Button variant="ghost" onClick={() => requestExpenseSort(sortKey)}>
             {title}
             <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -265,8 +314,8 @@ export function DashboardClient() {
                           <Input 
                               placeholder="Search by client or J.O. #" 
                               className="pl-10 w-full sm:w-64"
-                              value={searchQuery}
-                              onChange={(e) => setSearchQuery(e.target.value)}
+                              value={jobOrderSearchQuery}
+                              onChange={(e) => setJobOrderSearchQuery(e.target.value)}
                           />
                       </div>
                   </div>
@@ -275,11 +324,11 @@ export function DashboardClient() {
               <Table>
                   <TableHeader>
                   <TableRow>
-                      <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
-                      <SortableHeader title="Client Name" sortKey="clientName" />
-                      <SortableHeader title="Start Date" sortKey="startDate" />
-                      <SortableHeader title="Due Date" sortKey="dueDate" />
-                      <SortableHeader title="Amount" sortKey="totalAmount" />
+                      <SortableJobOrderHeader title="Job Order #" sortKey="jobOrderNumber" />
+                      <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
+                      <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
+                      <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
+                      <SortableJobOrderHeader title="Amount" sortKey="totalAmount" />
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                   </TableHeader>
@@ -323,18 +372,31 @@ export function DashboardClient() {
         <TabsContent value="expenses">
             <Card>
                 <CardHeader>
-                    <CardTitle>Expenses</CardTitle>
-                    <CardDescription>A list of expenses for the selected period.</CardDescription>
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div>
+                            <CardTitle>Expenses</CardTitle>
+                            <CardDescription>A list of expenses for the selected period.</CardDescription>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search expenses..." 
+                                className="pl-10 w-full sm:w-64"
+                                value={expenseSearchQuery}
+                                onChange={(e) => setExpenseSearchQuery(e.target.value)}
+                            />
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent>
                      <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Category</TableHead>
-                                <TableHead>Description</TableHead>
+                                <SortableExpenseHeader title="Date" sortKey="date" />
+                                <SortableExpenseHeader title="Category" sortKey="category" />
+                                <SortableExpenseHeader title="Description" sortKey="description" />
                                 <TableHead>Items</TableHead>
-                                <TableHead className="text-right">Total Amount</TableHead>
+                                <SortableExpenseHeader title="Total Amount" sortKey="totalAmount" />
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -523,3 +585,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
