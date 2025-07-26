@@ -102,7 +102,9 @@ export function ReportsClient() {
             let comparison = 0;
             if (typeof aValue === 'string' && typeof bValue === 'string') {
                  if (sortConfig.key === 'startDate' || sortConfig.key === 'dueDate' || sortConfig.key === 'chequeDate') {
-                    comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+                    const dateA = aValue ? new Date(aValue).getTime() : 0;
+                    const dateB = bValue ? new Date(bValue).getTime() : 0;
+                    comparison = dateA - dateB;
                 } else {
                     comparison = aValue.localeCompare(bValue);
                 }
@@ -301,7 +303,7 @@ export function ReportsClient() {
                             <SortableHeader title="Total Amount" sortKey="totalAmount" />
                             <SortableHeader title="Paid" sortKey="downpayment" />
                             <TableHead className="text-right">Balance</TableHead>
-                            <SortableHeader title="Status" sortKey="status"/>
+                            <TableHead>Status</TableHead>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -454,5 +456,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
