@@ -23,7 +23,7 @@ import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, Arr
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
+import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, startOfToday, endOfToday, eachHourOfInterval, set } from 'date-fns';
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -135,6 +135,43 @@ export function ReportsClient() {
     </TableHead>
   )
 
+  const todayData = useMemo(() => {
+    const now = new Date();
+    const todayStart = startOfToday();
+    const todayEnd = endOfToday();
+    const hoursInDay = eachHourOfInterval({ start: todayStart, end: todayEnd });
+    
+    const data = hoursInDay.map(hour => ({
+        date: format(hour, 'ha'),
+        sales: 0,
+        collectibles: 0,
+        expenses: 0
+    }));
+
+    jobOrders.forEach(order => {
+        const orderDate = parseISO(order.startDate);
+        if (orderDate >= todayStart && orderDate <= todayEnd) {
+            const hourIndex = orderDate.getHours();
+            if(hourIndex > -1 && hourIndex < 24) {
+                data[hourIndex].sales += order.totalAmount;
+                data[hourIndex].collectibles += order.downpayment || 0;
+            }
+        }
+    });
+
+    expenses.forEach(expense => {
+        const expenseDate = parseISO(expense.date);
+        if (expenseDate >= todayStart && expenseDate <= todayEnd) {
+            const hourIndex = expenseDate.getHours();
+            if(hourIndex > -1 && hourIndex < 24) {
+                data[hourIndex].expenses += expense.totalAmount;
+            }
+        }
+    });
+    
+    return data;
+  }, [jobOrders, expenses]);
+
   const weeklyData = useMemo(() => {
     const now = new Date();
     const weekStart = startOfWeek(now);
@@ -232,6 +269,7 @@ export function ReportsClient() {
         <Tabs defaultValue="overall">
             <TabsList>
                 <TabsTrigger value="overall">Overall</TabsTrigger>
+                <TabsTrigger value="today">Today</TabsTrigger>
                 <TabsTrigger value="weekly">Weekly</TabsTrigger>
                 <TabsTrigger value="monthly">Monthly</TabsTrigger>
                 <TabsTrigger value="yearly">Yearly</TabsTrigger>
@@ -315,6 +353,30 @@ export function ReportsClient() {
                     </Table>
                     </CardContent>
                 </Card>
+            </TabsContent>
+            <TabsContent value="today" className="mt-4">
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Today's Sales Report</CardTitle>
+                        <CardDescription>A breakdown of sales, collectibles, and expenses for today.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
+                             <ResponsiveContainer width="100%" height={300}>
+                                <BarChart data={todayData}>
+                                    <CartesianGrid vertical={false} />
+                                    <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
+                                    <YAxis tickFormatter={(value) => `₱${value / 1000}k`} />
+                                    <Tooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
+                                    <Legend />
+                                    <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="collectibles" fill="var(--color-collectibles)" radius={[4, 4, 0, 0]} />
+                                    <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </ChartContainer>
+                    </CardContent>
+                 </Card>
             </TabsContent>
             <TabsContent value="weekly" className="mt-4">
                  <Card>
