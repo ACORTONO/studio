@@ -365,7 +365,7 @@ export function ReportsClient() {
                         </TableCell>
                         <TableCell className="text-right">{formatCurrency(order.totalAmount)}</TableCell>
                         <TableCell className="text-right">{formatCurrency(order.downpayment || 0)}</TableCell>
-                        <TableCell className="text-right font-semibold">{formatCurrency(balance)}TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                         <TableCell className="text-center">
                             {getStatusBadge(order.status)}
                         </TableCell>
@@ -515,5 +515,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
