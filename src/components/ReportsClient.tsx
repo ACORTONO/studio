@@ -19,11 +19,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval } from 'date-fns';
+import { JobOrder } from "@/lib/types";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+
+type SortableJobOrderKeys = keyof JobOrder;
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card>
@@ -55,6 +60,8 @@ const chartConfig = {
 
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -63,7 +70,7 @@ export function ReportsClient() {
     totalCollectibles,
     totalUnpaid,
     cashOnHand,
-    sortedJobOrders
+    sortedAndFilteredJobOrders
    } = useMemo(() => {
     const grandTotalSales = jobOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.downpayment || 0), 0);
@@ -80,10 +87,53 @@ export function ReportsClient() {
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
-    const sortedJobOrders = [...jobOrders].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
+    let filtered = [...jobOrders].filter(order => 
+      order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.jobOrderNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedJobOrders };
-  }, [jobOrders, expenses]);
+    if (sortConfig !== null) {
+        filtered.sort((a, b) => {
+            const aValue = a[sortConfig.key];
+            const bValue = b[sortConfig.key];
+
+            if (aValue === undefined || bValue === undefined) return 0;
+
+            let comparison = 0;
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                 if (sortConfig.key === 'startDate' || sortConfig.key === 'dueDate' || sortConfig.key === 'chequeDate') {
+                    comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+                } else {
+                    comparison = aValue.localeCompare(bValue);
+                }
+            } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+                comparison = aValue - bValue;
+            }
+            
+            return sortConfig.direction === 'ascending' ? comparison : -comparison;
+        });
+    }
+
+
+    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered };
+  }, [jobOrders, expenses, searchQuery, sortConfig]);
+
+  const requestSort = (key: SortableJobOrderKeys) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
+        direction = 'descending';
+    }
+    setSortConfig({ key, direction });
+  }
+
+  const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
+     <TableHead>
+        <Button variant="ghost" onClick={() => requestSort(sortKey)}>
+            {title}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    </TableHead>
+  )
 
   const weeklyData = useMemo(() => {
     const now = new Date();
@@ -188,26 +238,37 @@ export function ReportsClient() {
             </TabsList>
             <TabsContent value="overall" className="mt-4">
                 <Card>
-                    <CardHeader>
-                    <CardTitle>All Job Orders</CardTitle>
-                    <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
+                    <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                        <div>
+                            <CardTitle>All Job Orders</CardTitle>
+                            <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
+                        </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search by client or J.O. #" 
+                                className="pl-10 w-full sm:w-64"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
                     </CardHeader>
                     <CardContent>
                     <Table>
                         <TableHeader>
                         <TableRow>
-                            <TableHead>Job Order #</TableHead>
-                            <TableHead>Start Date</TableHead>
-                            <TableHead>Client Name</TableHead>
-                            <TableHead className="text-right">Total Amount</TableHead>
-                            <TableHead className="text-right">Paid</TableHead>
+                            <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
+                            <SortableHeader title="Start Date" sortKey="startDate" />
+                            <SortableHeader title="Client Name" sortKey="clientName" />
+                            <SortableHeader title="Total Amount" sortKey="totalAmount" />
+                            <SortableHeader title="Paid" sortKey="downpayment" />
                             <TableHead className="text-right">Balance</TableHead>
-                            <TableHead className="text-center">Status</TableHead>
+                            <SortableHeader title="Status" sortKey="status"/>
                         </TableRow>
                         </TableHeader>
                         <TableBody>
-                        {sortedJobOrders.length > 0 ? (
-                            sortedJobOrders.map((order) => {
+                        {sortedAndFilteredJobOrders.length > 0 ? (
+                            sortedAndFilteredJobOrders.map((order) => {
                             const discountValue = order.discount || 0;
                             const discountAmount = order.discountType === 'percent'
                                 ? order.totalAmount * (discountValue / 100)
