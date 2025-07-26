@@ -240,6 +240,162 @@ export function DashboardClient() {
     </TableHead>
   )
 
+  const renderContent = () => (
+    <div className="space-y-4 mt-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={TrendingUp} description={`For the selected period`} />
+        <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description={`For the selected period`} />
+        <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={DollarSign} description={`For the selected period`}/>
+      </div>
+      <Tabs defaultValue="jobOrders" className="space-y-4">
+        <TabsList>
+            <TabsTrigger value="jobOrders">Job Orders ({filteredOrders.length})</TabsTrigger>
+            <TabsTrigger value="expenses">Expenses ({filteredExpenses.length})</TabsTrigger>
+        </TabsList>
+        <TabsContent value="jobOrders">
+          <Card>
+              <CardHeader>
+                  <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                      <div>
+                          <CardTitle>Job Orders</CardTitle>
+                          <CardDescription>A list of job orders for the selected period.</CardDescription>
+                      </div>
+                       <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                          <Input 
+                              placeholder="Search by client or J.O. #" 
+                              className="pl-10 w-full sm:w-64"
+                              value={searchQuery}
+                              onChange={(e) => setSearchQuery(e.target.value)}
+                          />
+                      </div>
+                  </div>
+              </CardHeader>
+              <CardContent>
+              <Table>
+                  <TableHeader>
+                  <TableRow>
+                      <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
+                      <SortableHeader title="Client Name" sortKey="clientName" />
+                      <SortableHeader title="Start Date" sortKey="startDate" />
+                      <SortableHeader title="Due Date" sortKey="dueDate" />
+                      <SortableHeader title="Amount" sortKey="totalAmount" />
+                      <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                  {filteredOrders.length > 0 ? (
+                      filteredOrders.map((order) => (
+                      <TableRow key={order.id}>
+                          <TableCell>
+                          <Badge variant="outline">{order.jobOrderNumber}</Badge>
+                          </TableCell>
+                          <TableCell className="font-medium">{order.clientName}</TableCell>
+                          <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
+                          <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
+                          <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                          <TableCell className="text-right space-x-2">
+                          <Button asChild variant="ghost" size="icon">
+                              <Link href={`/edit/${order.id}`}>
+                              <Pencil className="h-4 w-4" />
+                              </Link>
+                          </Button>
+                          <Button asChild variant="ghost" size="icon">
+                              <Link href={`/print/${order.id}`} target="_blank">
+                              <Printer className="h-4 w-4" />
+                              </Link>
+                          </Button>
+                          </TableCell>
+                      </TableRow>
+                      ))
+                  ) : (
+                      <TableRow>
+                      <TableCell colSpan={6} className="h-24 text-center">
+                          No job orders for this period.
+                      </TableCell>
+                      </TableRow>
+                  )}
+                  </TableBody>
+              </Table>
+              </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="expenses">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Expenses</CardTitle>
+                    <CardDescription>A list of expenses for the selected period.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Date</TableHead>
+                                <TableHead>Category</TableHead>
+                                <TableHead>Description</TableHead>
+                                <TableHead>Items</TableHead>
+                                <TableHead className="text-right">Total Amount</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredExpenses.length > 0 ? (
+                                filteredExpenses.map((expense) => (
+                                    <TableRow key={expense.id}>
+                                        <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
+                                        <TableCell>{getCategoryBadge(expense.category)}</TableCell>
+                                        <TableCell className="font-medium">{expense.description}</TableCell>
+                                        <TableCell>
+                                            <ul className="list-disc list-inside text-sm text-muted-foreground">
+                                                {expense.items.map(item => (
+                                                    <li key={item.id}>{item.description} - {formatCurrency(item.amount)}</li>
+                                                ))}
+                                            </ul>
+                                        </TableCell>
+                                        <TableCell className="text-right">{formatCurrency(expense.totalAmount)}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleOpenExpenseDialog(expense)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete this expense record.
+                                                    </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeleteExpense(expense.id)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-24 text-center">
+                                        No expenses for this period.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+
+
   return (
     <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -352,169 +508,18 @@ export function DashboardClient() {
             </Dialog>
         </div>
 
-        <Tabs defaultValue="today" onValueChange={setTimeFilter} className="space-y-4">
+      <Tabs defaultValue="today" onValueChange={setTimeFilter} className="space-y-4">
         <TabsList>
             <TabsTrigger value="today">Today</TabsTrigger>
             <TabsTrigger value="weekly">This Week</TabsTrigger>
             <TabsTrigger value="monthly">This Month</TabsTrigger>
             <TabsTrigger value="yearly">This Year</TabsTrigger>
         </TabsList>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            <StatCard title="Total Sales" value={formatCurrency(totalSales)} icon={TrendingUp} description={`For the selected period`} />
-            <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description={`For the selected period`} />
-            <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={DollarSign} description={`For the selected period`}/>
-        </div>
-        </Tabs>
-
-        <Tabs defaultValue="jobOrders" className="space-y-4">
-            <TabsList>
-                <TabsTrigger value="jobOrders">Job Orders</TabsTrigger>
-                <TabsTrigger value="expenses">Expenses</TabsTrigger>
-            </TabsList>
-            <TabsContent value="jobOrders">
-                <Card>
-                    <CardHeader>
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <div>
-                                <CardTitle>Job Orders</CardTitle>
-                                <CardDescription>A list of job orders for the selected period.</CardDescription>
-                            </div>
-                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input 
-                                    placeholder="Search by client or J.O. #" 
-                                    className="pl-10 w-full sm:w-64"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
-                            <SortableHeader title="Client Name" sortKey="clientName" />
-                            <SortableHeader title="Start Date" sortKey="startDate" />
-                            <SortableHeader title="Due Date" sortKey="dueDate" />
-                            <SortableHeader title="Amount" sortKey="totalAmount" />
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {filteredOrders.length > 0 ? (
-                            filteredOrders.map((order) => (
-                            <TableRow key={order.id}>
-                                <TableCell>
-                                <Badge variant="outline">{order.jobOrderNumber}</Badge>
-                                </TableCell>
-                                <TableCell className="font-medium">{order.clientName}</TableCell>
-                                <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
-                                <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
-                                <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                                <TableCell className="text-right space-x-2">
-                                <Button asChild variant="ghost" size="icon">
-                                    <Link href={`/edit/${order.id}`}>
-                                    <Pencil className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                                <Button asChild variant="ghost" size="icon">
-                                    <Link href={`/print/${order.id}`} target="_blank">
-                                    <Printer className="h-4 w-4" />
-                                    </Link>
-                                </Button>
-                                </TableCell>
-                            </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                            <TableCell colSpan={6} className="h-24 text-center">
-                                No job orders for this period.
-                            </TableCell>
-                            </TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-            <TabsContent value="expenses">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Expenses</CardTitle>
-                        <CardDescription>A list of expenses for the selected period.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Category</TableHead>
-                                    <TableHead>Description</TableHead>
-                                    <TableHead>Items</TableHead>
-                                    <TableHead className="text-right">Total Amount</TableHead>
-                                    <TableHead className="text-right">Actions</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {filteredExpenses.length > 0 ? (
-                                    filteredExpenses.map((expense) => (
-                                        <TableRow key={expense.id}>
-                                            <TableCell>{new Date(expense.date).toLocaleDateString()}</TableCell>
-                                            <TableCell>{getCategoryBadge(expense.category)}</TableCell>
-                                            <TableCell className="font-medium">{expense.description}</TableCell>
-                                            <TableCell>
-                                                <ul className="list-disc list-inside text-sm text-muted-foreground">
-                                                    {expense.items.map(item => (
-                                                        <li key={item.id}>{item.description} - {formatCurrency(item.amount)}</li>
-                                                    ))}
-                                                </ul>
-                                            </TableCell>
-                                            <TableCell className="text-right">{formatCurrency(expense.totalAmount)}</TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Button variant="ghost" size="icon" onClick={() => handleOpenExpenseDialog(expense)}>
-                                                    <Pencil className="h-4 w-4" />
-                                                </Button>
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                        <Button variant="ghost" size="icon">
-                                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                                        </Button>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                        <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            This action cannot be undone. This will permanently delete this expense record.
-                                                        </AlertDialogDescription>
-                                                        </AlertDialogHeader>
-                                                        <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDeleteExpense(expense.id)}>Delete</AlertDialogAction>
-                                                        </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                </AlertDialog>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={6} className="h-24 text-center">
-                                            No expenses for this period.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                </Card>
-            </TabsContent>
-        </Tabs>
+        <TabsContent value="today">{renderContent()}</TabsContent>
+        <TabsContent value="weekly">{renderContent()}</TabsContent>
+        <TabsContent value="monthly">{renderContent()}</TabsContent>
+        <TabsContent value="yearly">{renderContent()}</TabsContent>
+      </Tabs>
     </div>
   );
-
-    
-
-    
+}
