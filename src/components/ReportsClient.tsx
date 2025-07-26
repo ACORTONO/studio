@@ -23,7 +23,7 @@ import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, Arr
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, startOfToday, endOfToday, eachHourOfInterval, set } from 'date-fns';
+import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, startOfToday, endOfToday, eachHourOfInterval, set, startOfMonth, endOfMonth, endOfYear, startOfYear } from 'date-fns';
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -295,12 +295,88 @@ export function ReportsClient() {
     return Object.values(data).sort((a,b) => a.year.localeCompare(b.year));
   }, [jobOrders, expenses]);
 
+  const {
+    todayJobOrders
+  } = useMemo(() => {
+      const now = new Date();
+      const todayStart = startOfToday();
+      const todayEnd = endOfToday();
+
+      const todayJobOrders = jobOrders.filter(order => {
+          const orderDate = parseISO(order.startDate);
+          return orderDate >= todayStart && orderDate <= todayEnd;
+      });
+      return { todayJobOrders };
+  }, [jobOrders]);
+
   const renderPrintHeader = (title: string) => (
     <div className="print-only text-center mb-4">
         <h1 className="text-2xl font-bold">{title}</h1>
         <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
     </div>
   );
+
+  const renderJobOrderTable = (orders: JobOrder[]) => {
+     if (orders.length === 0) {
+        return (
+            <Table>
+                <TableBody>
+                    <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center">
+                            No sales data available for this period.
+                        </TableCell>
+                    </TableRow>
+                </TableBody>
+            </Table>
+        );
+    }
+    
+    return (
+        <Table>
+            <TableHeader>
+            <TableRow>
+                <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
+                <SortableHeader title="Start Date" sortKey="startDate" />
+                <SortableHeader title="Client Name" sortKey="clientName" />
+                <SortableHeader title="Total Amount" sortKey="totalAmount" />
+                <SortableHeader title="Paid" sortKey="downpayment" />
+                <TableHead className="text-right">Balance</TableHead>
+                <SortableHeader title="Status" sortKey="status" />
+            </TableRow>
+            </TableHeader>
+            <TableBody>
+            {orders.map((order) => {
+                const discountValue = order.discount || 0;
+                const discountAmount = order.discountType === 'percent'
+                    ? order.totalAmount * (discountValue / 100)
+                    : discountValue;
+                const balance = order.totalAmount - (order.downpayment || 0) - discountAmount;
+                return (
+                    <TableRow key={order.id}>
+                        <TableCell>
+                            <Badge variant="outline">{order.jobOrderNumber}</Badge>
+                        </TableCell>
+                        <TableCell>
+                            {new Date(order.startDate).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell>
+                            <span className="font-medium">{order.clientName}</span>
+                            {order.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{order.notes}</p>}
+                        </TableCell>
+                        <TableCell className="text-right">{formatCurrency(order.totalAmount)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(order.downpayment || 0)}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(balance)}TableCell>
+                        <TableCell className="text-center">
+                            {getStatusBadge(order.status)}
+                        </TableCell>
+                    </TableRow>
+                );
+                })
+            }
+            </TableBody>
+        </Table>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -344,56 +420,7 @@ export function ReportsClient() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <SortableHeader title="Job Order #" sortKey="jobOrderNumber" />
-                            <SortableHeader title="Start Date" sortKey="startDate" />
-                            <SortableHeader title="Client Name" sortKey="clientName" />
-                            <SortableHeader title="Total Amount" sortKey="totalAmount" />
-                            <SortableHeader title="Paid" sortKey="downpayment" />
-                            <TableHead className="text-right">Balance</TableHead>
-                            <SortableHeader title="Status" sortKey="status" />
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {sortedAndFilteredJobOrders.length > 0 ? (
-                            sortedAndFilteredJobOrders.map((order) => {
-                            const discountValue = order.discount || 0;
-                            const discountAmount = order.discountType === 'percent'
-                                ? order.totalAmount * (discountValue / 100)
-                                : discountValue;
-                            const balance = order.totalAmount - (order.downpayment || 0) - discountAmount;
-                            return (
-                                <TableRow key={order.id}>
-                                    <TableCell>
-                                        <Badge variant="outline">{order.jobOrderNumber}</Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {new Date(order.startDate).toLocaleDateString()}
-                                    </TableCell>
-                                    <TableCell>
-                                        <span className="font-medium">{order.clientName}</span>
-                                        {order.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{order.notes}</p>}
-                                    </TableCell>
-                                    <TableCell className="text-right">{formatCurrency(order.totalAmount)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(order.downpayment || 0)}</TableCell>
-                                    <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
-                                    <TableCell className="text-center">
-                                        {getStatusBadge(order.status)}
-                                    </TableCell>
-                                </TableRow>
-                            );
-                            })
-                        ) : (
-                            <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
-                                No sales data available. Create a job order to see reports.
-                            </TableCell>
-                            </TableRow>
-                        )}
-                        </TableBody>
-                    </Table>
+                        {renderJobOrderTable(sortedAndFilteredJobOrders)}
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -401,24 +428,11 @@ export function ReportsClient() {
                  <Card className="print-area">
                     {renderPrintHeader("Today's Sales Report")}
                     <CardHeader className="no-print">
-                        <CardTitle>Today's Sales Report</CardTitle>
-                        <CardDescription>A breakdown of sales, collectibles, and expenses for today.</CardDescription>
+                        <CardTitle>Today's Sales</CardTitle>
+                        <CardDescription>A list of job orders created today.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={todayData}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
-                                    <YAxis tickFormatter={(value) => `₱${value / 1000}k`} />
-                                    <Tooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
-                                    <Legend />
-                                    <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="collectibles" fill="var(--color-collectibles)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
+                       {renderJobOrderTable(todayJobOrders)}
                     </CardContent>
                  </Card>
             </TabsContent>
@@ -501,3 +515,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    
