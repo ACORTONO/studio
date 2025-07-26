@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2 } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -98,6 +98,7 @@ export function DashboardClient() {
   const [timeFilter, setTimeFilter] = useState("today");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
     resolver: zodResolver(expenseSchema),
@@ -131,7 +132,13 @@ export function DashboardClient() {
         interval = { start: startOfToday(), end: endOfToday() };
     }
 
-    const filteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), interval));
+    const dateFilteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), interval));
+    
+    const filteredOrders = dateFilteredOrders.filter(order => 
+      order.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.jobOrderNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
     const filteredExpenses = expenses.filter(expense => isWithinInterval(parseISO(expense.date), interval));
 
     const totalSales = filteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
@@ -144,7 +151,7 @@ export function DashboardClient() {
       totalExpenses,
       netProfit: totalSales - totalExpenses
     };
-  }, [jobOrders, expenses, timeFilter]);
+  }, [jobOrders, expenses, timeFilter, searchQuery]);
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -325,8 +332,21 @@ export function DashboardClient() {
             <TabsContent value="jobOrders">
                 <Card>
                     <CardHeader>
-                    <CardTitle>Job Orders</CardTitle>
-                    <CardDescription>A list of job orders for the selected period.</CardDescription>
+                        <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                            <div>
+                                <CardTitle>Job Orders</CardTitle>
+                                <CardDescription>A list of job orders for the selected period.</CardDescription>
+                            </div>
+                             <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search by client or J.O. #" 
+                                    className="pl-10 w-full sm:w-64"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
                     </CardHeader>
                     <CardContent>
                     <Table>
@@ -451,4 +471,5 @@ export function DashboardClient() {
         </Tabs>
     </div>
   );
-}
+
+    
