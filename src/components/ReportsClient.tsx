@@ -501,4 +501,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
