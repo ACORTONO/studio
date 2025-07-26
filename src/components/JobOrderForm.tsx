@@ -194,6 +194,17 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const watchDiscountValue = form.watch("discount") || 0;
   const watchDownpayment = form.watch("downpayment") || 0;
 
+  useEffect(() => {
+    const statuses = watchItems.map(item => item.status);
+    if (statuses.every(s => s === 'Paid')) {
+        form.setValue('status', 'Completed');
+    } else if (statuses.some(s => s === 'Paid' || s === 'Balance')) {
+        form.setValue('status', 'In Progress');
+    } else {
+        form.setValue('status', 'Pending');
+    }
+  }, [watchItems, form]);
+
   const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
     0
@@ -315,10 +326,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Dates</CardTitle>
-              <CardDescription>Select the start and due dates.</CardDescription>
+              <CardTitle>Job Order Details</CardTitle>
+              <CardDescription>Set the dates and status for this job order.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
+            <CardContent className="grid md:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
                 name="startDate"
@@ -395,6 +406,29 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                   </FormItem>
                 )}
               />
+               <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Order Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="In Progress">In Progress</SelectItem>
+                          <SelectItem value="Completed">Completed</SelectItem>
+                          <SelectItem value="Cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </CardContent>
           </Card>
 
@@ -810,9 +844,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
-
-    
-
-    
-
-
