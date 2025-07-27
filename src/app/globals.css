@@ -86,8 +86,8 @@
 
 @media print {
   @page {
-    size: auto;
-    margin: 0.5in;
+    size: 4in 6in;
+    margin: 0.1in;
   }
 
   body {
@@ -95,6 +95,8 @@
     print-color-adjust: exact !important;
     background-color: #fff !important;
     color: #000 !important;
+    font-size: 8px !important;
+    line-height: 1.2;
   }
 
   .no-print {
@@ -105,6 +107,11 @@
     box-shadow: none !important;
     border: none !important;
     color: #000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
   }
   
   .print-content {

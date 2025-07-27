@@ -12,7 +12,6 @@ import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 
 export default function PrintInvoicePage() {
   const { id } = useParams();
@@ -28,7 +27,6 @@ export default function PrintInvoicePage() {
           setPrinterAvailable(printers.length > 0);
         } catch (error) {
           console.warn('Could not detect printers.', error);
-          // Assume a printer is available if the API fails, to not block users.
           setPrinterAvailable(true);
         }
       }
@@ -64,11 +62,11 @@ export default function PrintInvoicePage() {
 
   return (
     <div className='bg-gray-100 p-4 sm:p-6 lg:p-8 min-h-screen'>
-      <div className="max-w-2xl mx-auto space-y-4">
-        <div className="flex justify-between items-center no-print text-gray-800">
+      <div className="max-w-xl mx-auto space-y-4 no-print">
+        <div className="flex justify-between items-center text-gray-800">
             <div>
                 <h1 className="text-2xl font-bold">Print Preview</h1>
-                <p className="text-gray-500">Review the invoice before printing.</p>
+                <p className="text-gray-500">Review the invoice before printing (4x6 inches).</p>
             </div>
             <Button onClick={handlePrint} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Printer className="mr-2 h-4 w-4"/>
@@ -77,7 +75,7 @@ export default function PrintInvoicePage() {
         </div>
 
         {!printerAvailable && (
-            <Alert variant="destructive" className="mb-4 no-print">
+            <Alert variant="destructive" className="mb-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>No Printer Detected</AlertTitle>
                 <AlertDescription>
@@ -85,84 +83,73 @@ export default function PrintInvoicePage() {
                 </AlertDescription>
             </Alert>
         )}
-        
-        <Card className="print-area shadow-lg">
-            <CardContent className="p-0">
-                <div className="p-2 font-sans text-gray-800 bg-white text-[8px] leading-tight print-content">
-                    <header className="flex justify-between items-start mb-4">
-                        <div>
-                            <h1 className="text-lg font-headline font-bold text-gray-900">INVOICE</h1>
-                            <p className="text-gray-500 text-xs">{invoice.invoiceNumber}</p>
-                        </div>
-                        <div className="text-right">
-                            <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={80} height={80} className="w-16 h-auto ml-auto mb-1"/>
-                            <p className="text-xxs text-gray-600">123 Business Rd, City, State 12345</p>
-                            <p className="text-xxs text-gray-600">contact@yourcompany.com</p>
-                        </div>
-                    </header>
-                    
-                    <Separator className="my-2 bg-gray-200" />
+      </div>
 
-                    <section className="grid grid-cols-3 gap-4 mb-4 text-xxs">
-                        <div>
-                            <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Bill To</h3>
-                            <p className="font-bold text-xs">{invoice.clientName}</p>
-                        </div>
-                        <div className="text-right col-span-2">
-                            <p><span className="font-semibold text-gray-600">Date:</span> {new Date(invoice.date).toLocaleDateString()}</p>
-                            <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
-                        </div>
-                    </section>
+      <div className="print-area w-[4in] h-[6in] p-[0.25in] bg-white shadow-lg mx-auto mt-4">
+          <div className="p-2 font-sans text-gray-800 bg-white leading-tight print-content">
+              <header className="flex justify-between items-start mb-2">
+                  <div>
+                      <h1 className="text-base font-headline font-bold text-gray-900">INVOICE</h1>
+                      <p className="text-gray-500">{invoice.invoiceNumber}</p>
+                  </div>
+                  <div className="text-right">
+                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={60} height={60} className="w-12 h-auto ml-auto mb-1"/>
+                  </div>
+              </header>
+              
+              <Separator className="my-2 bg-gray-200" />
 
-                    <section>
-                        <Table>
-                            <TableHeader>
-                                <TableRow className="bg-gray-100">
-                                    <TableHead className="w-2/5 font-bold text-gray-700 p-1 h-auto">Description</TableHead>
-                                    <TableHead className="text-center font-bold text-gray-700 p-1 h-auto">Qty</TableHead>
-                                    <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Price</TableHead>
-                                    <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Total</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {invoice.items.map(item => (
-                                    <TableRow key={item.id}>
-                                        <TableCell className="p-1">
-                                            <p className="font-medium">{item.description}</p>
-                                        </TableCell>
-                                        <TableCell className="text-center p-1">{item.quantity}</TableCell>
-                                        <TableCell className="text-right p-1">{formatCurrency(item.amount)}</TableCell>
-                                        <TableCell className="text-right p-1">{formatCurrency(item.quantity * item.amount)}</TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                            <TableFooter>
-                                <TableRow className="font-bold text-xs bg-gray-50">
-                                    <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Total Amount Due</TableCell>
-                                    <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(subtotal)}</TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        </Table>
-                    </section>
+              <section className="grid grid-cols-2 gap-2 mb-2">
+                  <div>
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Bill To</h3>
+                      <p className="font-bold">{invoice.clientName}</p>
+                  </div>
+                  <div className="text-right">
+                      <p><span className="font-semibold text-gray-600">Date:</span> {new Date(invoice.date).toLocaleDateString()}</p>
+                      <p><span className="font-semibold text-gray-600">Due:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                  </div>
+              </section>
 
-                     {invoice.notes && (
-                        <section className="mt-4 text-xxs">
-                            <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Notes</h3>
-                            <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
-                        </section>
-                     )}
-                   
-                    <footer className="mt-8 pt-4 border-t border-gray-200 text-gray-500 grid grid-cols-2 text-xxs">
-                        <div>
-                            <p>Prepared by: _________________</p>
-                        </div>
-                        <div className="text-right">
-                            <p>Signature: _________________</p>
-                        </div>
-                    </footer>
-                </div>
-            </CardContent>
-        </Card>
+              <section>
+                  <Table>
+                      <TableHeader>
+                          <TableRow className="bg-gray-100">
+                              <TableHead className="w-3/5 font-bold text-gray-700 p-1 h-auto">Desc</TableHead>
+                              <TableHead className="text-center font-bold text-gray-700 p-1 h-auto">Qty</TableHead>
+                              <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Total</TableHead>
+                          </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                          {invoice.items.map(item => (
+                              <TableRow key={item.id}>
+                                  <TableCell className="p-1 align-top">
+                                      <p className="font-medium">{item.description}</p>
+                                  </TableCell>
+                                  <TableCell className="text-center p-1 align-top">{item.quantity}</TableCell>
+                                  <TableCell className="text-right p-1 align-top">{formatCurrency(item.quantity * item.amount)}</TableCell>
+                              </TableRow>
+                          ))}
+                      </TableBody>
+                      <TableFooter>
+                          <TableRow className="font-bold bg-gray-50">
+                              <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Total Due</TableCell>
+                              <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(subtotal)}</TableCell>
+                          </TableRow>
+                      </TableFooter>
+                  </Table>
+              </section>
+
+               {invoice.notes && (
+                  <section className="mt-2">
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Notes</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+                  </section>
+               )}
+             
+              <footer className="mt-4 pt-2 border-t border-gray-200 text-gray-500 absolute bottom-4 left-4 right-4">
+                  <p className="text-center">Thank you for your business!</p>
+              </footer>
+          </div>
       </div>
     </div>
   );
