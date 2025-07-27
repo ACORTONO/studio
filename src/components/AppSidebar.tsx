@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FilePlus2, LayoutDashboard, BarChart2, Receipt, Settings } from "lucide-react";
+import { FilePlus2, LayoutDashboard, BarChart2, Receipt, Settings, FileText } from "lucide-react";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -22,6 +22,11 @@ export function AppSidebar() {
       href: "/",
       label: "Job Order Form",
       icon: FilePlus2,
+    },
+    {
+      href: "/",
+      label: "Invoice Form",
+      icon: FileText,
     },
     {
       href: "/dashboard",
@@ -58,9 +63,10 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href + item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname === item.href && item.href !== "/"}
                 className={cn(
                   "w-full justify-start",
+                   (pathname === "/" && (item.label === "Job Order Form" || item.label === "Invoice Form")) && 'bg-sidebar-accent text-sidebar-accent-foreground'
                 )}
               >
                 <Link href={item.href}>
