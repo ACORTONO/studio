@@ -244,7 +244,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? (
+                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                               format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
@@ -282,7 +282,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                             )}
                           >
                             <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value ? (
+                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
                               format(field.value, "PPP")
                             ) : (
                               <span>Pick a date</span>
@@ -456,3 +456,5 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     </>
   );
 }
+
+    
