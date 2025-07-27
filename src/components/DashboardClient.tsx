@@ -117,7 +117,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
     const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
     return (
-        <React.Fragment>
+        <>
             <TableRow>
                 <TableCell>
                      <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
@@ -146,39 +146,37 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                     </Button>
                 </TableCell>
             </TableRow>
-            {isOpen && (
-                 <TableRow className="bg-muted/50">
-                    <TableCell colSpan={8} className="p-0">
-                        <div className="p-4">
-                        <h4 className="font-semibold mb-2">Order Items:</h4>
-                        <Table>
-                            <TableHeader>
-                            <TableRow>
-                                <TableHead>Description</TableHead>
-                                <TableHead className="text-center">Qty</TableHead>
-                                <TableHead className="text-right">Price</TableHead>
-                                <TableHead className="text-right">Total</TableHead>
+             <TableRow className={cn(!isOpen && "hidden")}>
+                <TableCell colSpan={8} className="p-0">
+                    <div className="p-4 bg-muted/50">
+                    <h4 className="font-semibold mb-2 ml-4">Order Items:</h4>
+                    <Table>
+                        <TableHeader>
+                        <TableRow>
+                            <TableHead>Description</TableHead>
+                            <TableHead className="text-center">Qty</TableHead>
+                            <TableHead className="text-right">Price</TableHead>
+                            <TableHead className="text-right">Total</TableHead>
+                        </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                        {order.items.map(item => (
+                            <TableRow key={item.id}>
+                            <TableCell>
+                                {item.description}
+                                {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
+                            </TableCell>
+                            <TableCell className="text-center">{item.quantity}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                            <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
                             </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                            {order.items.map(item => (
-                                <TableRow key={item.id}>
-                                <TableCell>
-                                    {item.description}
-                                    {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
-                                </TableCell>
-                                <TableCell className="text-center">{item.quantity}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
-                                </TableRow>
-                            ))}
-                            </TableBody>
-                        </Table>
-                        </div>
-                    </TableCell>
-                </TableRow>
-            )}
-        </React.Fragment>
+                        ))}
+                        </TableBody>
+                    </Table>
+                    </div>
+                </TableCell>
+            </TableRow>
+        </>
     )
 }
 
