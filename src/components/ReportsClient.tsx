@@ -182,68 +182,6 @@ export function ReportsClient() {
     </TableHead>
   )
 
-  const todayData = useMemo(() => {
-    const now = new Date();
-    const todayStart = startOfToday();
-    const todayEnd = endOfToday();
-    const hoursInDay = eachHourOfInterval({ start: todayStart, end: todayEnd });
-    
-    const data = hoursInDay.map(hour => ({
-        date: format(hour, 'ha'),
-        sales: 0,
-        collectibles: 0,
-        expenses: 0
-    }));
-
-    jobOrders.forEach(jobOrder => {
-        const jobOrderDate = parseISO(jobOrder.startDate);
-        if (jobOrderDate >= todayStart && jobOrderDate <= todayEnd) {
-            const hourIndex = jobOrderDate.getHours();
-            if(hourIndex > -1 && hourIndex < 24) {
-                data[hourIndex].sales += jobOrder.totalAmount;
-                data[hourIndex].collectibles += jobOrder.downpayment || 0;
-            }
-        }
-    });
-
-    expenses.forEach(expense => {
-        const expenseDate = parseISO(expense.date);
-        if (expenseDate >= todayStart && expenseDate <= todayEnd) {
-            const hourIndex = expenseDate.getHours();
-            if(hourIndex > -1 && hourIndex < 24) {
-                data[hourIndex].expenses += expense.totalAmount;
-            }
-        }
-    });
-    
-    return data;
-  }, [jobOrders, expenses]);
-
-  const monthlyData = useMemo(() => {
-    const data: { [key: string]: { month: string, sales: number; collectibles: number; expenses: number } } = {};
-
-    jobOrders.forEach(jobOrder => {
-        const date = parseISO(jobOrder.startDate);
-        const monthKey = format(date, 'yyyy-MM');
-        if (!data[monthKey]) {
-            data[monthKey] = { month: format(date, 'MMM yyyy'), sales: 0, collectibles: 0, expenses: 0 };
-        }
-        data[monthKey].sales += jobOrder.totalAmount;
-        data[monthKey].collectibles += jobOrder.downpayment || 0;
-    });
-
-    expenses.forEach(expense => {
-        const date = parseISO(expense.date);
-        const monthKey = format(date, 'yyyy-MM');
-        if (!data[monthKey]) {
-            data[monthKey] = { month: format(date, 'MMM yyyy'), sales: 0, collectibles: 0, expenses: 0 };
-        }
-        data[monthKey].expenses += expense.totalAmount;
-    });
-
-    return Object.values(data).sort((a,b) => a.month.localeCompare(b.month));
-  }, [jobOrders, expenses]);
-
   const yearlyData = useMemo(() => {
     const data: { [key: string]: { year: string, sales: number; collectibles: number; expenses: number } } = {};
     
@@ -270,12 +208,15 @@ export function ReportsClient() {
   const {
     todayJobOrders,
     weeklyJobOrders,
+    monthlyJobOrders,
   } = useMemo(() => {
       const now = new Date();
       const todayStart = startOfToday();
       const todayEnd = endOfToday();
       const weekStart = startOfWeek(now);
       const weekEnd = endOfWeek(now);
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
 
       const todayJobOrders = jobOrders.filter(jobOrder => {
           const jobOrderDate = parseISO(jobOrder.startDate);
@@ -287,7 +228,12 @@ export function ReportsClient() {
         return jobOrderDate >= weekStart && jobOrderDate <= weekEnd;
       });
 
-      return { todayJobOrders, weeklyJobOrders };
+      const monthlyJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= monthStart && jobOrderDate <= monthEnd;
+      });
+
+      return { todayJobOrders, weeklyJobOrders, monthlyJobOrders };
   }, [jobOrders]);
 
   const renderPrintHeader = (title: string) => (
@@ -418,39 +364,26 @@ export function ReportsClient() {
                  </Card>
             </TabsContent>
             <TabsContent value="weekly" className="mt-4" ref={weeklyPrintRef}>
-                 <Card className="print-area">
+                <Card className="print-area">
                     {renderPrintHeader("Weekly Sales Report")}
                     <CardHeader className="no-print">
                         <CardTitle>Weekly Sales</CardTitle>
                         <CardDescription>A list of job orders created this week.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       {renderJobOrderTable(weeklyJobOrders)}
+                        {renderJobOrderTable(weeklyJobOrders)}
                     </CardContent>
-                 </Card>
+                </Card>
             </TabsContent>
             <TabsContent value="monthly" className="mt-4" ref={monthlyPrintRef}>
                  <Card className="print-area">
                     {renderPrintHeader("Monthly Sales Report")}
                     <CardHeader className="no-print">
                         <CardTitle>Monthly Sales Report</CardTitle>
-                        <CardDescription>A breakdown of sales, collectibles, and expenses by month.</CardDescription>
+                        <CardDescription>A list of job orders created this month.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={monthlyData}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="month" tickLine={false} tickMargin={10} axisLine={false} />
-                                    <YAxis tickFormatter={(value) => `₱${value / 1000}k`} />
-                                    <Tooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
-                                    <Legend />
-                                    <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="collectibles" fill="var(--color-collectibles)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
+                       {renderJobOrderTable(monthlyJobOrders)}
                     </CardContent>
                  </Card>
             </TabsContent>
