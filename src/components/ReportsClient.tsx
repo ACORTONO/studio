@@ -62,7 +62,7 @@ const chartConfig = {
 const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
         case 'Completed':
-            return <Badge className="bg-green-600/80 text-white"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
+            return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'In Progress':
             return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
         case 'Pending':
@@ -515,3 +515,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    
