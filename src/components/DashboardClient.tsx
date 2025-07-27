@@ -117,7 +117,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
     const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
     return (
-        <>
+        <React.Fragment>
             <TableRow>
                 <TableCell>
                      <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
@@ -178,7 +178,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                     </TableCell>
                 </TableRow>
             )}
-        </>
+        </React.Fragment>
     )
 }
 
@@ -680,3 +680,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
