@@ -428,7 +428,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isEditMode ? 'Update' : 'Save'} Invoice
+              {isEditMode ? 'Update & Print Preview' : 'Save & Print Preview'}
             </Button>
           </div>
         </form>
@@ -456,5 +456,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     </>
   );
 }
+
+    
 
     

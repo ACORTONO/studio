@@ -848,7 +848,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isEditMode ? 'Update' : 'Save'} Job Order
+              {isEditMode ? 'Update & Print Preview' : 'Save & Print Preview'}
             </Button>
           </div>
         </form>
@@ -876,6 +876,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
 
     
 
