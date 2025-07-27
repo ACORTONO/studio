@@ -12,7 +12,8 @@ export interface JobOrder {
   id: string;
   jobOrderNumber: string;
   clientName: string;
-  contactNumber: string;
+  contactMethod: 'Contact No.' | 'FB Messenger';
+  contactDetail: string;
   startDate: string;
   dueDate: string;
   items: JobOrderItem[];

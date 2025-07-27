@@ -73,7 +73,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
-  contactNumber: z.string().min(1, "Contact number is required."),
+  contactMethod: z.enum(['Contact No.', 'FB Messenger']).default('Contact No.'),
+  contactDetail: z.string().min(1, "Contact detail is required."),
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
@@ -144,7 +145,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
     } : {
       clientName: "",
-      contactNumber: "",
+      contactMethod: 'Contact No.',
+      contactDetail: "",
       startDate: undefined, // Set to undefined initially to avoid hydration mismatch
       dueDate: undefined,
       notes: "",
@@ -264,7 +266,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
          form.reset({
             ...form.getValues(),
             clientName: "",
-            contactNumber: "",
+            contactMethod: 'Contact No.',
+            contactDetail: "",
             notes: "",
             discount: 0,
             discountType: 'amount',
@@ -331,19 +334,42 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                   </FormItem>
                 )}
               />
-              <FormField
-                control={form.control}
-                name="contactNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contact No.</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., 09123456789" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-3 gap-2">
+                <FormField
+                  control={form.control}
+                  name="contactMethod"
+                  render={({ field }) => (
+                    <FormItem className="col-span-1">
+                      <FormLabel>Contact Thru</FormLabel>
+                       <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Contact No.">Contact No.</SelectItem>
+                            <SelectItem value="FB Messenger">FB Messenger</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="contactDetail"
+                  render={({ field }) => (
+                    <FormItem className="col-span-2">
+                      <FormLabel>Contact Detail</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 09123456789 or FB name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
 

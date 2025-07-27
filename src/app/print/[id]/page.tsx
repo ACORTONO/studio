@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useLayoutEffect, useState } from 'react';
@@ -148,7 +149,7 @@ export default function PrintPage() {
                         <div>
                             <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Bill To</h3>
                             <p className="font-bold text-xs">{order.clientName}</p>
-                            <p>{order.contactNumber}</p>
+                            <p>{order.contactMethod}: {order.contactDetail}</p>
                         </div>
                         <div className="text-right col-span-2">
                             <p><span className="font-semibold text-gray-600">Start Date:</span> {new Date(order.startDate).toLocaleDateString()}</p>
