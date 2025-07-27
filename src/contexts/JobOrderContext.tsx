@@ -1,8 +1,9 @@
 
+
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import type { JobOrder, Expense, SalaryPayment, ExpenseCategory } from "@/lib/types";
+import type { JobOrder, Expense, SalaryPayment, ExpenseCategory, Payment } from "@/lib/types";
 
 // Mock data for initial state, used only if localStorage is empty
 const mockJobOrders: JobOrder[] = [
@@ -16,9 +17,11 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i1", description: "Logo Design", quantity: 1, amount: 500, remarks: "Initial concept", status: 'Paid' }],
     totalAmount: 500,
+    payments: [{id: 'p1', date: new Date().toISOString(), amount: 500, notes: 'Full payment'}],
     discount: 50,
     discountType: 'amount',
     downpayment: 500,
+    paidAmount: 500,
     paymentMethod: 'Cheque',
     bankName: 'BPI',
     chequeNumber: '123456',
@@ -36,9 +39,11 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i2", description: "Website Development", quantity: 1, amount: 2500, remarks: "5 pages", status: 'Balance' }, { id: 'i3', description: 'Hosting (1 year)', quantity: 1, amount: 150, remarks: '', status: 'Unpaid' }],
     totalAmount: 2650,
+    payments: [{id: 'p2', date: new Date().toISOString(), amount: 1000, notes: 'Downpayment'}],
     discount: 0,
     discountType: 'amount',
     downpayment: 1000,
+    paidAmount: 1000,
     paymentMethod: 'Cash',
     status: 'In Progress',
     notes: ""
@@ -53,9 +58,11 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i4", description: "Business Cards", quantity: 200, amount: 50, remarks: "Matte finish", status: 'Unpaid' }],
     totalAmount: 50,
+    payments: [],
     discount: 0,
     discountType: 'amount',
     downpayment: 0,
+    paidAmount: 0,
     paymentMethod: 'Cash',
     status: 'Pending',
     notes: "Awaiting payment before printing."
@@ -70,9 +77,11 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i5', description: 'Social Media Campaign', quantity: 1, amount: 1200, remarks: '1 month management', status: 'Paid' }],
     totalAmount: 1200,
+    payments: [{id: 'p3', date: new Date().toISOString(), amount: 1200, notes: 'Paid via GCash'}],
     discount: 100,
     discountType: 'amount',
     downpayment: 1200,
+    paidAmount: 1200,
     paymentMethod: 'E-Wallet',
     eWalletReference: 'GCash Ref: 987654321',
     status: 'Completed',
@@ -88,9 +97,11 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i6', description: 'Video Production', quantity: 1, amount: 5000, remarks: '3-minute corporate video', status: 'Balance' }],
     totalAmount: 5000,
+    payments: [{id: 'p4', date: new Date().toISOString(), amount: 2500, notes: 'Bank Transfer DP'}],
     discount: 10,
     discountType: 'percent',
     downpayment: 2500,
+    paidAmount: 2500,
     paymentMethod: 'Bank Transfer',
     bankTransferReference: 'BDO Ref: ABC12345',
     status: 'In Progress',
@@ -106,9 +117,11 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i7', description: 'Network Security Audit', quantity: 1, amount: 3500, remarks: 'Full infrastructure scan', status: 'Unpaid' }],
     totalAmount: 3500,
+    payments: [],
     discount: 0,
     discountType: 'amount',
     downpayment: 0,
+    paidAmount: 0,
     paymentMethod: 'Cash',
     status: 'Pending',
     notes: 'Requires on-site visit.'

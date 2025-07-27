@@ -2,7 +2,7 @@
 "use server";
 
 import { generateJobOrderNumber } from "@/ai/flows/generate-job-order-number";
-import type { JobOrder } from "@/lib/types";
+import type { JobOrder, Payment } from "@/lib/types";
 import { z } from "zod";
 
 const jobOrderItemSchema = z.object({
@@ -12,6 +12,13 @@ const jobOrderItemSchema = z.object({
   amount: z.coerce.number().min(0, "Amount is required."),
   remarks: z.string().optional(),
   status: z.enum(['Unpaid', 'Paid', 'Balance']).default('Unpaid'),
+});
+
+const paymentSchema = z.object({
+    id: z.string(),
+    date: z.string(),
+    amount: z.number(),
+    notes: z.string().optional(),
 });
 
 const jobOrderSchemaBase = z.object({
@@ -26,6 +33,7 @@ const jobOrderSchemaBase = z.object({
   discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0).optional().default(0),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
+  payments: z.array(paymentSchema).optional().default([]),
   paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
   bankName: z.string().optional(),
   chequeNumber: z.string().optional(),
@@ -84,6 +92,17 @@ export async function createJobOrderAction(
     );
     
     const validatedData = validation.data;
+    const initialDownpayment = validatedData.downpayment || 0;
+    const payments: Payment[] = [];
+
+    if (initialDownpayment > 0) {
+        payments.push({
+            id: crypto.randomUUID(),
+            date: new Date().toISOString(),
+            amount: initialDownpayment,
+            notes: "Initial downpayment"
+        });
+    }
 
     const newOrder: JobOrder = {
       id: crypto.randomUUID(),
@@ -98,7 +117,8 @@ export async function createJobOrderAction(
       discount: validatedData.discount,
       discountType: validatedData.discountType,
       downpayment: validatedData.downpayment,
-      paidAmount: validatedData.downpayment || 0,
+      paidAmount: initialDownpayment,
+      payments: payments,
       items: validatedData.items.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
@@ -136,6 +156,7 @@ export async function updateJobOrderAction(
         );
         
         const validatedData = validation.data;
+        const paidAmount = validatedData.payments.reduce((sum, p) => sum + p.amount, 0);
 
         const updatedOrder: JobOrder = {
             id: existingOrder.id,
@@ -150,7 +171,8 @@ export async function updateJobOrderAction(
             discount: validatedData.discount,
             discountType: validatedData.discountType,
             downpayment: validatedData.downpayment,
-            paidAmount: validatedData.downpayment || 0,
+            paidAmount: paidAmount,
+            payments: validatedData.payments,
             items: existingOrder.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),

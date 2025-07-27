@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -23,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -63,9 +64,11 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Expense, ExpenseCategory, JobOrder } from "@/lib/types";
+import { Expense, ExpenseCategory, JobOrder, Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
+import { Textarea } from "./ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 
 
 const expenseItemSchema = z.object({
@@ -79,6 +82,11 @@ const expenseSchema = z.object({
     description: z.string().min(1, 'Main description is required'),
     category: z.enum(['General', 'Cash Advance', 'Salary', 'Fixed Expense']),
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
+});
+
+const paymentSchema = z.object({
+    amount: z.coerce.number().min(0.01, "Amount must be positive."),
+    notes: z.string().optional()
 });
 
 type SortableJobOrderKeys = keyof JobOrder;
@@ -113,17 +121,63 @@ const getStatusBadge = (status: JobOrder['status']) => {
 }
 
 const JobOrderRow = ({ order }: { order: JobOrder }) => {
+    const { updateJobOrder } = useJobOrders();
+    const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
+    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
     const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
+    const paymentForm = useForm<z.infer<typeof paymentSchema>>({
+        resolver: zodResolver(paymentSchema),
+        defaultValues: { amount: 0, notes: "" }
+    });
+
+    const handleAddPayment = (values: z.infer<typeof paymentSchema>) => {
+        const newPayment: Payment = {
+            id: crypto.randomUUID(),
+            date: new Date().toISOString(),
+            amount: values.amount,
+            notes: values.notes
+        };
+
+        const existingPayments = order.payments || [];
+        const updatedPayments = [...existingPayments, newPayment];
+        const newPaidAmount = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
+        
+        const discountValue = order.discount || 0;
+        const discountAmount = order.discountType === 'percent'
+            ? order.totalAmount * (discountValue / 100)
+            : discountValue;
+
+        const amountDue = order.totalAmount - discountAmount;
+        const newStatus = newPaidAmount >= amountDue ? 'Completed' : 'In Progress';
+        
+        const updatedOrder: JobOrder = {
+            ...order,
+            payments: updatedPayments,
+            paidAmount: newPaidAmount,
+            status: newStatus
+        };
+        
+        updateJobOrder(updatedOrder);
+        toast({ title: "Success", description: "Payment added successfully." });
+        paymentForm.reset();
+        setIsPaymentDialogOpen(false);
+    }
+    
+    const balance = order.totalAmount - (order.paidAmount || 0) - (order.discountType === 'percent' ? order.totalAmount * ((order.discount || 0) / 100) : (order.discount || 0));
+
     return (
-        <>
+         <Collapsible asChild key={order.id} open={isOpen} onOpenChange={setIsOpen}>
+            <>
             <TableRow>
                 <TableCell>
-                     <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
-                        <span className="sr-only">Toggle details</span>
-                        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
-                    </Button>
+                     <CollapsibleTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+                            <span className="sr-only">Toggle details</span>
+                        </Button>
+                    </CollapsibleTrigger>
                 </TableCell>
                 <TableCell>
                     <Badge variant="outline">{order.jobOrderNumber}</Badge>
@@ -146,37 +200,115 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                     </Button>
                 </TableCell>
             </TableRow>
-             <TableRow className={cn(!isOpen && "hidden")}>
-                <TableCell colSpan={8} className="p-0">
-                    <div className="p-4 bg-muted/50">
-                    <h4 className="font-semibold mb-2 ml-4">Order Items:</h4>
-                    <Table>
-                        <TableHeader>
-                        <TableRow>
-                            <TableHead>Description</TableHead>
-                            <TableHead className="text-center">Qty</TableHead>
-                            <TableHead className="text-right">Price</TableHead>
-                            <TableHead className="text-right">Total</TableHead>
-                        </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                        {order.items.map(item => (
-                            <TableRow key={item.id}>
-                            <TableCell>
-                                {item.description}
-                                {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
-                            </TableCell>
-                            <TableCell className="text-center">{item.quantity}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
-                            </TableRow>
-                        ))}
-                        </TableBody>
-                    </Table>
-                    </div>
-                </TableCell>
-            </TableRow>
-        </>
+            <CollapsibleContent asChild>
+                <TableRow>
+                    <TableCell colSpan={8} className="p-0">
+                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50">
+                           <div>
+                                <h4 className="font-semibold mb-2 ml-4">Order Items:</h4>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Description</TableHead>
+                                            <TableHead className="text-center">Qty</TableHead>
+                                            <TableHead className="text-right">Price</TableHead>
+                                            <TableHead className="text-right">Total</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {order.items.map(item => (
+                                            <TableRow key={item.id}>
+                                                <TableCell>
+                                                    {item.description}
+                                                    {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
+                                                </TableCell>
+                                                <TableCell className="text-center">{item.quantity}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                           </div>
+                           <div>
+                               <div className="flex justify-between items-center mb-2 ml-4">
+                                    <h4 className="font-semibold">Payment History:</h4>
+                                     <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
+                                        <DialogTrigger asChild>
+                                            <Button size="sm" disabled={balance <= 0}>
+                                                <PlusCircle className="mr-2 h-4 w-4"/> Add Payment
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <form onSubmit={paymentForm.handleSubmit(handleAddPayment)}>
+                                                <DialogHeader>
+                                                    <DialogTitle>Add Payment for {order.jobOrderNumber}</DialogTitle>
+                                                    <DialogDescription>
+                                                        Record a new payment. The current balance is <span className="font-bold">{formatCurrency(balance)}</span>.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="grid grid-cols-4 items-center gap-4">
+                                                        <Label htmlFor="amount" className="text-right">Amount</Label>
+                                                        <Input id="amount" type="number" {...paymentForm.register('amount')} className="col-span-3" placeholder="0.00" />
+                                                        {paymentForm.formState.errors.amount && <p className="text-red-500 text-xs col-span-4 text-right">{paymentForm.formState.errors.amount.message}</p>}
+                                                    </div>
+                                                     <div className="grid grid-cols-4 items-center gap-4">
+                                                        <Label htmlFor="notes" className="text-right">Notes</Label>
+                                                        <Textarea id="notes" {...paymentForm.register('notes')} className="col-span-3" placeholder="Optional notes for the payment"/>
+                                                    </div>
+                                                </div>
+                                                <DialogFooter>
+                                                    <DialogClose asChild>
+                                                        <Button type="button" variant="secondary">Cancel</Button>
+                                                    </DialogClose>
+                                                    <Button type="submit">Save Payment</Button>
+                                                </DialogFooter>
+                                            </form>
+                                        </DialogContent>
+                                    </Dialog>
+                               </div>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead>Notes</TableHead>
+                                            <TableHead className="text-right">Amount</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {order.payments && order.payments.length > 0 ? (
+                                             order.payments.map(payment => (
+                                                <TableRow key={payment.id}>
+                                                    <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
+                                                    <TableCell>{payment.notes}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={3} className="text-center h-24">No payments recorded.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                    <TableFooter>
+                                        <TableRow>
+                                            <TableCell colSpan={2} className="text-right font-bold">Total Paid</TableCell>
+                                            <TableCell className="text-right font-bold">{formatCurrency(order.paidAmount)}</TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell colSpan={2} className="text-right font-bold">Balance Due</TableCell>
+                                            <TableCell className="text-right font-bold text-destructive">{formatCurrency(balance)}</TableCell>
+                                        </TableRow>
+                                    </TableFooter>
+                                </Table>
+                           </div>
+                        </div>
+                    </TableCell>
+                </TableRow>
+             </CollapsibleContent>
+             </>
+        </Collapsible>
     )
 }
 

@@ -1,6 +1,14 @@
 
-export interface JobOrderItem {
+
+export interface Payment {
   id: string;
+  date: string;
+  amount: number;
+  notes?: string;
+}
+
+export interface JobOrderItem {
+  id:string;
   description: string;
   quantity: number;
   amount: number;
@@ -19,9 +27,10 @@ export interface JobOrder {
   items: JobOrderItem[];
   totalAmount: number;
   paidAmount: number;
+  payments: Payment[];
   discount?: number;
   discountType?: 'amount' | 'percent';
-  downpayment?: number;
+  downpayment?: number; // This can now represent the initial payment
   status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
   notes?: string;
   paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';

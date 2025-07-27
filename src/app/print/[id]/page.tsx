@@ -67,8 +67,8 @@ export default function PrintPage() {
     ? subtotal * (discountValue / 100)
     : discountValue;
 
-  const downpayment = order.downpayment || 0;
-  const amountDue = subtotal - discountAmount - downpayment;
+  const paidAmount = order.paidAmount || 0;
+  const amountDue = subtotal - discountAmount - paidAmount;
 
 
   const renderPaymentDetails = () => {
@@ -193,10 +193,10 @@ export default function PrintPage() {
                                         <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(discountAmount)}</TableCell>
                                     </TableRow>
                                 )}
-                                 {downpayment > 0 && (
+                                 {paidAmount > 0 && (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Downpayment</TableCell>
-                                        <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(downpayment)}</TableCell>
+                                        <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Total Paid</TableCell>
+                                        <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(paidAmount)}</TableCell>
                                     </TableRow>
                                  )}
                                 <TableRow className="font-bold text-xs bg-gray-50">
