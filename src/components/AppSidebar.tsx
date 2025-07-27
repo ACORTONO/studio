@@ -59,7 +59,7 @@ export function AppSidebar() {
     <>
       <SidebarHeader className="p-4">
         <Link href="/">
-          <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
+            <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
         </Link>
       </SidebarHeader>
       <SidebarContent>
