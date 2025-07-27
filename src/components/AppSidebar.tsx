@@ -34,11 +34,6 @@ export function AppSidebar() {
         icon: BarChart2
     },
     {
-        href: "/reports",
-        label: "Invoice",
-        icon: FileText
-    },
-    {
         href: "/delivery-receipt",
         label: "Delivery Receipt",
         icon: Receipt,
@@ -63,7 +58,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href + item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href && item.label !== "Invoice"}
+                isActive={pathname === item.href}
                 className={cn(
                   "w-full justify-start",
                 )}
