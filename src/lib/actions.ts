@@ -1,11 +1,11 @@
 
 "use server";
 
-import { generateJobOrderNumber } from "@/ai/flows/generate-job-order-number";
-import type { JobOrder, Payment } from "@/lib/types";
+import { generateInvoiceNumber } from "@/ai/flows/generate-invoice-number";
+import type { Invoice, Payment } from "@/lib/types";
 import { z } from "zod";
 
-const jobOrderItemSchema = z.object({
+const invoiceItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
@@ -21,7 +21,7 @@ const paymentSchema = z.object({
     notes: z.string().optional(),
 });
 
-const jobOrderSchemaBase = z.object({
+const invoiceSchemaBase = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactMethod: z.enum(['Contact No.', 'FB Messenger', 'Email']).default('Contact No.'),
   contactDetail: z.string().min(1, "Contact detail is required."),
@@ -32,7 +32,7 @@ const jobOrderSchemaBase = z.object({
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0).optional().default(0),
-  items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
+  items: z.array(invoiceItemSchema).min(1, "At least one item is required."),
   payments: z.array(paymentSchema).optional().default([]),
   paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
   bankName: z.string().optional(),
@@ -42,7 +42,7 @@ const jobOrderSchemaBase = z.object({
   bankTransferReference: z.string().optional(),
 });
 
-const refinement = (data: z.infer<typeof jobOrderSchemaBase>, ctx: z.RefinementCtx) => {
+const refinement = (data: z.infer<typeof invoiceSchemaBase>, ctx: z.RefinementCtx) => {
     if (data.paymentMethod === 'Cheque') {
         if (!data.bankName) {
             ctx.addIssue({ code: 'custom', message: 'Bank name is required for cheque payments.', path: ['bankName']});
@@ -62,28 +62,28 @@ const refinement = (data: z.infer<typeof jobOrderSchemaBase>, ctx: z.RefinementC
     }
 };
 
-const jobOrderSchema = jobOrderSchemaBase.superRefine(refinement);
+const invoiceSchema = invoiceSchemaBase.superRefine(refinement);
 
-const updateJobOrderSchema = jobOrderSchemaBase.extend({
+const updateInvoiceSchema = invoiceSchemaBase.extend({
     id: z.string(),
-    jobOrderNumber: z.string(),
+    invoiceNumber: z.string(),
 }).superRefine(refinement);
 
 
-export async function createJobOrderAction(
-  formData: z.infer<typeof jobOrderSchema>,
-  existingJobOrderNumbers: string[]
-): Promise<{ success: boolean; data?: JobOrder; error?: any }> {
-  const validation = jobOrderSchema.safeParse(formData);
+export async function createInvoiceAction(
+  formData: z.infer<typeof invoiceSchema>,
+  existingInvoiceNumbers: string[]
+): Promise<{ success: boolean; data?: Invoice; error?: any }> {
+  const validation = invoiceSchema.safeParse(formData);
   if (!validation.success) {
     return { success: false, error: validation.error.format() };
   }
 
   try {
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const { jobOrderNumber } = await generateJobOrderNumber({ existingJobOrderNumbers, currentDate });
-    if (!jobOrderNumber) {
-      throw new Error("Failed to generate job order number.");
+    const { invoiceNumber } = await generateInvoiceNumber({ existingInvoiceNumbers, currentDate });
+    if (!invoiceNumber) {
+      throw new Error("Failed to generate invoice number.");
     }
 
     const totalAmount = validation.data.items.reduce(
@@ -104,9 +104,9 @@ export async function createJobOrderAction(
         });
     }
 
-    const newOrder: JobOrder = {
+    const newInvoice: Invoice = {
       id: crypto.randomUUID(),
-      jobOrderNumber,
+      invoiceNumber,
       clientName: validatedData.clientName,
       contactMethod: validatedData.contactMethod,
       contactDetail: validatedData.contactDetail,
@@ -132,7 +132,7 @@ export async function createJobOrderAction(
       bankTransferReference: validatedData.bankTransferReference,
     };
 
-    return { success: true, data: newOrder };
+    return { success: true, data: newInvoice };
   } catch (error) {
     console.error(error);
     return { success: false, error: "An unexpected error occurred." };
@@ -140,17 +140,17 @@ export async function createJobOrderAction(
 }
 
 
-export async function updateJobOrderAction(
-  formData: z.infer<typeof updateJobOrderSchema>
-): Promise<{ success: boolean; data?: JobOrder; error?: any }> {
-    const validation = updateJobOrderSchema.safeParse(formData);
+export async function updateInvoiceAction(
+  formData: z.infer<typeof updateInvoiceSchema>
+): Promise<{ success: boolean; data?: Invoice; error?: any }> {
+    const validation = updateInvoiceSchema.safeParse(formData);
     if (!validation.success) {
         return { success: false, error: validation.error.format() };
     }
 
     try {
-        const existingOrder = validation.data;
-        const totalAmount = existingOrder.items.reduce(
+        const existingInvoice = validation.data;
+        const totalAmount = existingInvoice.items.reduce(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
@@ -158,22 +158,22 @@ export async function updateJobOrderAction(
         const validatedData = validation.data;
         const paidAmount = validatedData.payments.reduce((sum, p) => sum + p.amount, 0);
 
-        const updatedOrder: JobOrder = {
-            id: existingOrder.id,
-            jobOrderNumber: existingOrder.jobOrderNumber,
-            clientName: existingOrder.clientName,
+        const updatedInvoice: Invoice = {
+            id: existingInvoice.id,
+            invoiceNumber: existingInvoice.invoiceNumber,
+            clientName: existingInvoice.clientName,
             contactMethod: validatedData.contactMethod,
             contactDetail: validatedData.contactDetail,
-            startDate: existingOrder.startDate.toISOString(),
-            dueDate: existingOrder.dueDate.toISOString(),
-            notes: existingOrder.notes,
-            status: existingOrder.status,
+            startDate: existingInvoice.startDate.toISOString(),
+            dueDate: existingInvoice.dueDate.toISOString(),
+            notes: existingInvoice.notes,
+            status: existingInvoice.status,
             discount: validatedData.discount,
             discountType: validatedData.discountType,
             downpayment: validatedData.downpayment,
             paidAmount: paidAmount,
             payments: validatedData.payments,
-            items: existingOrder.items.map((item) => ({
+            items: existingInvoice.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),
             })),
@@ -186,7 +186,7 @@ export async function updateJobOrderAction(
             bankTransferReference: validatedData.bankTransferReference,
         };
         
-        return { success: true, data: updatedOrder };
+        return { success: true, data: updatedInvoice };
     } catch (error) {
         console.error(error);
         return { success: false, error: "An unexpected error occurred." };

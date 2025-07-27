@@ -1,11 +1,10 @@
 
-
 "use client";
 
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { useJobOrders } from '@/contexts/JobOrderContext';
-import { JobOrder } from '@/lib/types';
+import { useInvoices } from '@/contexts/InvoiceContext';
+import { Invoice } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,8 +16,8 @@ import { Card, CardContent } from '@/components/ui/card';
 
 export default function PrintPage() {
   const { id } = useParams();
-  const { jobOrders, getJobOrderById } = useJobOrders();
-  const [order, setOrder] = useState<JobOrder | undefined>(undefined);
+  const { invoices, getInvoiceById } = useInvoices();
+  const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);
   
   useEffect(() => {
@@ -38,9 +37,9 @@ export default function PrintPage() {
   }, []);
 
   useLayoutEffect(() => {
-    const foundOrder = getJobOrderById(id as string);
-    setOrder(foundOrder);
-  }, [id, jobOrders, getJobOrderById]);
+    const foundInvoice = getInvoiceById(id as string);
+    setInvoice(foundInvoice);
+  }, [id, invoices, getInvoiceById]);
 
   const handlePrint = () => {
     if (typeof window !== 'undefined') {
@@ -48,7 +47,7 @@ export default function PrintPage() {
     }
   }
 
-  if (!order) {
+  if (!invoice) {
     return (
         <div className="p-4 space-y-4 bg-white text-black text-xs">
             <Skeleton className="h-8 w-1/2 bg-gray-300" />
@@ -61,26 +60,26 @@ export default function PrintPage() {
   
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
   
-  const subtotal = order.totalAmount;
-  const discountValue = order.discount || 0;
-  const discountAmount = order.discountType === 'percent'
+  const subtotal = invoice.totalAmount;
+  const discountValue = invoice.discount || 0;
+  const discountAmount = invoice.discountType === 'percent'
     ? subtotal * (discountValue / 100)
     : discountValue;
 
-  const paidAmount = order.paidAmount || 0;
+  const paidAmount = invoice.paidAmount || 0;
   const amountDue = subtotal - discountAmount - paidAmount;
 
 
   const renderPaymentDetails = () => {
-    switch (order.paymentMethod) {
+    switch (invoice.paymentMethod) {
         case 'Cheque':
             return (
                 <div className="text-xxs">
                     <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
                     <p><span className="font-semibold">Method:</span> Cheque</p>
-                    {order.bankName && <p><span className="font-semibold">Bank:</span> {order.bankName}</p>}
-                    {order.chequeNumber && <p><span className="font-semibold">Cheque No:</span> {order.chequeNumber}</p>}
-                    {order.chequeDate && <p><span className="font-semibold">Cheque Date:</span> {new Date(order.chequeDate).toLocaleDateString()}</p>}
+                    {invoice.bankName && <p><span className="font-semibold">Bank:</span> {invoice.bankName}</p>}
+                    {invoice.chequeNumber && <p><span className="font-semibold">Cheque No:</span> {invoice.chequeNumber}</p>}
+                    {invoice.chequeDate && <p><span className="font-semibold">Cheque Date:</span> {new Date(invoice.chequeDate).toLocaleDateString()}</p>}
                 </div>
             );
         case 'E-Wallet':
@@ -88,7 +87,7 @@ export default function PrintPage() {
                 <div className="text-xxs">
                     <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
                     <p><span className="font-semibold">Method:</span> E-Wallet</p>
-                    {order.eWalletReference && <p><span className="font-semibold">Reference:</span> {order.eWalletReference}</p>}
+                    {invoice.eWalletReference && <p><span className="font-semibold">Reference:</span> {invoice.eWalletReference}</p>}
                 </div>
             );
         case 'Bank Transfer':
@@ -96,7 +95,7 @@ export default function PrintPage() {
                 <div className="text-xxs">
                     <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
                     <p><span className="font-semibold">Method:</span> Bank Transfer</p>
-                    {order.bankTransferReference && <p><span className="font-semibold">Reference:</span> {order.bankTransferReference}</p>}
+                    {invoice.bankTransferReference && <p><span className="font-semibold">Reference:</span> {invoice.bankTransferReference}</p>}
                 </div>
             );
         default:
@@ -110,7 +109,7 @@ export default function PrintPage() {
         <div className="flex justify-between items-center no-print text-gray-800">
             <div>
                 <h1 className="text-2xl font-bold">Print Preview</h1>
-                <p className="text-gray-500">Review the job order before printing.</p>
+                <p className="text-gray-500">Review the invoice before printing.</p>
             </div>
             <Button onClick={handlePrint} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Printer className="mr-2 h-4 w-4"/>
@@ -133,8 +132,8 @@ export default function PrintPage() {
                 <div className="p-2 font-sans text-gray-800 bg-white text-[8px] leading-tight print-content">
                     <header className="flex justify-between items-start mb-4">
                         <div>
-                            <h1 className="text-lg font-headline font-bold text-gray-900">JOB ORDER</h1>
-                            <p className="text-gray-500 text-xs">{order.jobOrderNumber}</p>
+                            <h1 className="text-lg font-headline font-bold text-gray-900">INVOICE</h1>
+                            <p className="text-gray-500 text-xs">{invoice.invoiceNumber}</p>
                         </div>
                         <div className="text-right">
                             <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={80} height={80} className="w-16 h-auto ml-auto mb-1"/>
@@ -148,12 +147,12 @@ export default function PrintPage() {
                     <section className="grid grid-cols-3 gap-4 mb-4 text-xxs">
                         <div>
                             <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Bill To</h3>
-                            <p className="font-bold text-xs">{order.clientName}</p>
-                            <p>{order.contactMethod}: {order.contactDetail}</p>
+                            <p className="font-bold text-xs">{invoice.clientName}</p>
+                            <p>{invoice.contactMethod}: {invoice.contactDetail}</p>
                         </div>
                         <div className="text-right col-span-2">
-                            <p><span className="font-semibold text-gray-600">Start Date:</span> {new Date(order.startDate).toLocaleDateString()}</p>
-                            <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(order.dueDate).toLocaleDateString()}</p>
+                            <p><span className="font-semibold text-gray-600">Start Date:</span> {new Date(invoice.startDate).toLocaleDateString()}</p>
+                            <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
                         </div>
                     </section>
 
@@ -168,7 +167,7 @@ export default function PrintPage() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {order.items.map(item => (
+                                {invoice.items.map(item => (
                                     <TableRow key={item.id}>
                                         <TableCell className="p-1">
                                             <p className="font-medium">{item.description}</p>
@@ -188,7 +187,7 @@ export default function PrintPage() {
                                 {discountValue > 0 && (
                                     <TableRow>
                                         <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">
-                                            Discount {order.discountType === 'percent' ? `(${order.discount}%)` : ''}
+                                            Discount {invoice.discountType === 'percent' ? `(${invoice.discount}%)` : ''}
                                         </TableCell>
                                         <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(discountAmount)}</TableCell>
                                     </TableRow>
@@ -208,10 +207,10 @@ export default function PrintPage() {
                     </section>
 
                     <section className="mt-4 grid grid-cols-2 gap-4 text-xxs">
-                        {order.notes && (
+                        {invoice.notes && (
                                 <div>
                                 <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Notes</h3>
-                                <p className="text-gray-700 whitespace-pre-wrap">{order.notes}</p>
+                                <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
                                 </div>
                         )}
                         {renderPaymentDetails()}

@@ -19,8 +19,8 @@ export function AppSidebar() {
 
   const menuItems = [
     {
-      href: "/",
-      label: "Job Order Form",
+      href: "/invoice",
+      label: "Invoice Generator",
       icon: FilePlus2,
     },
     {
@@ -32,11 +32,6 @@ export function AppSidebar() {
         href: "/reports",
         label: "Sales Reports",
         icon: BarChart2
-    },
-    {
-      href: "/",
-      label: "Invoice Form",
-      icon: FileText,
     },
     {
         href: "/delivery-receipt",
@@ -63,10 +58,9 @@ export function AppSidebar() {
             <SidebarMenuItem key={`${item.href}-${index}`}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href && !(item.label === "Job Order Form" || item.label === "Invoice Form")}
+                isActive={pathname === item.href}
                 className={cn(
                   "w-full justify-start",
-                   (pathname === "/" && (item.label === "Job Order Form" || item.label === "Invoice Form") && pathname === item.href) && 'bg-sidebar-accent text-sidebar-accent-foreground'
                 )}
               >
                 <Link href={item.href}>

@@ -1,26 +1,26 @@
 
 "use client";
 
-import { JobOrderForm } from "@/components/JobOrderForm";
-import { useJobOrders } from "@/contexts/JobOrderContext";
+import { InvoiceForm } from "@/components/InvoiceForm";
+import { useInvoices } from "@/contexts/InvoiceContext";
 import { useParams } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLayoutEffect, useState } from "react";
-import { JobOrder } from "@/lib/types";
+import { Invoice } from "@/lib/types";
 
-export default function EditJobOrderPage() {
+export default function EditInvoicePage() {
     const { id } = useParams();
-    const { getJobOrderById } = useJobOrders();
-    const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
+    const { getInvoiceById } = useInvoices();
+    const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
 
     useLayoutEffect(() => {
         if (id) {
-            const data = getJobOrderById(id as string);
-            setJobOrder(data);
+            const data = getInvoiceById(id as string);
+            setInvoice(data);
             setIsLoading(false);
         }
-    }, [id, getJobOrderById]);
+    }, [id, getInvoiceById]);
 
     if (isLoading) {
         return (
@@ -36,14 +36,14 @@ export default function EditJobOrderPage() {
         )
     }
 
-    if (!jobOrder) {
+    if (!invoice) {
         return <div>Invoice not found.</div>
     }
 
   return (
     <div>
       <h1 className="text-3xl font-headline font-bold mb-6">Edit Invoice</h1>
-      <JobOrderForm initialData={jobOrder} />
+      <InvoiceForm initialData={invoice} />
     </div>
   );
 }
