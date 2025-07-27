@@ -24,11 +24,6 @@ export function AppSidebar() {
       icon: FilePlus2,
     },
     {
-      href: "/",
-      label: "Invoice Form",
-      icon: FileText,
-    },
-    {
       href: "/dashboard",
       label: "Sales Dashboard",
       icon: LayoutDashboard,
@@ -37,6 +32,11 @@ export function AppSidebar() {
         href: "/reports",
         label: "Sales Reports",
         icon: BarChart2
+    },
+    {
+      href: "/",
+      label: "Invoice Form",
+      icon: FileText,
     },
     {
         href: "/delivery-receipt",
