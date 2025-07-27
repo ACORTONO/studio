@@ -23,7 +23,7 @@ import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, Arr
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
-import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, startOfToday, endOfToday, eachHourOfInterval, set, startOfMonth, endOfMonth, endOfYear, startOfYear } from 'date-fns';
+import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, startOfToday, endOfToday, eachHourOfInterval, set, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -182,33 +182,11 @@ export function ReportsClient() {
     </TableHead>
   )
 
-  const yearlyData = useMemo(() => {
-    const data: { [key: string]: { year: string, sales: number; collectibles: number; expenses: number } } = {};
-    
-    jobOrders.forEach(jobOrder => {
-        const year = getYear(parseISO(jobOrder.startDate)).toString();
-        if(!data[year]) {
-            data[year] = { year, sales: 0, collectibles: 0, expenses: 0 };
-        }
-        data[year].sales += jobOrder.totalAmount;
-        data[year].collectibles += jobOrder.downpayment || 0;
-    });
-
-    expenses.forEach(expense => {
-        const year = getYear(parseISO(expense.date)).toString();
-        if(!data[year]) {
-            data[year] = { year, sales: 0, collectibles: 0, expenses: 0 };
-        }
-        data[year].expenses += expense.totalAmount;
-    });
-
-    return Object.values(data).sort((a,b) => a.year.localeCompare(b.year));
-  }, [jobOrders, expenses]);
-
   const {
     todayJobOrders,
     weeklyJobOrders,
     monthlyJobOrders,
+    yearlyJobOrders,
   } = useMemo(() => {
       const now = new Date();
       const todayStart = startOfToday();
@@ -217,6 +195,8 @@ export function ReportsClient() {
       const weekEnd = endOfWeek(now);
       const monthStart = startOfMonth(now);
       const monthEnd = endOfMonth(now);
+      const yearStart = startOfYear(now);
+      const yearEnd = endOfYear(now);
 
       const todayJobOrders = jobOrders.filter(jobOrder => {
           const jobOrderDate = parseISO(jobOrder.startDate);
@@ -232,8 +212,13 @@ export function ReportsClient() {
         const jobOrderDate = parseISO(jobOrder.startDate);
         return jobOrderDate >= monthStart && jobOrderDate <= monthEnd;
       });
+      
+      const yearlyJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= yearStart && jobOrderDate <= yearEnd;
+      });
 
-      return { todayJobOrders, weeklyJobOrders, monthlyJobOrders };
+      return { todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
   }, [jobOrders]);
 
   const renderPrintHeader = (title: string) => (
@@ -371,7 +356,7 @@ export function ReportsClient() {
                         <CardDescription>A list of job orders created this week.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        {renderJobOrderTable(weeklyJobOrders)}
+                       {renderJobOrderTable(weeklyJobOrders)}
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -392,23 +377,10 @@ export function ReportsClient() {
                     {renderPrintHeader("Yearly Sales Report")}
                     <CardHeader className="no-print">
                         <CardTitle>Yearly Sales Report</CardTitle>
-                        <CardDescription>A breakdown of sales, collectibles, and expenses by year.</CardDescription>
+                        <CardDescription>A list of job orders created this year.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-                            <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={yearlyData}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="year" tickLine={false} tickMargin={10} axisLine={false} />
-                                    <YAxis tickFormatter={(value) => `₱${value / 1000}k`} />
-                                    <Tooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
-                                    <Legend />
-                                    <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="collectibles" fill="var(--color-collectibles)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
+                        {renderJobOrderTable(yearlyJobOrders)}
                     </CardContent>
                  </Card>
             </TabsContent>
