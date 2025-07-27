@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FilePlus2, LayoutDashboard, BarChart2, Receipt, Settings, FileText } from "lucide-react";
+import { FilePlus2, LayoutDashboard, BarChart2, Receipt, Settings, FileText, Building2 } from "lucide-react";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -43,6 +43,11 @@ export function AppSidebar() {
       label: "Invoice Form",
       icon: FileText,
     },
+     {
+      href: "/salaries",
+      label: "Salaries",
+      icon: Building2,
+    },
     {
         href: "/settings",
         label: "Settings",
@@ -53,7 +58,7 @@ export function AppSidebar() {
   return (
     <>
       <SidebarHeader className="p-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/">
             <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
         </Link>
       </SidebarHeader>
