@@ -74,17 +74,101 @@ const getStatusBadge = (status: JobOrder['status']) => {
     }
 }
 
+const ReportTabContent = React.forwardRef<HTMLDivElement, { title: string, jobOrders: JobOrder[] }>(({ title, jobOrders }, ref) => {
+    
+    const renderJobOrderTable = (jobOrders: JobOrder[]) => {
+        if (jobOrders.length === 0) {
+            return (
+                <Table>
+                    <TableBody>
+                        <TableRow>
+                            <TableCell colSpan={7} className="h-24 text-center">
+                                No sales data available for this period.
+                            </TableCell>
+                        </TableRow>
+                    </TableBody>
+                </Table>
+            );
+        }
+        
+        return (
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead>JO #</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Client Name</TableHead>
+                    <TableHead>Total Amount</TableHead>
+                    <TableHead>Paid</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                    <TableHead>Status</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {jobOrders.map((jobOrder) => {
+                    const discountValue = jobOrder.discount || 0;
+                    const discountAmount = jobOrder.discountType === 'percent'
+                        ? jobOrder.totalAmount * (discountValue / 100)
+                        : discountValue;
+                    const balance = jobOrder.totalAmount - (jobOrder.downpayment || 0) - discountAmount;
+                    return (
+                        <TableRow key={jobOrder.id}>
+                            <TableCell>
+                                <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                            </TableCell>
+                            <TableCell>
+                                {new Date(jobOrder.startDate).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell>
+                                <span className="font-medium">{jobOrder.clientName}</span>
+                                {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
+                            </TableCell>
+                            <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.totalAmount)}</TableCell>
+                            <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.downpayment || 0)}</TableCell>
+                            <TableCell className="text-right font-semibold">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(balance)}</TableCell>
+                            <TableCell className="text-center">
+                                {getStatusBadge(jobOrder.status)}
+                            </TableCell>
+                        </TableRow>
+                    );
+                    })
+                }
+                </TableBody>
+            </Table>
+        );
+      }
+
+    return (
+        <div ref={ref}>
+            <Card className="print-area">
+                <div className="print-only text-center mb-4">
+                    <h1 className="text-2xl font-bold">{title}</h1>
+                    <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+                </div>
+                <CardHeader className="no-print">
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>A list of job orders for the selected period.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   {renderJobOrderTable(jobOrders)}
+                </CardContent>
+            </Card>
+        </div>
+    )
+});
+ReportTabContent.displayName = 'ReportTabContent';
+
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
-  const overallPrintRef = useRef(null);
-  const todayPrintRef = useRef(null);
-  const weeklyPrintRef = useRef(null);
-  const monthlyPrintRef = useRef(null);
-  const yearlyPrintRef = useRef(null);
+  const overallPrintRef = useRef<HTMLDivElement>(null);
+  const todayPrintRef = useRef<HTMLDivElement>(null);
+  const weeklyPrintRef = useRef<HTMLDivElement>(null);
+  const monthlyPrintRef = useRef<HTMLDivElement>(null);
+  const yearlyPrintRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     content: () => {
@@ -221,13 +305,6 @@ export function ReportsClient() {
       return { todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
   }, [jobOrders]);
 
-  const renderPrintHeader = (title: string) => (
-    <div className="print-only text-center mb-4">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-    </div>
-  );
-
   const renderJobOrderTable = (jobOrders: JobOrder[]) => {
      if (jobOrders.length === 0) {
         return (
@@ -313,76 +390,45 @@ export function ReportsClient() {
                     Print Report
                 </Button>
             </div>
-            <TabsContent value="overall" className="mt-4" ref={overallPrintRef}>
-                <Card className="print-area">
-                    {renderPrintHeader("Overall Job Orders Report")}
-                    <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
-                        <div>
-                            <CardTitle>All Job Orders</CardTitle>
-                            <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
+            <TabsContent value="overall" className="mt-4">
+                <div ref={overallPrintRef}>
+                    <Card className="print-area">
+                        <div className="print-only text-center mb-4">
+                            <h1 className="text-2xl font-bold">Overall Job Orders Report</h1>
+                            <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search by client or JO #" 
-                                className="pl-10 w-full sm:w-64"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {renderJobOrderTable(sortedAndFilteredJobOrders)}
-                    </CardContent>
-                </Card>
+                        <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
+                            <div>
+                                <CardTitle>All Job Orders</CardTitle>
+                                <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
+                            </div>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search by client or JO #" 
+                                    className="pl-10 w-full sm:w-64"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {renderJobOrderTable(sortedAndFilteredJobOrders)}
+                        </CardContent>
+                    </Card>
+                </div>
             </TabsContent>
-            <TabsContent value="today" className="mt-4" ref={todayPrintRef}>
-                 <Card className="print-area">
-                    {renderPrintHeader("Today's Sales Report")}
-                    <CardHeader className="no-print">
-                        <CardTitle>Today's Sales</CardTitle>
-                        <CardDescription>A list of job orders created today.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       {renderJobOrderTable(todayJobOrders)}
-                    </CardContent>
-                 </Card>
+            <TabsContent value="today" className="mt-4">
+                <ReportTabContent ref={todayPrintRef} title="Today's Sales Report" jobOrders={todayJobOrders} />
             </TabsContent>
-            <TabsContent value="weekly" className="mt-4" ref={weeklyPrintRef}>
-                <Card className="print-area">
-                    {renderPrintHeader("Weekly Sales Report")}
-                    <CardHeader className="no-print">
-                        <CardTitle>Weekly Sales</CardTitle>
-                        <CardDescription>A list of job orders created this week.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       {renderJobOrderTable(weeklyJobOrders)}
-                    </CardContent>
-                </Card>
+            <TabsContent value="weekly" className="mt-4">
+                <ReportTabContent ref={weeklyPrintRef} title="Weekly Sales Report" jobOrders={weeklyJobOrders} />
             </TabsContent>
-            <TabsContent value="monthly" className="mt-4" ref={monthlyPrintRef}>
-                 <Card className="print-area">
-                    {renderPrintHeader("Monthly Sales Report")}
-                    <CardHeader className="no-print">
-                        <CardTitle>Monthly Sales Report</CardTitle>
-                        <CardDescription>A list of job orders created this month.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                       {renderJobOrderTable(monthlyJobOrders)}
-                    </CardContent>
-                 </Card>
+            <TabsContent value="monthly" className="mt-4">
+                 <ReportTabContent ref={monthlyPrintRef} title="Monthly Sales Report" jobOrders={monthlyJobOrders} />
             </TabsContent>
-            <TabsContent value="yearly" className="mt-4" ref={yearlyPrintRef}>
-                 <Card className="print-area">
-                    {renderPrintHeader("Yearly Sales Report")}
-                    <CardHeader className="no-print">
-                        <CardTitle>Yearly Sales Report</CardTitle>
-                        <CardDescription>A list of job orders created this year.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        {renderJobOrderTable(yearlyJobOrders)}
-                    </CardContent>
-                 </Card>
+            <TabsContent value="yearly" className="mt-4">
+                 <ReportTabContent ref={yearlyPrintRef} title="Yearly Sales Report" jobOrders={yearlyJobOrders} />
             </TabsContent>
         </Tabs>
     </div>
