@@ -120,10 +120,9 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
         <>
             <TableRow>
                 <TableCell>
-                    <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
+                     <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
                         <span className="sr-only">Toggle details</span>
-                        View
-                        <ChevronDown className={cn("h-4 w-4 ml-2 transition-transform", isOpen && "rotate-180")} />
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
                     </Button>
                 </TableCell>
                 <TableCell>
@@ -148,7 +147,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                 </TableCell>
             </TableRow>
             {isOpen && (
-                 <tr className="bg-muted/50">
+                 <TableRow className="bg-muted/50">
                     <TableCell colSpan={8} className="p-0">
                         <div className="p-4">
                         <h4 className="font-semibold mb-2">Order Items:</h4>
@@ -177,7 +176,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                         </Table>
                         </div>
                     </TableCell>
-                </tr>
+                </TableRow>
             )}
         </>
     )
@@ -438,7 +437,7 @@ export function DashboardClient() {
               <Table>
                   <TableHeader>
                   <TableRow>
-                      <TableHead className="w-[100px]">Items</TableHead>
+                      <TableHead className="w-12">Items</TableHead>
                       <SortableJobOrderHeader title="Job Order #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
