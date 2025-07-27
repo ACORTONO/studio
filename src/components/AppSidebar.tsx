@@ -54,7 +54,7 @@ export function AppSidebar() {
     <>
       <SidebarHeader className="p-4">
         <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="Company Logo" width={100} height={100} className="w-24 h-auto"/>
+            <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -63,7 +63,7 @@ export function AppSidebar() {
             <SidebarMenuItem key={item.href + item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href && item.href !== "/"}
+                isActive={pathname === item.href && !(item.label === "Job Order Form" || item.label === "Invoice Form")}
                 className={cn(
                   "w-full justify-start",
                    (pathname === "/" && (item.label === "Job Order Form" || item.label === "Invoice Form")) && 'bg-sidebar-accent text-sidebar-accent-foreground'

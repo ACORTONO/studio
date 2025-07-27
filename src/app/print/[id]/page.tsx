@@ -137,7 +137,7 @@ export default function PrintPage() {
                             <p className="text-gray-500 text-xs">{order.jobOrderNumber}</p>
                         </div>
                         <div className="text-right">
-                            <Image src="/logo.png" alt="Company Logo" width={80} height={80} className="w-16 h-auto ml-auto mb-1"/>
+                            <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={80} height={80} className="w-16 h-auto ml-auto mb-1"/>
                             <p className="text-xxs text-gray-600">123 Business Rd, City, State 12345</p>
                             <p className="text-xxs text-gray-600">contact@yourcompany.com</p>
                         </div>
