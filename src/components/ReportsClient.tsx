@@ -29,12 +29,10 @@ import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
-// A simple class component that will be printable
-class PrintableContent extends React.Component<{children: React.ReactNode}> {
-    render() {
-        return <div>{this.props.children}</div>;
-    }
-}
+const PrintableWrapper = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>((props, ref) => {
+    return <div ref={ref}>{props.children}</div>;
+});
+PrintableWrapper.displayName = 'PrintableWrapper';
 
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
@@ -101,7 +99,7 @@ const ReportTabContent = ({ title, jobOrders }: { title: string, jobOrders: JobO
                     const discountAmount = jobOrder.discountType === 'percent'
                         ? jobOrder.totalAmount * (discountValue / 100)
                         : discountValue;
-                    const balance = jobOrder.totalAmount - (jobOrder.downpayment || 0) - discountAmount;
+                    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
                     return (
                         <TableRow key={jobOrder.id}>
                             <TableCell>
@@ -115,7 +113,7 @@ const ReportTabContent = ({ title, jobOrders }: { title: string, jobOrders: JobO
                                 {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
                             </TableCell>
                             <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.totalAmount)}</TableCell>
-                            <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.downpayment || 0)}</TableCell>
+                            <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.paidAmount || 0)}</TableCell>
                             <TableCell className="text-right font-semibold">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(balance)}</TableCell>
                             <TableCell className="text-center">
                                 {getStatusBadge(jobOrder.status)}
@@ -155,7 +153,7 @@ export function ReportsClient() {
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
-  const printRef = useRef<PrintableContent>(null);
+  const printRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     content: () => printRef.current,
@@ -177,10 +175,10 @@ export function ReportsClient() {
         const jobOrderDate = parseISO(jobOrder.startDate);
         return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
     });
-    const todaySales = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
+    const todaySalesValue = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
 
     const grandTotalSales = jobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
-    const totalCollectibles = jobOrders.reduce((sum, jobOrder) => sum + (jobOrder.downpayment || 0), 0);
+    const totalCollectibles = jobOrders.reduce((sum, jobOrder) => sum + (jobOrder.paidAmount || 0), 0);
     
     const totalDiscountAmount = jobOrders.reduce((sum, jobOrder) => {
         const discountValue = jobOrder.discount || 0;
@@ -190,7 +188,7 @@ export function ReportsClient() {
         return sum + discountAmount;
     }, 0);
     
-    const totalUnpaid = grandTotalSales - totalCollectibles - totalDiscountAmount;
+    const totalUnpaid = grandTotalSales - totalCollectibles;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
@@ -224,7 +222,7 @@ export function ReportsClient() {
     }
 
 
-    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales };
+    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue };
   }, [jobOrders, expenses, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -307,18 +305,14 @@ export function ReportsClient() {
                 <SortableHeader title="Start Date" sortKey="startDate" />
                 <SortableHeader title="Client Name" sortKey="clientName" />
                 <SortableHeader title="Total Amount" sortKey="totalAmount" />
-                <SortableHeader title="Paid" sortKey="downpayment" />
+                <SortableHeader title="Paid" sortKey="paidAmount" />
                 <TableHead className="text-right">Balance</TableHead>
                 <SortableHeader title="Status" sortKey="status" />
             </TableRow>
             </TableHeader>
             <TableBody>
             {jobOrders.map((jobOrder) => {
-                const discountValue = jobOrder.discount || 0;
-                const discountAmount = jobOrder.discountType === 'percent'
-                    ? jobOrder.totalAmount * (discountValue / 100)
-                    : discountValue;
-                const balance = jobOrder.totalAmount - (jobOrder.downpayment || 0) - discountAmount;
+                 const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0);
                 return (
                     <TableRow key={jobOrder.id}>
                         <TableCell>
@@ -332,7 +326,7 @@ export function ReportsClient() {
                             {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
                         </TableCell>
                         <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(jobOrder.downpayment || 0)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                         <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                         <TableCell className="text-center">
                             {getStatusBadge(jobOrder.status)}
@@ -410,9 +404,9 @@ export function ReportsClient() {
                 </Button>
             </div>
             <div className="mt-4">
-              <PrintableContent ref={printRef}>
+              <PrintableWrapper ref={printRef}>
                 {renderActiveTabContent()}
-              </PrintableContent>
+              </PrintableWrapper>
             </div>
         </Tabs>
     </div>
