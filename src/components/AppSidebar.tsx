@@ -59,14 +59,14 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {menuItems.map((item) => (
-            <SidebarMenuItem key={item.href + item.label}>
+          {menuItems.map((item, index) => (
+            <SidebarMenuItem key={`${item.href}-${index}`}>
               <SidebarMenuButton
                 asChild
                 isActive={pathname === item.href && !(item.label === "Job Order Form" || item.label === "Invoice Form")}
                 className={cn(
                   "w-full justify-start",
-                   (pathname === "/" && (item.label === "Job Order Form" || item.label === "Invoice Form")) && 'bg-sidebar-accent text-sidebar-accent-foreground'
+                   (pathname === "/" && (item.label === "Job Order Form" || item.label === "Invoice Form") && pathname === item.href) && 'bg-sidebar-accent text-sidebar-accent-foreground'
                 )}
               >
                 <Link href={item.href}>
