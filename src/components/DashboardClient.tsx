@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -65,6 +65,7 @@ import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Expense, ExpenseCategory, JobOrder } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 
 
 const expenseItemSchema = z.object({
@@ -351,6 +352,7 @@ export function DashboardClient() {
               <Table>
                   <TableHeader>
                   <TableRow>
+                      <TableHead className="w-12"></TableHead>
                       <SortableJobOrderHeader title="Job Order #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
@@ -362,31 +364,75 @@ export function DashboardClient() {
                   <TableBody>
                   {filteredOrders.length > 0 ? (
                       filteredOrders.map((order) => (
-                      <TableRow key={order.id}>
-                          <TableCell>
-                          <Badge variant="outline">{order.jobOrderNumber}</Badge>
-                          </TableCell>
-                          <TableCell className="font-medium">{order.clientName}</TableCell>
-                          <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
-                          <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                          <TableCell className="text-right space-x-2">
-                          <Button asChild variant="ghost" size="icon">
-                              <Link href={`/edit/${order.id}`}>
-                              <Pencil className="h-4 w-4" />
-                              </Link>
-                          </Button>
-                          <Button asChild variant="ghost" size="icon">
-                              <Link href={`/print/${order.id}`} target="_blank">
-                              <Printer className="h-4 w-4" />
-                              </Link>
-                          </Button>
-                          </TableCell>
-                      </TableRow>
+                        <Collapsible asChild key={order.id}>
+                          <>
+                            <TableRow>
+                                <TableCell>
+                                  <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="icon">
+                                      <ChevronDown className="h-4 w-4" />
+                                      <span className="sr-only">Toggle details</span>
+                                    </Button>
+                                  </CollapsibleTrigger>
+                                </TableCell>
+                                <TableCell>
+                                <Badge variant="outline">{order.jobOrderNumber}</Badge>
+                                </TableCell>
+                                <TableCell className="font-medium">{order.clientName}</TableCell>
+                                <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
+                                <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                                <TableCell className="text-right space-x-2">
+                                <Button asChild variant="ghost" size="icon">
+                                    <Link href={`/edit/${order.id}`}>
+                                    <Pencil className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                                <Button asChild variant="ghost" size="icon">
+                                    <Link href={`/print/${order.id}`} target="_blank">
+                                    <Printer className="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                                </TableCell>
+                            </TableRow>
+                             <CollapsibleContent asChild>
+                                <TableRow>
+                                  <TableCell colSpan={7} className="p-0">
+                                      <div className="bg-muted/50 p-4">
+                                          <h4 className="font-semibold mb-2">Order Items:</h4>
+                                          <Table>
+                                            <TableHeader>
+                                              <TableRow>
+                                                <TableHead>Description</TableHead>
+                                                <TableHead className="text-center">Qty</TableHead>
+                                                <TableHead className="text-right">Price</TableHead>
+                                                <TableHead className="text-right">Total</TableHead>
+                                              </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                              {order.items.map(item => (
+                                                <TableRow key={item.id}>
+                                                  <TableCell>
+                                                    {item.description}
+                                                    {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
+                                                  </TableCell>
+                                                  <TableCell className="text-center">{item.quantity}</TableCell>
+                                                  <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                                                  <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
+                                                </TableRow>
+                                              ))}
+                                            </TableBody>
+                                          </Table>
+                                      </div>
+                                  </TableCell>
+                                </TableRow>
+                              </CollapsibleContent>
+                          </>
+                        </Collapsible>
                       ))
                   ) : (
                       <TableRow>
-                      <TableCell colSpan={6} className="h-24 text-center">
+                      <TableCell colSpan={7} className="h-24 text-center">
                           No job orders for this period.
                       </TableCell>
                       </TableRow>
@@ -614,4 +660,6 @@ export function DashboardClient() {
 }
 
     
+    
+
     
