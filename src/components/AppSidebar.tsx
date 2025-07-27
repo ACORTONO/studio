@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FilePlus2, LayoutDashboard, Briefcase, BarChart2, FileText, Receipt, Settings } from "lucide-react";
+import { FilePlus2, LayoutDashboard, BarChart2, Receipt, Settings } from "lucide-react";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -25,12 +25,12 @@ export function AppSidebar() {
     },
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: "Sales Dashboard",
       icon: LayoutDashboard,
     },
     {
         href: "/reports",
-        label: "Reports",
+        label: "Sales Reports",
         icon: BarChart2
     },
     {
