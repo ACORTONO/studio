@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
@@ -10,8 +11,8 @@ import {
 import { JobOrderProvider } from '@/contexts/JobOrderContext';
 
 export const metadata: Metadata = {
-  title: 'Job Order',
-  description: 'Automated Job Order form and dashboard',
+  title: 'Invoice Generator',
+  description: 'Automated Invoice form and dashboard',
   manifest: '/manifest.json',
 };
 

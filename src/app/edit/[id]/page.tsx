@@ -37,12 +37,12 @@ export default function EditJobOrderPage() {
     }
 
     if (!jobOrder) {
-        return <div>Job order not found.</div>
+        return <div>Invoice not found.</div>
     }
 
   return (
     <div>
-      <h1 className="text-3xl font-headline font-bold mb-6">Edit Job Order</h1>
+      <h1 className="text-3xl font-headline font-bold mb-6">Edit Invoice</h1>
       <JobOrderForm initialData={jobOrder} />
     </div>
   );
