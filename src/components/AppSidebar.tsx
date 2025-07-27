@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FilePlus2, LayoutDashboard, BarChart2, Receipt, Settings, FileText, Building2 } from "lucide-react";
 import {
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -57,11 +56,11 @@ export function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="p-4">
+      <div className="p-4">
         <Link href="/">
             <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
         </Link>
-      </SidebarHeader>
+      </div>
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item, index) => (
