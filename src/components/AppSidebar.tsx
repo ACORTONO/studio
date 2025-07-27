@@ -41,11 +41,6 @@ export function AppSidebar() {
       label: "Invoice Form",
       icon: FileText,
     },
-     {
-      href: "/salaries",
-      label: "Salaries",
-      icon: Building2,
-    },
     {
         href: "/settings",
         label: "Settings",
