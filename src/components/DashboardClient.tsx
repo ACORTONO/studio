@@ -112,6 +112,77 @@ const getStatusBadge = (status: JobOrder['status']) => {
     }
 }
 
+const JobOrderRow = ({ order }: { order: JobOrder }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
+
+    return (
+        <>
+            <TableRow>
+                <TableCell>
+                    <Button variant="ghost" size="sm" onClick={() => setIsOpen(!isOpen)}>
+                        <span className="sr-only">Toggle details</span>
+                        View
+                        <ChevronDown className={cn("h-4 w-4 ml-2 transition-transform", isOpen && "rotate-180")} />
+                    </Button>
+                </TableCell>
+                <TableCell>
+                    <Badge variant="outline">{order.jobOrderNumber}</Badge>
+                </TableCell>
+                <TableCell className="font-medium">{order.clientName}</TableCell>
+                <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
+                <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                <TableCell>{getStatusBadge(order.status)}</TableCell>
+                <TableCell className="text-right space-x-2">
+                    <Button asChild variant="ghost" size="icon">
+                        <Link href={`/edit/${order.id}`}>
+                            <Pencil className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                    <Button asChild variant="ghost" size="icon">
+                        <Link href={`/print/${order.id}`} target="_blank">
+                            <Printer className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                </TableCell>
+            </TableRow>
+            {isOpen && (
+                 <tr className="bg-muted/50">
+                    <TableCell colSpan={8} className="p-0">
+                        <div className="p-4">
+                        <h4 className="font-semibold mb-2">Order Items:</h4>
+                        <Table>
+                            <TableHeader>
+                            <TableRow>
+                                <TableHead>Description</TableHead>
+                                <TableHead className="text-center">Qty</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                            </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                            {order.items.map(item => (
+                                <TableRow key={item.id}>
+                                <TableCell>
+                                    {item.description}
+                                    {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
+                                </TableCell>
+                                <TableCell className="text-center">{item.quantity}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
+                                </TableRow>
+                            ))}
+                            </TableBody>
+                        </Table>
+                        </div>
+                    </TableCell>
+                </tr>
+            )}
+        </>
+    )
+}
+
 export function DashboardClient() {
   const { jobOrders, expenses, addExpense, updateExpense, deleteExpense } = useJobOrders();
   const [timeFilter, setTimeFilter] = useState("today");
@@ -378,88 +449,17 @@ export function DashboardClient() {
                   </TableRow>
                   </TableHeader>
                   
+                  <TableBody>
                     {filteredOrders.length > 0 ? (
-                      filteredOrders.map((order) => (
-                        
-                        <TableBody key={order.id}>
-                          <Collapsible asChild>
-                            <>
-                              <TableRow>
-                                  <TableCell>
-                                    <CollapsibleTrigger asChild>
-                                      <Button variant="ghost" size="sm">
-                                        View
-                                        <ChevronDown className="h-4 w-4 ml-2" />
-                                        <span className="sr-only">Toggle details</span>
-                                      </Button>
-                                    </CollapsibleTrigger>
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge variant="outline">{order.jobOrderNumber}</Badge>
-                                  </TableCell>
-                                  <TableCell className="font-medium">{order.clientName}</TableCell>
-                                  <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
-                                  <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
-                                  <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
-                                  <TableCell>{getStatusBadge(order.status)}</TableCell>
-                                  <TableCell className="text-right space-x-2">
-                                    <Button asChild variant="ghost" size="icon">
-                                      <Link href={`/edit/${order.id}`}>
-                                        <Pencil className="h-4 w-4" />
-                                      </Link>
-                                    </Button>
-                                    <Button asChild variant="ghost" size="icon">
-                                      <Link href={`/print/${order.id}`} target="_blank">
-                                        <Printer className="h-4 w-4" />
-                                      </Link>
-                                    </Button>
-                                  </TableCell>
-                              </TableRow>
-                              <CollapsibleContent asChild>
-                                <tr className="bg-muted/50">
-                                  <TableCell colSpan={8} className="p-0">
-                                    <div className="p-4">
-                                      <h4 className="font-semibold mb-2">Order Items:</h4>
-                                      <Table>
-                                        <TableHeader>
-                                          <TableRow>
-                                            <TableHead>Description</TableHead>
-                                            <TableHead className="text-center">Qty</TableHead>
-                                            <TableHead className="text-right">Price</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
-                                          </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                          {order.items.map(item => (
-                                            <TableRow key={item.id}>
-                                              <TableCell>
-                                                {item.description}
-                                                {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
-                                              </TableCell>
-                                              <TableCell className="text-center">{item.quantity}</TableCell>
-                                              <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                                              <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
-                                            </TableRow>
-                                          ))}
-                                        </TableBody>
-                                      </Table>
-                                    </div>
-                                  </TableCell>
-                                </tr>
-                              </CollapsibleContent>
-                            </>
-                          </Collapsible>
-                        </TableBody>
-                      ))
-                  ) : (
-                    <TableBody>
+                        filteredOrders.map((order) => <JobOrderRow key={order.id} order={order} />)
+                    ) : (
                       <TableRow>
                         <TableCell colSpan={8} className="h-24 text-center">
                           No job orders for this period.
                         </TableCell>
                       </TableRow>
-                    </TableBody>
-                  )}
+                    )}
+                  </TableBody>
                   
               </Table>
               </CardContent>
@@ -681,5 +681,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
