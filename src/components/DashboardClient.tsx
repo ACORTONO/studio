@@ -17,7 +17,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -70,6 +69,7 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { TableFooter } from "./ui/table";
 
 
 const expenseItemSchema = z.object({
@@ -342,7 +342,7 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers } = useMemo(() => {
+  const { filteredOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, dailySales } = useMemo(() => {
     const now = new Date();
     let interval: Interval;
 
@@ -359,6 +359,10 @@ export function DashboardClient() {
       default:
         interval = { start: startOfToday(), end: endOfToday() };
     }
+    
+    const todayInterval = { start: startOfToday(), end: endOfToday() };
+    const todayOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), todayInterval));
+    const dailySales = todayOrders.reduce((sum, order) => sum + order.totalAmount, 0);
 
     const dateFilteredOrders = jobOrders.filter(order => isWithinInterval(parseISO(order.startDate), interval));
     
@@ -438,6 +442,7 @@ export function DashboardClient() {
       totalExpenses,
       netProfit: totalSales - totalExpenses,
       totalCustomers: uniqueClients.size,
+      dailySales
     };
   }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
@@ -523,10 +528,10 @@ export function DashboardClient() {
     <div className="space-y-4 mt-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-            title="Total Sales" 
-            value={formatCurrency(totalSales)} 
+            title="Daily Sales" 
+            value={formatCurrency(dailySales)} 
             icon={TrendingUp} 
-            description={`For the selected period`}
+            description="Total sales for today"
             className="bg-green-600/20 border-green-600 text-green-100"
         />
         <StatCard 
@@ -825,4 +830,5 @@ export function DashboardClient() {
 }
 
     
+
 
