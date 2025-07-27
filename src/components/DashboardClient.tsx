@@ -352,7 +352,7 @@ export function DashboardClient() {
               <Table>
                   <TableHeader>
                   <TableRow>
-                      <TableHead className="w-12"></TableHead>
+                      <TableHead className="w-[100px]">Items</TableHead>
                       <SortableJobOrderHeader title="Job Order #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
@@ -369,8 +369,9 @@ export function DashboardClient() {
                             <TableRow>
                                 <TableCell>
                                   <CollapsibleTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                      <ChevronDown className="h-4 w-4" />
+                                    <Button variant="ghost" size="sm">
+                                      View
+                                      <ChevronDown className="h-4 w-4 ml-2" />
                                       <span className="sr-only">Toggle details</span>
                                     </Button>
                                   </CollapsibleTrigger>
@@ -658,8 +659,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
-    
-
-    
