@@ -147,7 +147,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       clientName: "",
       contactMethod: 'Contact No.',
       contactDetail: "",
-      startDate: undefined, // Set to undefined initially to avoid hydration mismatch
+      startDate: undefined,
       dueDate: undefined,
       notes: "",
       status: "Pending",
@@ -165,7 +165,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
   useEffect(() => {
     if (!isEditMode) {
-      // Set the date only on the client side
       form.reset({
         ...form.getValues(),
         startDate: new Date(),
@@ -262,7 +261,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       setIsSuccessDialogOpen(true);
       if (!isEditMode) {
         form.reset();
-        // Reset again with new dates for the next form
          form.reset({
             ...form.getValues(),
             clientName: "",
@@ -313,7 +311,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card className="bg-black">
+          <Card>
             <CardHeader>
               <CardTitle>Client Information</CardTitle>
               <CardDescription>
@@ -876,11 +874,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
-
-    
-
-    
-
-    
-
-    
