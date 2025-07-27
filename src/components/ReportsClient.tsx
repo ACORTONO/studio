@@ -105,8 +105,17 @@ export function ReportsClient() {
     totalCollectibles,
     totalUnpaid,
     cashOnHand,
-    sortedAndFilteredJobOrders
+    sortedAndFilteredJobOrders,
+    todaySales
    } = useMemo(() => {
+    const todayStart = startOfToday();
+    const todayEnd = endOfToday();
+    const todayOrders = jobOrders.filter(order => {
+        const orderDate = parseISO(order.startDate);
+        return orderDate >= todayStart && orderDate <= todayEnd;
+    });
+    const todaySales = todayOrders.reduce((sum, order) => sum + order.totalAmount, 0);
+
     const grandTotalSales = jobOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalCollectibles = jobOrders.reduce((sum, order) => sum + (order.downpayment || 0), 0);
     
@@ -152,7 +161,7 @@ export function ReportsClient() {
     }
 
 
-    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered };
+    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales };
   }, [jobOrders, expenses, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -381,7 +390,7 @@ export function ReportsClient() {
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-             <StatCard title="Total Sales" value={formatCurrency(grandTotalSales)} icon={TrendingUp} description="Total revenue from all job orders"/>
+             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders"/>
              <StatCard title="Total Collectibles" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
              <StatCard title="Total Unpaid" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
