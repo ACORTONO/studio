@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FilePlus2, LayoutDashboard, Briefcase, BarChart2 } from "lucide-react";
+import { FilePlus2, LayoutDashboard, Briefcase, BarChart2, FileText } from "lucide-react";
 import {
   SidebarHeader,
   SidebarMenu,
@@ -32,6 +32,11 @@ export function AppSidebar() {
         href: "/reports",
         label: "Reports",
         icon: BarChart2
+    },
+    {
+        href: "/reports",
+        label: "Invoice",
+        icon: FileText
     }
   ];
 
@@ -45,10 +50,10 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           {menuItems.map((item) => (
-            <SidebarMenuItem key={item.href}>
+            <SidebarMenuItem key={item.href + item.label}>
               <SidebarMenuButton
                 asChild
-                isActive={pathname === item.href}
+                isActive={pathname === item.href && item.label !== "Invoice"}
                 className={cn(
                   "w-full justify-start",
                 )}
