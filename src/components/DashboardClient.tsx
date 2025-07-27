@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from "react";
 import Link from 'next/link';
-import { useInvoices } from "@/contexts/InvoiceContext";
+import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
   Card,
   CardContent,
@@ -64,7 +64,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Expense, ExpenseCategory, Invoice, Payment } from "@/lib/types";
+import { Expense, ExpenseCategory, JobOrder, Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Textarea } from "./ui/textarea";
@@ -89,7 +89,7 @@ const paymentSchema = z.object({
     notes: z.string().optional()
 });
 
-type SortableInvoiceKeys = keyof Invoice | 'items';
+type SortableJobOrderKeys = keyof JobOrder | 'items';
 type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
@@ -105,7 +105,7 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
     </Card>
 );
 
-const getStatusBadge = (status: Invoice['status']) => {
+const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
@@ -120,8 +120,8 @@ const getStatusBadge = (status: Invoice['status']) => {
     }
 }
 
-const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
-    const { updateInvoice } = useInvoices();
+const JobOrderRow = ({ jobOrder }: { jobOrder: JobOrder }) => {
+    const { updateJobOrder } = useJobOrders();
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
     const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
@@ -140,32 +140,32 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
             notes: values.notes
         };
 
-        const existingPayments = invoice.payments || [];
+        const existingPayments = jobOrder.payments || [];
         const updatedPayments = [...existingPayments, newPayment];
         const newPaidAmount = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
         
-        const discountValue = invoice.discount || 0;
-        const discountAmount = invoice.discountType === 'percent'
-            ? invoice.totalAmount * (discountValue / 100)
+        const discountValue = jobOrder.discount || 0;
+        const discountAmount = jobOrder.discountType === 'percent'
+            ? jobOrder.totalAmount * (discountValue / 100)
             : discountValue;
 
-        const amountDue = invoice.totalAmount - discountAmount;
+        const amountDue = jobOrder.totalAmount - discountAmount;
         const newStatus = newPaidAmount >= amountDue ? 'Completed' : 'In Progress';
         
-        const updatedInvoice: Invoice = {
-            ...invoice,
+        const updatedJobOrder: JobOrder = {
+            ...jobOrder,
             payments: updatedPayments,
             paidAmount: newPaidAmount,
             status: newStatus
         };
         
-        updateInvoice(updatedInvoice);
+        updateJobOrder(updatedJobOrder);
         toast({ title: "Success", description: "Payment added successfully." });
         paymentForm.reset();
         setIsPaymentDialogOpen(false);
     }
     
-    const balance = invoice.totalAmount - (invoice.paidAmount || 0) - (invoice.discountType === 'percent' ? invoice.totalAmount * ((invoice.discount || 0) / 100) : (invoice.discount || 0));
+    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
 
     return (
         <React.Fragment>
@@ -177,29 +177,29 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
                     </Button>
                 </TableCell>
                 <TableCell>
-                    <Badge variant="outline">{invoice.invoiceNumber}</Badge>
+                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
                 </TableCell>
-                <TableCell className="font-medium">{invoice.clientName}</TableCell>
+                <TableCell className="font-medium">{jobOrder.clientName}</TableCell>
                 <TableCell>
                     <ul className="list-disc list-inside text-xs">
-                        {invoice.items.slice(0, 2).map(item => (
+                        {jobOrder.items.slice(0, 2).map(item => (
                             <li key={item.id} className="truncate">{item.description}</li>
                         ))}
-                        {invoice.items.length > 2 && <li className="text-muted-foreground">...and {invoice.items.length - 2} more</li>}
+                        {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
                     </ul>
                 </TableCell>
-                <TableCell>{new Date(invoice.startDate).toLocaleDateString()}</TableCell>
-                <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
-                <TableCell>{formatCurrency(invoice.totalAmount)}</TableCell>
-                <TableCell>{getStatusBadge(invoice.status)}</TableCell>
+                <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
+                <TableCell>{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                <TableCell>{getStatusBadge(jobOrder.status)}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="icon">
-                        <Link href={`/edit/${invoice.id}`}>
+                        <Link href={`/edit/${jobOrder.id}`}>
                             <Pencil className="h-4 w-4" />
                         </Link>
                     </Button>
                     <Button asChild variant="ghost" size="icon">
-                        <Link href={`/print/${invoice.id}`} target="_blank">
+                        <Link href={`/print/${jobOrder.id}`} target="_blank">
                             <Printer className="h-4 w-4" />
                         </Link>
                     </Button>
@@ -210,7 +210,7 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
                     <TableCell colSpan={9} className="p-0">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50">
                            <div>
-                                <h4 className="font-semibold mb-2 ml-4">Invoice Items:</h4>
+                                <h4 className="font-semibold mb-2 ml-4">Job Order Items:</h4>
                                 <Table>
                                     <TableHeader>
                                         <TableRow>
@@ -221,7 +221,7 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {invoice.items.map(item => (
+                                        {jobOrder.items.map(item => (
                                             <TableRow key={item.id}>
                                                 <TableCell>
                                                     {item.description}
@@ -247,7 +247,7 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
                                         <DialogContent>
                                             <form onSubmit={paymentForm.handleSubmit(handleAddPayment)}>
                                                 <DialogHeader>
-                                                    <DialogTitle>Add Payment for {invoice.invoiceNumber}</DialogTitle>
+                                                    <DialogTitle>Add Payment for {jobOrder.jobOrderNumber}</DialogTitle>
                                                     <DialogDescription>
                                                         Record a new payment. The current balance is <span className="font-bold">{formatCurrency(balance)}</span>.
                                                     </DialogDescription>
@@ -282,8 +282,8 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
-                                        {invoice.payments && invoice.payments.length > 0 ? (
-                                             invoice.payments.map(payment => (
+                                        {jobOrder.payments && jobOrder.payments.length > 0 ? (
+                                             jobOrder.payments.map(payment => (
                                                 <TableRow key={payment.id}>
                                                     <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
                                                     <TableCell>{payment.notes}</TableCell>
@@ -299,7 +299,7 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
                                     <TableFooter>
                                         <TableRow>
                                             <TableCell colSpan={2} className="text-right font-bold">Total Paid</TableCell>
-                                            <TableCell className="text-right font-bold">{formatCurrency(invoice.paidAmount)}</TableCell>
+                                            <TableCell className="text-right font-bold">{formatCurrency(jobOrder.paidAmount)}</TableCell>
                                         </TableRow>
                                         <TableRow>
                                             <TableCell colSpan={2} className="text-right font-bold">Balance Due</TableCell>
@@ -317,13 +317,13 @@ const InvoiceRow = ({ invoice }: { invoice: Invoice }) => {
 }
 
 export function DashboardClient() {
-  const { invoices, expenses, addExpense, updateExpense, deleteExpense } = useInvoices();
+  const { jobOrders, expenses, addExpense, updateExpense, deleteExpense } = useJobOrders();
   const [timeFilter, setTimeFilter] = useState("today");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [invoiceSearchQuery, setInvoiceSearchQuery] = useState("");
+  const [jobOrderSearchQuery, setJobOrderSearchQuery] = useState("");
   const [expenseSearchQuery, setExpenseSearchQuery] = useState("");
-  const [invoiceSortConfig, setInvoiceSortConfig] = useState<{ key: SortableInvoiceKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
+  const [jobOrderSortConfig, setJobOrderSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [expenseSortConfig, setExpenseSortConfig] = useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
 
 
@@ -341,7 +341,7 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredInvoices, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, dailySales } = useMemo(() => {
+  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, dailySales } = useMemo(() => {
     const now = new Date();
     let interval: Interval;
 
@@ -360,33 +360,33 @@ export function DashboardClient() {
     }
     
     const todayInterval = { start: startOfToday(), end: endOfToday() };
-    const todayInvoices = invoices.filter(invoice => isWithinInterval(parseISO(invoice.startDate), todayInterval));
-    const dailySales = todayInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    const todayJobOrders = jobOrders.filter(jobOrder => isWithinInterval(parseISO(jobOrder.startDate), todayInterval));
+    const dailySales = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
 
-    const dateFilteredInvoices = invoices.filter(invoice => isWithinInterval(parseISO(invoice.startDate), interval));
+    const dateFilteredJobOrders = jobOrders.filter(jobOrder => isWithinInterval(parseISO(jobOrder.startDate), interval));
     
-    let sortedAndFilteredInvoices = dateFilteredInvoices.filter(invoice => 
-      invoice.clientName.toLowerCase().includes(invoiceSearchQuery.toLowerCase()) ||
-      invoice.invoiceNumber.toLowerCase().includes(invoiceSearchQuery.toLowerCase())
+    let sortedAndFilteredJobOrders = dateFilteredJobOrders.filter(jobOrder => 
+      jobOrder.clientName.toLowerCase().includes(jobOrderSearchQuery.toLowerCase()) ||
+      jobOrder.jobOrderNumber.toLowerCase().includes(jobOrderSearchQuery.toLowerCase())
     );
 
-    if (invoiceSortConfig !== null) {
-        sortedAndFilteredInvoices.sort((a, b) => {
-            const aValue = a[invoiceSortConfig.key as keyof Invoice];
-            const bValue = b[invoiceSortConfig.key as keyof Invoice];
+    if (jobOrderSortConfig !== null) {
+        sortedAndFilteredJobOrders.sort((a, b) => {
+            const aValue = a[jobOrderSortConfig.key as keyof JobOrder];
+            const bValue = b[jobOrderSortConfig.key as keyof JobOrder];
 
-            if (invoiceSortConfig.key === 'items') {
+            if (jobOrderSortConfig.key === 'items') {
                 const aText = a.items.map(i => i.description).join(', ');
                 const bText = b.items.map(i => i.description).join(', ');
                 const comparison = aText.localeCompare(bText);
-                return invoiceSortConfig.direction === 'ascending' ? comparison : -comparison;
+                return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
             }
 
             if (aValue === undefined || bValue === undefined) return 0;
 
             let comparison = 0;
             if (typeof aValue === 'string' && typeof bValue === 'string') {
-                if (invoiceSortConfig.key === 'startDate' || invoiceSortConfig.key === 'dueDate') {
+                if (jobOrderSortConfig.key === 'startDate' || jobOrderSortConfig.key === 'dueDate') {
                     comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
                 } else {
                     comparison = aValue.localeCompare(bValue);
@@ -395,7 +395,7 @@ export function DashboardClient() {
                 comparison = aValue - bValue;
             }
             
-            return invoiceSortConfig.direction === 'ascending' ? comparison : -comparison;
+            return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
         });
     }
 
@@ -430,12 +430,12 @@ export function DashboardClient() {
     }
 
 
-    const totalSales = sortedAndFilteredInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    const totalSales = sortedAndFilteredJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
     const totalExpenses = sortedAndFilteredExpenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-    const uniqueClients = new Set(sortedAndFilteredInvoices.map(invoice => invoice.clientName));
+    const uniqueClients = new Set(sortedAndFilteredJobOrders.map(jobOrder => jobOrder.clientName));
 
     return {
-      filteredInvoices: sortedAndFilteredInvoices,
+      filteredJobOrders: sortedAndFilteredJobOrders,
       filteredExpenses: sortedAndFilteredExpenses,
       totalSales,
       totalExpenses,
@@ -443,14 +443,14 @@ export function DashboardClient() {
       totalCustomers: uniqueClients.size,
       dailySales
     };
-  }, [invoices, expenses, timeFilter, invoiceSearchQuery, expenseSearchQuery, invoiceSortConfig, expenseSortConfig]);
+  }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
-  const requestInvoiceSort = (key: SortableInvoiceKeys) => {
+  const requestJobOrderSort = (key: SortableJobOrderKeys) => {
     let direction: 'ascending' | 'descending' = 'ascending';
-    if (invoiceSortConfig && invoiceSortConfig.key === key && invoiceSortConfig.direction === 'ascending') {
+    if (jobOrderSortConfig && jobOrderSortConfig.key === key && jobOrderSortConfig.direction === 'ascending') {
         direction = 'descending';
     }
-    setInvoiceSortConfig({ key, direction });
+    setJobOrderSortConfig({ key, direction });
   }
 
   const requestExpenseSort = (key: SortableExpenseKeys) => {
@@ -505,9 +505,9 @@ export function DashboardClient() {
     return <Badge variant={variants[category]}>{category}</Badge>
   }
   
-  const SortableInvoiceHeader = ({ title, sortKey }: { title: string, sortKey: SortableInvoiceKeys }) => (
+  const SortableJobOrderHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
      <TableHead>
-        <Button variant="ghost" onClick={() => requestInvoiceSort(sortKey)}>
+        <Button variant="ghost" onClick={() => requestJobOrderSort(sortKey)}>
             {title}
             <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
@@ -555,26 +555,26 @@ export function DashboardClient() {
             className="bg-purple-600/20 border-purple-600 text-purple-100"
         />
       </div>
-      <Tabs defaultValue="invoices" className="space-y-4">
+      <Tabs defaultValue="job-orders" className="space-y-4">
         <TabsList>
-            <TabsTrigger value="invoices">Invoices ({filteredInvoices.length})</TabsTrigger>
+            <TabsTrigger value="job-orders">Job Orders ({filteredJobOrders.length})</TabsTrigger>
             <TabsTrigger value="expenses">Expenses ({filteredExpenses.length})</TabsTrigger>
         </TabsList>
-        <TabsContent value="invoices">
+        <TabsContent value="job-orders">
           <Card>
               <CardHeader>
                   <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                       <div>
-                          <CardTitle>Invoices</CardTitle>
-                          <CardDescription>A list of invoices for the selected period.</CardDescription>
+                          <CardTitle>Job Orders</CardTitle>
+                          <CardDescription>A list of job orders for the selected period.</CardDescription>
                       </div>
                        <div className="relative">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input 
-                              placeholder="Search by client or Invoice #" 
+                              placeholder="Search by client or JO #" 
                               className="pl-10 w-full sm:w-64"
-                              value={invoiceSearchQuery}
-                              onChange={(e) => setInvoiceSearchQuery(e.target.value)}
+                              value={jobOrderSearchQuery}
+                              onChange={(e) => setJobOrderSearchQuery(e.target.value)}
                           />
                       </div>
                   </div>
@@ -584,24 +584,24 @@ export function DashboardClient() {
                   <TableHeader>
                   <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <SortableInvoiceHeader title="Invoice #" sortKey="invoiceNumber" />
-                      <SortableInvoiceHeader title="Client Name" sortKey="clientName" />
-                      <SortableInvoiceHeader title="Items" sortKey="items" />
-                      <SortableInvoiceHeader title="Start Date" sortKey="startDate" />
-                      <SortableInvoiceHeader title="Due Date" sortKey="dueDate" />
-                      <SortableInvoiceHeader title="Amount" sortKey="totalAmount" />
+                      <SortableJobOrderHeader title="JO #" sortKey="jobOrderNumber" />
+                      <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
+                      <SortableJobOrderHeader title="Items" sortKey="items" />
+                      <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
+                      <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
+                      <SortableJobOrderHeader title="Amount" sortKey="totalAmount" />
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                   </TableHeader>
                   
                   <TableBody>
-                    {filteredInvoices.length > 0 ? (
-                        filteredInvoices.map((invoice) => <InvoiceRow key={invoice.id} invoice={invoice} />)
+                    {filteredJobOrders.length > 0 ? (
+                        filteredJobOrders.map((jobOrder) => <JobOrderRow key={jobOrder.id} jobOrder={jobOrder} />)
                     ) : (
                       <TableRow>
                         <TableCell colSpan={9} className="h-24 text-center">
-                          No invoices for this period.
+                          No job orders for this period.
                         </TableCell>
                       </TableRow>
                     )}

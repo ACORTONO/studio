@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useMemo, useState, useRef } from "react";
-import { useInvoices } from "@/contexts/InvoiceContext";
+import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
   Card,
   CardContent,
@@ -24,12 +24,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { ChartContainer, ChartTooltipContent, ChartConfig } from "@/components/ui/chart";
 import { format, getMonth, getYear, parseISO, startOfWeek, endOfWeek, eachDayOfInterval, startOfToday, endOfToday, eachHourOfInterval, set, startOfMonth, endOfMonth, endOfYear, startOfYear } from 'date-fns';
-import { Invoice } from "@/lib/types";
+import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useReactToPrint } from "react-to-print";
 
-type SortableInvoiceKeys = keyof Invoice;
+type SortableJobOrderKeys = keyof JobOrder;
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card className="no-print">
@@ -59,7 +59,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-const getStatusBadge = (status: Invoice['status']) => {
+const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
@@ -75,9 +75,9 @@ const getStatusBadge = (status: Invoice['status']) => {
 }
 
 export function ReportsClient() {
-  const { invoices, expenses } = useInvoices();
+  const { jobOrders, expenses } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortConfig, setSortConfig] = useState<{ key: SortableInvoiceKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
   const overallPrintRef = useRef(null);
@@ -105,24 +105,24 @@ export function ReportsClient() {
     totalCollectibles,
     totalUnpaid,
     cashOnHand,
-    sortedAndFilteredInvoices,
+    sortedAndFilteredJobOrders,
     todaySales
    } = useMemo(() => {
     const todayStart = startOfToday();
     const todayEnd = endOfToday();
-    const todayInvoices = invoices.filter(invoice => {
-        const invoiceDate = parseISO(invoice.startDate);
-        return invoiceDate >= todayStart && invoiceDate <= todayEnd;
+    const todayJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
     });
-    const todaySales = todayInvoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
+    const todaySales = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
 
-    const grandTotalSales = invoices.reduce((sum, invoice) => sum + invoice.totalAmount, 0);
-    const totalCollectibles = invoices.reduce((sum, invoice) => sum + (invoice.downpayment || 0), 0);
+    const grandTotalSales = jobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
+    const totalCollectibles = jobOrders.reduce((sum, jobOrder) => sum + (jobOrder.downpayment || 0), 0);
     
-    const totalDiscountAmount = invoices.reduce((sum, invoice) => {
-        const discountValue = invoice.discount || 0;
-        const discountAmount = invoice.discountType === 'percent'
-            ? invoice.totalAmount * (discountValue / 100)
+    const totalDiscountAmount = jobOrders.reduce((sum, jobOrder) => {
+        const discountValue = jobOrder.discount || 0;
+        const discountAmount = jobOrder.discountType === 'percent'
+            ? jobOrder.totalAmount * (discountValue / 100)
             : discountValue;
         return sum + discountAmount;
     }, 0);
@@ -131,9 +131,9 @@ export function ReportsClient() {
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
-    let filtered = [...invoices].filter(invoice => 
-      invoice.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
+    let filtered = [...jobOrders].filter(jobOrder => 
+      jobOrder.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      jobOrder.jobOrderNumber.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     if (sortConfig !== null) {
@@ -161,10 +161,10 @@ export function ReportsClient() {
     }
 
 
-    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredInvoices: filtered, todaySales };
-  }, [invoices, expenses, searchQuery, sortConfig]);
+    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales };
+  }, [jobOrders, expenses, searchQuery, sortConfig]);
 
-  const requestSort = (key: SortableInvoiceKeys) => {
+  const requestSort = (key: SortableJobOrderKeys) => {
     let direction: 'ascending' | 'descending' = 'ascending';
     if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
         direction = 'descending';
@@ -172,7 +172,7 @@ export function ReportsClient() {
     setSortConfig({ key, direction });
   }
 
-  const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableInvoiceKeys }) => (
+  const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
      <TableHead>
         <Button variant="ghost" onClick={() => requestSort(sortKey)} className="no-print">
             {title}
@@ -195,13 +195,13 @@ export function ReportsClient() {
         expenses: 0
     }));
 
-    invoices.forEach(invoice => {
-        const invoiceDate = parseISO(invoice.startDate);
-        if (invoiceDate >= todayStart && invoiceDate <= todayEnd) {
-            const hourIndex = invoiceDate.getHours();
+    jobOrders.forEach(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        if (jobOrderDate >= todayStart && jobOrderDate <= todayEnd) {
+            const hourIndex = jobOrderDate.getHours();
             if(hourIndex > -1 && hourIndex < 24) {
-                data[hourIndex].sales += invoice.totalAmount;
-                data[hourIndex].collectibles += invoice.downpayment || 0;
+                data[hourIndex].sales += jobOrder.totalAmount;
+                data[hourIndex].collectibles += jobOrder.downpayment || 0;
             }
         }
     });
@@ -217,7 +217,7 @@ export function ReportsClient() {
     });
     
     return data;
-  }, [invoices, expenses]);
+  }, [jobOrders, expenses]);
 
   const weeklyData = useMemo(() => {
     const now = new Date();
@@ -232,13 +232,13 @@ export function ReportsClient() {
         expenses: 0
     }));
 
-    invoices.forEach(invoice => {
-        const invoiceDate = parseISO(invoice.startDate);
-        if (invoiceDate >= weekStart && invoiceDate <= weekEnd) {
-            const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(invoiceDate, 'yyyy-MM-dd'));
+    jobOrders.forEach(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        if (jobOrderDate >= weekStart && jobOrderDate <= weekEnd) {
+            const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(jobOrderDate, 'yyyy-MM-dd'));
             if(dayIndex > -1) {
-                data[dayIndex].sales += invoice.totalAmount;
-                data[dayIndex].collectibles += invoice.downpayment || 0;
+                data[dayIndex].sales += jobOrder.totalAmount;
+                data[dayIndex].collectibles += jobOrder.downpayment || 0;
             }
         }
     });
@@ -254,19 +254,19 @@ export function ReportsClient() {
     });
     
     return data;
-  }, [invoices, expenses]);
+  }, [jobOrders, expenses]);
 
   const monthlyData = useMemo(() => {
     const data: { [key: string]: { month: string, sales: number; collectibles: number; expenses: number } } = {};
 
-    invoices.forEach(invoice => {
-        const date = parseISO(invoice.startDate);
+    jobOrders.forEach(jobOrder => {
+        const date = parseISO(jobOrder.startDate);
         const monthKey = format(date, 'yyyy-MM');
         if (!data[monthKey]) {
             data[monthKey] = { month: format(date, 'MMM yyyy'), sales: 0, collectibles: 0, expenses: 0 };
         }
-        data[monthKey].sales += invoice.totalAmount;
-        data[monthKey].collectibles += invoice.downpayment || 0;
+        data[monthKey].sales += jobOrder.totalAmount;
+        data[monthKey].collectibles += jobOrder.downpayment || 0;
     });
 
     expenses.forEach(expense => {
@@ -279,18 +279,18 @@ export function ReportsClient() {
     });
 
     return Object.values(data).sort((a,b) => a.month.localeCompare(b.month));
-  }, [invoices, expenses]);
+  }, [jobOrders, expenses]);
 
   const yearlyData = useMemo(() => {
     const data: { [key: string]: { year: string, sales: number; collectibles: number; expenses: number } } = {};
     
-    invoices.forEach(invoice => {
-        const year = getYear(parseISO(invoice.startDate)).toString();
+    jobOrders.forEach(jobOrder => {
+        const year = getYear(parseISO(jobOrder.startDate)).toString();
         if(!data[year]) {
             data[year] = { year, sales: 0, collectibles: 0, expenses: 0 };
         }
-        data[year].sales += invoice.totalAmount;
-        data[year].collectibles += invoice.downpayment || 0;
+        data[year].sales += jobOrder.totalAmount;
+        data[year].collectibles += jobOrder.downpayment || 0;
     });
 
     expenses.forEach(expense => {
@@ -302,21 +302,21 @@ export function ReportsClient() {
     });
 
     return Object.values(data).sort((a,b) => a.year.localeCompare(b.year));
-  }, [invoices, expenses]);
+  }, [jobOrders, expenses]);
 
   const {
-    todayInvoices
+    todayJobOrders
   } = useMemo(() => {
       const now = new Date();
       const todayStart = startOfToday();
       const todayEnd = endOfToday();
 
-      const todayInvoices = invoices.filter(invoice => {
-          const invoiceDate = parseISO(invoice.startDate);
-          return invoiceDate >= todayStart && invoiceDate <= todayEnd;
+      const todayJobOrders = jobOrders.filter(jobOrder => {
+          const jobOrderDate = parseISO(jobOrder.startDate);
+          return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
       });
-      return { todayInvoices };
-  }, [invoices]);
+      return { todayJobOrders };
+  }, [jobOrders]);
 
   const renderPrintHeader = (title: string) => (
     <div className="print-only text-center mb-4">
@@ -325,8 +325,8 @@ export function ReportsClient() {
     </div>
   );
 
-  const renderInvoiceTable = (invoices: Invoice[]) => {
-     if (invoices.length === 0) {
+  const renderJobOrderTable = (jobOrders: JobOrder[]) => {
+     if (jobOrders.length === 0) {
         return (
             <Table>
                 <TableBody>
@@ -344,7 +344,7 @@ export function ReportsClient() {
         <Table>
             <TableHeader>
             <TableRow>
-                <SortableHeader title="Invoice #" sortKey="invoiceNumber" />
+                <SortableHeader title="JO #" sortKey="jobOrderNumber" />
                 <SortableHeader title="Start Date" sortKey="startDate" />
                 <SortableHeader title="Client Name" sortKey="clientName" />
                 <SortableHeader title="Total Amount" sortKey="totalAmount" />
@@ -354,29 +354,29 @@ export function ReportsClient() {
             </TableRow>
             </TableHeader>
             <TableBody>
-            {invoices.map((invoice) => {
-                const discountValue = invoice.discount || 0;
-                const discountAmount = invoice.discountType === 'percent'
-                    ? invoice.totalAmount * (discountValue / 100)
+            {jobOrders.map((jobOrder) => {
+                const discountValue = jobOrder.discount || 0;
+                const discountAmount = jobOrder.discountType === 'percent'
+                    ? jobOrder.totalAmount * (discountValue / 100)
                     : discountValue;
-                const balance = invoice.totalAmount - (invoice.downpayment || 0) - discountAmount;
+                const balance = jobOrder.totalAmount - (jobOrder.downpayment || 0) - discountAmount;
                 return (
-                    <TableRow key={invoice.id}>
+                    <TableRow key={jobOrder.id}>
                         <TableCell>
-                            <Badge variant="outline">{invoice.invoiceNumber}</Badge>
+                            <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
                         </TableCell>
                         <TableCell>
-                            {new Date(invoice.startDate).toLocaleDateString()}
+                            {new Date(jobOrder.startDate).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                            <span className="font-medium">{invoice.clientName}</span>
-                            {invoice.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{invoice.notes}</p>}
+                            <span className="font-medium">{jobOrder.clientName}</span>
+                            {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
                         </TableCell>
-                        <TableCell className="text-right">{formatCurrency(invoice.totalAmount)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(invoice.downpayment || 0)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(jobOrder.downpayment || 0)}</TableCell>
                         <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                         <TableCell className="text-center">
-                            {getStatusBadge(invoice.status)}
+                            {getStatusBadge(jobOrder.status)}
                         </TableCell>
                     </TableRow>
                 );
@@ -390,7 +390,7 @@ export function ReportsClient() {
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's invoices"/>
+             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders"/>
              <StatCard title="Total Collectibles" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
              <StatCard title="Total Unpaid" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
@@ -412,16 +412,16 @@ export function ReportsClient() {
             </div>
             <TabsContent value="overall" className="mt-4" ref={overallPrintRef}>
                 <Card className="print-area">
-                    {renderPrintHeader("Overall Invoices Report")}
+                    {renderPrintHeader("Overall Job Orders Report")}
                     <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
                         <div>
-                            <CardTitle>All Invoices</CardTitle>
-                            <CardDescription>A detailed list of all invoices and their payment status.</CardDescription>
+                            <CardTitle>All Job Orders</CardTitle>
+                            <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
                         </div>
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input 
-                                placeholder="Search by client or Invoice #" 
+                                placeholder="Search by client or JO #" 
                                 className="pl-10 w-full sm:w-64"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -429,7 +429,7 @@ export function ReportsClient() {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        {renderInvoiceTable(sortedAndFilteredInvoices)}
+                        {renderJobOrderTable(sortedAndFilteredJobOrders)}
                     </CardContent>
                 </Card>
             </TabsContent>
@@ -438,10 +438,10 @@ export function ReportsClient() {
                     {renderPrintHeader("Today's Sales Report")}
                     <CardHeader className="no-print">
                         <CardTitle>Today's Sales</CardTitle>
-                        <CardDescription>A list of invoices created today.</CardDescription>
+                        <CardDescription>A list of job orders created today.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                       {renderInvoiceTable(todayInvoices)}
+                       {renderJobOrderTable(todayJobOrders)}
                     </CardContent>
                  </Card>
             </TabsContent>

@@ -7,7 +7,7 @@ export interface Payment {
   notes?: string;
 }
 
-export interface InvoiceItem {
+export interface JobOrderItem {
   id:string;
   description: string;
   quantity: number;
@@ -16,15 +16,15 @@ export interface InvoiceItem {
   status: 'Unpaid' | 'Paid' | 'Balance';
 }
 
-export interface Invoice {
+export interface JobOrder {
   id: string;
-  invoiceNumber: string;
+  jobOrderNumber: string;
   clientName: string;
   contactMethod: 'Contact No.' | 'FB Messenger' | 'Email';
   contactDetail: string;
   startDate: string;
   dueDate: string;
-  items: InvoiceItem[];
+  items: JobOrderItem[];
   totalAmount: number;
   paidAmount: number;
   payments: Payment[];

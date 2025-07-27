@@ -8,11 +8,11 @@ import {
   Sidebar,
   SidebarInset,
 } from '@/components/ui/sidebar';
-import { InvoiceProvider } from '@/contexts/InvoiceContext';
+import { JobOrderProvider } from '@/contexts/JobOrderContext';
 
 export const metadata: Metadata = {
-  title: 'Invoice Generator',
-  description: 'Automated Invoice form and dashboard',
+  title: 'Job Order Generator',
+  description: 'Automated Job Order form and dashboard',
   manifest: '/manifest.json',
 };
 
@@ -37,7 +37,7 @@ export default function RootLayout({
          <meta name="theme-color" content="#000000" />
       </head>
       <body className="font-body antialiased">
-        <InvoiceProvider>
+        <JobOrderProvider>
           <SidebarProvider>
             <div className="flex min-h-screen">
               <Sidebar>
@@ -49,7 +49,7 @@ export default function RootLayout({
             </div>
             <Toaster />
           </SidebarProvider>
-        </InvoiceProvider>
+        </JobOrderProvider>
       </body>
     </html>
   );

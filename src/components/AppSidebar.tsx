@@ -19,8 +19,8 @@ export function AppSidebar() {
 
   const menuItems = [
     {
-      href: "/invoice",
-      label: "Invoice Generator",
+      href: "/job-order",
+      label: "Job Order Form",
       icon: FilePlus2,
     },
     {
@@ -37,6 +37,11 @@ export function AppSidebar() {
         href: "/delivery-receipt",
         label: "Delivery Receipt",
         icon: Receipt,
+    },
+     {
+      href: "/invoice",
+      label: "Invoice Form",
+      icon: FileText,
     },
     {
         href: "/settings",
