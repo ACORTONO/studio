@@ -433,7 +433,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                   control={form.control}
                   name="status"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col pt-2">
+                    <FormItem className="flex flex-col">
                       <FormLabel>Order Status</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                         <FormControl>
@@ -872,3 +872,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
