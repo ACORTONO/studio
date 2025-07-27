@@ -8,7 +8,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarContent,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
@@ -61,7 +60,7 @@ export function AppSidebar() {
             <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
         </Link>
       </div>
-      <SidebarContent>
+      <div className="flex flex-col flex-1 overflow-auto">
         <SidebarMenu>
           {menuItems.map((item, index) => (
             <SidebarMenuItem key={`${item.href}-${index}`}>
@@ -80,7 +79,7 @@ export function AppSidebar() {
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
-      </SidebarContent>
+      </div>
     </>
   );
 }
