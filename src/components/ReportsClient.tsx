@@ -29,12 +29,6 @@ import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
-const PrintableWrapper = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>((props, ref) => {
-    return <div ref={ref}>{props.children}</div>;
-});
-PrintableWrapper.displayName = 'PrintableWrapper';
-
-
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card className="no-print">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -63,90 +57,6 @@ const getStatusBadge = (status: JobOrder['status']) => {
     }
 }
 
-const ReportTabContent = ({ title, jobOrders }: { title: string, jobOrders: JobOrder[] }) => {
-    
-    const renderJobOrderTable = (jobOrders: JobOrder[]) => {
-        if (jobOrders.length === 0) {
-            return (
-                <Table>
-                    <TableBody>
-                        <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
-                                No sales data available for this period.
-                            </TableCell>
-                        </TableRow>
-                    </TableBody>
-                </Table>
-            );
-        }
-        
-        return (
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead>JO #</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>Client Name</TableHead>
-                    <TableHead>Total Amount</TableHead>
-                    <TableHead>Paid</TableHead>
-                    <TableHead className="text-right">Balance</TableHead>
-                    <TableHead>Status</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {jobOrders.map((jobOrder) => {
-                    const discountValue = jobOrder.discount || 0;
-                    const discountAmount = jobOrder.discountType === 'percent'
-                        ? jobOrder.totalAmount * (discountValue / 100)
-                        : discountValue;
-                    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
-                    return (
-                        <TableRow key={jobOrder.id}>
-                            <TableCell>
-                                <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                            </TableCell>
-                            <TableCell>
-                                {new Date(jobOrder.startDate).toLocaleDateString()}
-                            </TableCell>
-                            <TableCell>
-                                <span className="font-medium">{jobOrder.clientName}</span>
-                                {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
-                            </TableCell>
-                            <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.totalAmount)}</TableCell>
-                            <TableCell className="text-right">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(jobOrder.paidAmount || 0)}</TableCell>
-                            <TableCell className="text-right font-semibold">{new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(balance)}</TableCell>
-                            <TableCell className="text-center">
-                                {getStatusBadge(jobOrder.status)}
-                            </TableCell>
-                        </TableRow>
-                    );
-                    })
-                }
-                </TableBody>
-            </Table>
-        );
-      }
-
-    return (
-        <div>
-            <Card className="print-area">
-                <div className="print-only text-center mb-4">
-                    <h1 className="text-2xl font-bold">{title}</h1>
-                    <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-                </div>
-                <CardHeader className="no-print">
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>A list of job orders for the selected period.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                   {renderJobOrderTable(jobOrders)}
-                </CardContent>
-            </Card>
-        </div>
-    )
-};
-ReportTabContent.displayName = 'ReportTabContent';
-
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
@@ -167,16 +77,13 @@ export function ReportsClient() {
     totalUnpaid,
     cashOnHand,
     sortedAndFilteredJobOrders,
-    todaySales
+    todaySales,
+    todayJobOrders,
+    weeklyJobOrders,
+    monthlyJobOrders,
+    yearlyJobOrders,
    } = useMemo(() => {
-    const todayStart = startOfToday();
-    const todayEnd = endOfToday();
-    const todayJobOrders = jobOrders.filter(jobOrder => {
-        const jobOrderDate = parseISO(jobOrder.startDate);
-        return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
-    });
-    const todaySalesValue = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
-
+    const now = new Date();
     const grandTotalSales = jobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
     const totalCollectibles = jobOrders.reduce((sum, jobOrder) => sum + (jobOrder.paidAmount || 0), 0);
     
@@ -188,7 +95,7 @@ export function ReportsClient() {
         return sum + discountAmount;
     }, 0);
     
-    const totalUnpaid = grandTotalSales - totalCollectibles;
+    const totalUnpaid = grandTotalSales - totalCollectibles - totalDiscountAmount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
     const cashOnHand = totalCollectibles - totalExpenses;
     
@@ -221,8 +128,38 @@ export function ReportsClient() {
         });
     }
 
+      const todayStart = startOfToday();
+      const todayEnd = endOfToday();
+      const weekStart = startOfWeek(now);
+      const weekEnd = endOfWeek(now);
+      const monthStart = startOfMonth(now);
+      const monthEnd = endOfMonth(now);
+      const yearStart = startOfYear(now);
+      const yearEnd = endOfYear(now);
 
-    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue };
+      const todayJobOrders = jobOrders.filter(jobOrder => {
+          const jobOrderDate = parseISO(jobOrder.startDate);
+          return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
+      });
+      const todaySalesValue = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
+
+      const weeklyJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= weekStart && jobOrderDate <= weekEnd;
+      });
+
+      const monthlyJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= monthStart && jobOrderDate <= monthEnd;
+      });
+      
+      const yearlyJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= yearStart && jobOrderDate <= yearEnd;
+      });
+
+
+    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
   }, [jobOrders, expenses, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -242,141 +179,114 @@ export function ReportsClient() {
         <span className="print-only font-bold text-gray-700 p-1 h-auto">{title}</span>
     </TableHead>
   )
-
-  const {
-    todayJobOrders,
-    weeklyJobOrders,
-    monthlyJobOrders,
-    yearlyJobOrders,
-  } = useMemo(() => {
-      const now = new Date();
-      const todayStart = startOfToday();
-      const todayEnd = endOfToday();
-      const weekStart = startOfWeek(now);
-      const weekEnd = endOfWeek(now);
-      const monthStart = startOfMonth(now);
-      const monthEnd = endOfMonth(now);
-      const yearStart = startOfYear(now);
-      const yearEnd = endOfYear(now);
-
-      const todayJobOrders = jobOrders.filter(jobOrder => {
-          const jobOrderDate = parseISO(jobOrder.startDate);
-          return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
-      });
-
-      const weeklyJobOrders = jobOrders.filter(jobOrder => {
-        const jobOrderDate = parseISO(jobOrder.startDate);
-        return jobOrderDate >= weekStart && jobOrderDate <= weekEnd;
-      });
-
-      const monthlyJobOrders = jobOrders.filter(jobOrder => {
-        const jobOrderDate = parseISO(jobOrder.startDate);
-        return jobOrderDate >= monthStart && jobOrderDate <= monthEnd;
-      });
-      
-      const yearlyJobOrders = jobOrders.filter(jobOrder => {
-        const jobOrderDate = parseISO(jobOrder.startDate);
-        return jobOrderDate >= yearStart && jobOrderDate <= yearEnd;
-      });
-
-      return { todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
-  }, [jobOrders]);
-
-  const renderJobOrderTable = (jobOrders: JobOrder[]) => {
+  
+  const renderJobOrderTable = (title: string, jobOrders: JobOrder[]) => {
      if (jobOrders.length === 0) {
         return (
-            <Table>
-                <TableBody>
-                    <TableRow>
-                        <TableCell colSpan={7} className="h-24 text-center">
-                            No sales data available for this period.
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
+             <Card>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>A list of job orders for the selected period.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell colSpan={7} className="h-24 text-center">
+                                    No sales data available for this period.
+                                </TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </CardContent>
+             </Card>
         );
     }
     
     return (
-        <Table>
-            <TableHeader>
-            <TableRow>
-                <SortableHeader title="JO #" sortKey="jobOrderNumber" />
-                <SortableHeader title="Start Date" sortKey="startDate" />
-                <SortableHeader title="Client Name" sortKey="clientName" />
-                <SortableHeader title="Total Amount" sortKey="totalAmount" />
-                <SortableHeader title="Paid" sortKey="paidAmount" />
-                <TableHead className="text-right">Balance</TableHead>
-                <SortableHeader title="Status" sortKey="status" />
-            </TableRow>
-            </TableHeader>
-            <TableBody>
-            {jobOrders.map((jobOrder) => {
-                 const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0);
-                return (
-                    <TableRow key={jobOrder.id}>
-                        <TableCell>
-                            <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                        </TableCell>
-                        <TableCell>
-                            {new Date(jobOrder.startDate).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                            <span className="font-medium">{jobOrder.clientName}</span>
-                            {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
-                        </TableCell>
-                        <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                        <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
-                        <TableCell className="text-center">
-                            {getStatusBadge(jobOrder.status)}
-                        </TableCell>
+        <Card>
+            <div className="print-only text-center mb-4">
+                <h1 className="text-2xl font-bold">{title} Report</h1>
+                <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+            </div>
+            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
+                <div>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
+                </div>
+                 { title === "All Job Orders" && (
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search by client or JO #" 
+                            className="pl-10 w-full sm:w-64"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                 )}
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <SortableHeader title="JO #" sortKey="jobOrderNumber" />
+                        <SortableHeader title="Start Date" sortKey="startDate" />
+                        <SortableHeader title="Client Name" sortKey="clientName" />
+                        <SortableHeader title="Total Amount" sortKey="totalAmount" />
+                        <SortableHeader title="Paid" sortKey="paidAmount" />
+                        <TableHead className="text-right">Balance</TableHead>
+                        <SortableHeader title="Status" sortKey="status" />
                     </TableRow>
-                );
-                })
-            }
-            </TableBody>
-        </Table>
+                    </TableHeader>
+                    <TableBody>
+                    {jobOrders.map((jobOrder) => {
+                         const discountValue = jobOrder.discount || 0;
+                         const discountAmount = jobOrder.discountType === 'percent'
+                             ? jobOrder.totalAmount * (discountValue / 100)
+                             : discountValue;
+                         const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
+                        return (
+                            <TableRow key={jobOrder.id}>
+                                <TableCell>
+                                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {new Date(jobOrder.startDate).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>
+                                    <span className="font-medium">{jobOrder.clientName}</span>
+                                    {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
+                                </TableCell>
+                                <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
+                                <TableCell className="text-center">
+                                    {getStatusBadge(jobOrder.status)}
+                                </TableCell>
+                            </TableRow>
+                        );
+                        })
+                    }
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
     );
   }
 
   const renderActiveTabContent = () => {
     switch (activeTab) {
         case 'today':
-            return <ReportTabContent title="Today's Sales Report" jobOrders={todayJobOrders} />;
+            return renderJobOrderTable("Today's Sales", todayJobOrders);
         case 'weekly':
-            return <ReportTabContent title="Weekly Sales Report" jobOrders={weeklyJobOrders} />;
+            return renderJobOrderTable("This Week's Sales", weeklyJobOrders);
         case 'monthly':
-            return <ReportTabContent title="Monthly Sales Report" jobOrders={monthlyJobOrders} />;
+            return renderJobOrderTable("This Month's Sales", monthlyJobOrders);
         case 'yearly':
-            return <ReportTabContent title="Yearly Sales Report" jobOrders={yearlyJobOrders} />;
+            return renderJobOrderTable("This Year's Sales", yearlyJobOrders);
         default:
-            return (
-                 <Card className="print-area">
-                    <div className="print-only text-center mb-4">
-                        <h1 className="text-2xl font-bold">Overall Job Orders Report</h1>
-                        <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-                    </div>
-                    <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
-                        <div>
-                            <CardTitle>All Job Orders</CardTitle>
-                            <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
-                        </div>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search by client or JO #" 
-                                className="pl-10 w-full sm:w-64"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        {renderJobOrderTable(sortedAndFilteredJobOrders)}
-                    </CardContent>
-                </Card>
-            );
+            return renderJobOrderTable("All Job Orders", sortedAndFilteredJobOrders);
     }
   }
 
@@ -403,10 +313,8 @@ export function ReportsClient() {
                     Print Report
                 </Button>
             </div>
-            <div className="mt-4">
-              <PrintableWrapper ref={printRef}>
+            <div className="mt-4" ref={printRef}>
                 {renderActiveTabContent()}
-              </PrintableWrapper>
             </div>
         </Tabs>
     </div>
