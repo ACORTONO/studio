@@ -17,6 +17,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -168,16 +169,13 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
     const balance = order.totalAmount - (order.paidAmount || 0) - (order.discountType === 'percent' ? order.totalAmount * ((order.discount || 0) / 100) : (order.discount || 0));
 
     return (
-         <Collapsible asChild key={order.id} open={isOpen} onOpenChange={setIsOpen}>
-            <>
+        <React.Fragment>
             <TableRow>
                 <TableCell>
-                     <CollapsibleTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
-                            <span className="sr-only">Toggle details</span>
-                        </Button>
-                    </CollapsibleTrigger>
+                     <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
+                        <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+                        <span className="sr-only">Toggle details</span>
+                    </Button>
                 </TableCell>
                 <TableCell>
                     <Badge variant="outline">{order.jobOrderNumber}</Badge>
@@ -200,7 +198,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                     </Button>
                 </TableCell>
             </TableRow>
-            <CollapsibleContent asChild>
+            {isOpen && (
                 <TableRow>
                     <TableCell colSpan={8} className="p-0">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50">
@@ -306,9 +304,8 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                         </div>
                     </TableCell>
                 </TableRow>
-             </CollapsibleContent>
-             </>
-        </Collapsible>
+            )}
+        </React.Fragment>
     )
 }
 
@@ -567,7 +564,7 @@ export function DashboardClient() {
               <Table>
                   <TableHeader>
                   <TableRow>
-                      <TableHead className="w-12">Items</TableHead>
+                      <TableHead className="w-12"></TableHead>
                       <SortableJobOrderHeader title="Job Order #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
