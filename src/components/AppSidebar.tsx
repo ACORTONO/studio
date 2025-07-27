@@ -20,7 +20,7 @@ export function AppSidebar() {
   const menuItems = [
     {
       href: "/",
-      label: "Invoice Generator",
+      label: "Job Order Form",
       icon: FilePlus2,
     },
     {
