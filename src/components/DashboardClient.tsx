@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -23,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -96,6 +97,21 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
       </CardContent>
     </Card>
 );
+
+const getStatusBadge = (status: JobOrder['status']) => {
+    switch (status) {
+        case 'Completed':
+            return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
+        case 'In Progress':
+            return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
+        case 'Pending':
+            return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
+        case 'Cancelled':
+            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
+        default:
+            return <Badge>{status}</Badge>;
+    }
+}
 
 export function DashboardClient() {
   const { jobOrders, expenses, addExpense, updateExpense, deleteExpense } = useJobOrders();
@@ -358,6 +374,7 @@ export function DashboardClient() {
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
                       <SortableJobOrderHeader title="Amount" sortKey="totalAmount" />
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                   </TableHeader>
@@ -383,6 +400,7 @@ export function DashboardClient() {
                                 <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
                                 <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
                                 <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
+                                <TableCell>{getStatusBadge(order.status)}</TableCell>
                                 <TableCell className="text-right space-x-2">
                                 <Button asChild variant="ghost" size="icon">
                                     <Link href={`/edit/${order.id}`}>
@@ -397,9 +415,9 @@ export function DashboardClient() {
                                 </TableCell>
                             </TableRow>
                              <CollapsibleContent asChild>
-                                <TableRow>
-                                  <TableCell colSpan={7} className="p-0">
-                                      <div className="bg-muted/50 p-4">
+                                <tr className="bg-muted/50">
+                                  <TableCell colSpan={8} className="p-0">
+                                      <div className="p-4">
                                           <h4 className="font-semibold mb-2">Order Items:</h4>
                                           <Table>
                                             <TableHeader>
@@ -426,14 +444,14 @@ export function DashboardClient() {
                                           </Table>
                                       </div>
                                   </TableCell>
-                                </TableRow>
+                                </tr>
                               </CollapsibleContent>
                           </>
                         </Collapsible>
                       ))
                   ) : (
                       <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
+                      <TableCell colSpan={8} className="h-24 text-center">
                           No job orders for this period.
                       </TableCell>
                       </TableRow>
