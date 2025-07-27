@@ -18,6 +18,7 @@ export interface JobOrder {
   dueDate: string;
   items: JobOrderItem[];
   totalAmount: number;
+  paidAmount: number;
   discount?: number;
   discountType?: 'amount' | 'percent';
   downpayment?: number;
@@ -47,5 +48,3 @@ export interface Expense {
   items: ExpenseItem[];
   totalAmount: number;
 }
-
-    

@@ -98,6 +98,7 @@ export async function createJobOrderAction(
       discount: validatedData.discount,
       discountType: validatedData.discountType,
       downpayment: validatedData.downpayment,
+      paidAmount: validatedData.downpayment || 0,
       items: validatedData.items.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
@@ -149,6 +150,7 @@ export async function updateJobOrderAction(
             discount: validatedData.discount,
             discountType: validatedData.discountType,
             downpayment: validatedData.downpayment,
+            paidAmount: validatedData.downpayment || 0,
             items: existingOrder.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),
