@@ -90,7 +90,7 @@ const paymentSchema = z.object({
     notes: z.string().optional()
 });
 
-type SortableJobOrderKeys = keyof JobOrder;
+type SortableJobOrderKeys = keyof JobOrder | 'items';
 type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
@@ -181,6 +181,14 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
                     <Badge variant="outline">{order.jobOrderNumber}</Badge>
                 </TableCell>
                 <TableCell className="font-medium">{order.clientName}</TableCell>
+                <TableCell>
+                    <ul className="list-disc list-inside text-xs">
+                        {order.items.slice(0, 2).map(item => (
+                            <li key={item.id} className="truncate">{item.description}</li>
+                        ))}
+                        {order.items.length > 2 && <li className="text-muted-foreground">...and {order.items.length - 2} more</li>}
+                    </ul>
+                </TableCell>
                 <TableCell>{new Date(order.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(order.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
@@ -200,7 +208,7 @@ const JobOrderRow = ({ order }: { order: JobOrder }) => {
             </TableRow>
             {isOpen && (
                 <TableRow>
-                    <TableCell colSpan={8} className="p-0">
+                    <TableCell colSpan={9} className="p-0">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50">
                            <div>
                                 <h4 className="font-semibold mb-2 ml-4">Order Items:</h4>
@@ -361,8 +369,15 @@ export function DashboardClient() {
 
     if (jobOrderSortConfig !== null) {
         sortedAndFilteredOrders.sort((a, b) => {
-            const aValue = a[jobOrderSortConfig.key];
-            const bValue = b[jobOrderSortConfig.key];
+            const aValue = a[jobOrderSortConfig.key as keyof JobOrder];
+            const bValue = b[jobOrderSortConfig.key as keyof JobOrder];
+
+            if (jobOrderSortConfig.key === 'items') {
+                const aText = a.items.map(i => i.description).join(', ');
+                const bText = b.items.map(i => i.description).join(', ');
+                const comparison = aText.localeCompare(bText);
+                return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
+            }
 
             if (aValue === undefined || bValue === undefined) return 0;
 
@@ -567,6 +582,7 @@ export function DashboardClient() {
                       <TableHead className="w-12"></TableHead>
                       <SortableJobOrderHeader title="Job Order #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
+                      <SortableJobOrderHeader title="Items" sortKey="items" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
                       <SortableJobOrderHeader title="Amount" sortKey="totalAmount" />
@@ -580,7 +596,7 @@ export function DashboardClient() {
                         filteredOrders.map((order) => <JobOrderRow key={order.id} order={order} />)
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={8} className="h-24 text-center">
+                        <TableCell colSpan={9} className="h-24 text-center">
                           No job orders for this period.
                         </TableCell>
                       </TableRow>
@@ -809,3 +825,4 @@ export function DashboardClient() {
 }
 
     
+
