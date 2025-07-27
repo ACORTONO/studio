@@ -377,9 +377,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           <Card>
             <CardHeader>
               <CardTitle>Job Order Details</CardTitle>
-              <CardDescription>Set the dates and status for this job order.</CardDescription>
+              <CardDescription>Set the dates for this job order.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-3 gap-6">
+            <CardContent className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="startDate"
@@ -456,29 +456,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                   </FormItem>
                 )}
               />
-               <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Order Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Pending">Pending</SelectItem>
-                          <SelectItem value="In Progress">In Progress</SelectItem>
-                          <SelectItem value="Completed">Completed</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
             </CardContent>
           </Card>
 
@@ -899,5 +876,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
 
     
