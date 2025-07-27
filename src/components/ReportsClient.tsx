@@ -219,43 +219,6 @@ export function ReportsClient() {
     return data;
   }, [jobOrders, expenses]);
 
-  const weeklyData = useMemo(() => {
-    const now = new Date();
-    const weekStart = startOfWeek(now);
-    const weekEnd = endOfWeek(now);
-    const daysInWeek = eachDayOfInterval({ start: weekStart, end: weekEnd });
-
-    const data = daysInWeek.map(day => ({
-        date: format(day, 'EEE'),
-        sales: 0,
-        collectibles: 0,
-        expenses: 0
-    }));
-
-    jobOrders.forEach(jobOrder => {
-        const jobOrderDate = parseISO(jobOrder.startDate);
-        if (jobOrderDate >= weekStart && jobOrderDate <= weekEnd) {
-            const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(jobOrderDate, 'yyyy-MM-dd'));
-            if(dayIndex > -1) {
-                data[dayIndex].sales += jobOrder.totalAmount;
-                data[dayIndex].collectibles += jobOrder.downpayment || 0;
-            }
-        }
-    });
-
-    expenses.forEach(expense => {
-        const expenseDate = parseISO(expense.date);
-        if (expenseDate >= weekStart && expenseDate <= weekEnd) {
-            const dayIndex = daysInWeek.findIndex(day => format(day, 'yyyy-MM-dd') === format(expenseDate, 'yyyy-MM-dd'));
-            if(dayIndex > -1) {
-                data[dayIndex].expenses += expense.totalAmount;
-            }
-        }
-    });
-    
-    return data;
-  }, [jobOrders, expenses]);
-
   const monthlyData = useMemo(() => {
     const data: { [key: string]: { month: string, sales: number; collectibles: number; expenses: number } } = {};
 
@@ -305,17 +268,26 @@ export function ReportsClient() {
   }, [jobOrders, expenses]);
 
   const {
-    todayJobOrders
+    todayJobOrders,
+    weeklyJobOrders,
   } = useMemo(() => {
       const now = new Date();
       const todayStart = startOfToday();
       const todayEnd = endOfToday();
+      const weekStart = startOfWeek(now);
+      const weekEnd = endOfWeek(now);
 
       const todayJobOrders = jobOrders.filter(jobOrder => {
           const jobOrderDate = parseISO(jobOrder.startDate);
           return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
       });
-      return { todayJobOrders };
+
+      const weeklyJobOrders = jobOrders.filter(jobOrder => {
+        const jobOrderDate = parseISO(jobOrder.startDate);
+        return jobOrderDate >= weekStart && jobOrderDate <= weekEnd;
+      });
+
+      return { todayJobOrders, weeklyJobOrders };
   }, [jobOrders]);
 
   const renderPrintHeader = (title: string) => (
@@ -449,24 +421,11 @@ export function ReportsClient() {
                  <Card className="print-area">
                     {renderPrintHeader("Weekly Sales Report")}
                     <CardHeader className="no-print">
-                        <CardTitle>Weekly Sales Report</CardTitle>
-                        <CardDescription>A breakdown of sales, collectibles, and expenses for the current week.</CardDescription>
+                        <CardTitle>Weekly Sales</CardTitle>
+                        <CardDescription>A list of job orders created this week.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <ChartContainer config={chartConfig} className="min-h-[300px] w-full">
-                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={weeklyData}>
-                                    <CartesianGrid vertical={false} />
-                                    <XAxis dataKey="date" tickLine={false} tickMargin={10} axisLine={false} />
-                                    <YAxis tickFormatter={(value) => `₱${value / 1000}k`} />
-                                    <Tooltip content={<ChartTooltipContent formatter={formatCurrency} />} />
-                                    <Legend />
-                                    <Bar dataKey="sales" fill="var(--color-sales)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="collectibles" fill="var(--color-collectibles)" radius={[4, 4, 0, 0]} />
-                                    <Bar dataKey="expenses" fill="var(--color-expenses)" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </ChartContainer>
+                       {renderJobOrderTable(weeklyJobOrders)}
                     </CardContent>
                  </Card>
             </TabsContent>
