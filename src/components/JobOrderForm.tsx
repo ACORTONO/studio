@@ -73,7 +73,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
-  contactMethod: z.enum(['Contact No.', 'FB Messenger']).default('Contact No.'),
+  contactMethod: z.enum(['Contact No.', 'FB Messenger', 'Email']).default('Contact No.'),
   contactDetail: z.string().min(1, "Contact detail is required."),
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
@@ -350,6 +350,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                           <SelectContent>
                             <SelectItem value="Contact No.">Contact No.</SelectItem>
                             <SelectItem value="FB Messenger">FB Messenger</SelectItem>
+                            <SelectItem value="Email">Email</SelectItem>
                           </SelectContent>
                         </Select>
                       <FormMessage />

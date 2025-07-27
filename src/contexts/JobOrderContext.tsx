@@ -96,6 +96,23 @@ const mockJobOrders: JobOrder[] = [
     status: 'In Progress',
     notes: 'First half paid upfront.'
   },
+  {
+    id: "6",
+    jobOrderNumber: "JO-20230120-0006",
+    clientName: "Felicity Smoak",
+    contactMethod: 'Email',
+    contactDetail: "felicity@queen-consolidated.com",
+    startDate: new Date().toISOString(),
+    dueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
+    items: [{ id: 'i7', description: 'Network Security Audit', quantity: 1, amount: 3500, remarks: 'Full infrastructure scan', status: 'Unpaid' }],
+    totalAmount: 3500,
+    discount: 0,
+    discountType: 'amount',
+    downpayment: 0,
+    paymentMethod: 'Cash',
+    status: 'Pending',
+    notes: 'Requires on-site visit.'
+  },
 ];
 
 const mockExpenses: Expense[] = [

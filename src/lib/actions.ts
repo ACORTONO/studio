@@ -16,7 +16,7 @@ const jobOrderItemSchema = z.object({
 
 const jobOrderSchemaBase = z.object({
   clientName: z.string().min(1, "Client name is required."),
-  contactMethod: z.enum(['Contact No.', 'FB Messenger']).default('Contact No.'),
+  contactMethod: z.enum(['Contact No.', 'FB Messenger', 'Email']).default('Contact No.'),
   contactDetail: z.string().min(1, "Contact detail is required."),
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
