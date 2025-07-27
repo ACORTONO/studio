@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -121,7 +121,7 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredOrders, filteredExpenses, totalSales, totalExpenses, netProfit } = useMemo(() => {
+  const { filteredOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers } = useMemo(() => {
     const now = new Date();
     let interval: Interval;
 
@@ -201,13 +201,15 @@ export function DashboardClient() {
 
     const totalSales = sortedAndFilteredOrders.reduce((sum, order) => sum + order.totalAmount, 0);
     const totalExpenses = sortedAndFilteredExpenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
+    const uniqueClients = new Set(sortedAndFilteredOrders.map(order => order.clientName));
 
     return {
       filteredOrders: sortedAndFilteredOrders,
       filteredExpenses: sortedAndFilteredExpenses,
       totalSales,
       totalExpenses,
-      netProfit: totalSales - totalExpenses
+      netProfit: totalSales - totalExpenses,
+      totalCustomers: uniqueClients.size,
     };
   }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
@@ -291,7 +293,7 @@ export function DashboardClient() {
 
   const renderContent = () => (
     <div className="space-y-4 mt-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
             title="Total Sales" 
             value={formatCurrency(totalSales)} 
@@ -312,6 +314,13 @@ export function DashboardClient() {
             icon={DollarSign} 
             description={`For the selected period`}
             className="bg-blue-600/20 border-blue-600 text-blue-100"
+        />
+         <StatCard 
+            title="Total Customers" 
+            value={totalCustomers.toString()} 
+            icon={Users} 
+            description={`For the selected period`}
+            className="bg-purple-600/20 border-purple-600 text-purple-100"
         />
       </div>
       <Tabs defaultValue="jobOrders" className="space-y-4">
@@ -604,4 +613,5 @@ export function DashboardClient() {
   );
 }
 
+    
     
