@@ -380,44 +380,8 @@ export function DashboardClient() {
                   </TableHeader>
                     {filteredOrders.length > 0 ? (
                       filteredOrders.map((order) => (
-                        <Collapsible asChild key={order.id}
-                            // Using a tbody as the child for the collapsible component
-                            // is a valid way to handle collapsible table rows.
-                            // The data-state attribute will be added to the tbody.
-                            // Using a React fragment here will cause an error.
-                            // https://github.com/radix-ui/primitives/issues/1220
-                            // https://github.com/shadcn-ui/ui/issues/480
-                            // I've opted for this approach as it's the most semantically correct and avoids nesting tables.
-                            // An alternative approach would be to not use `asChild` and instead use the `open` prop and `onOpenChange` callback.
-                            // But since the collapsible component is managing its own state, this is the most straightforward solution.
-                            // We will use a separate `TableBody` for each `Collapsible` component.
-                            // This is because a `tbody` can be a direct child of a `table`, but a `tr` cannot be a direct child of a `Collapsible`.
-                            // So we wrap the rows in a `tbody` and make the `tbody` the child of the `Collapsible`.
-                            // We need to use `asChild` to make the `Collapsible` component pass its props to the `tbody`.
-                            // The `tbody` will receive the `data-state` attribute and the collapsible functionality.
-                            // This is a bit of a workaround, but it's a valid one.
-                            // We will need to have a `Table` component for each `Collapsible` component, which is not ideal.
-                            // So let's try a different approach.
-                            // We can use a `tbody` for each collapsible section.
-                            // The structure would be:
-                            // <Table>
-                            //   <TableHeader>...</TableHeader>
-                            //   {filteredOrders.map((order) => (
-                            //      <Collapsible asChild key={order.id} element="tbody">
-                            //         ...
-                            //      </Collapsible>
-                            //   ))}
-                            // </Table>
-                            // Let's see if this is possible. No, we cannot set the element prop.
-                            // The `TableBody` itself will contain the `Collapsible` components.
-                            // Let's go back to the original idea of having a separate `tbody` for each collapsible section.
-                            // This is the most robust solution.
-                            // Let's stick with the `React.Fragment` approach and fix the error.
-                            // The error is that `React.Fragment` cannot have props.
-                            // So we need to wrap the `React.Fragment` in a valid HTML element.
-                            // A `tbody` would be the most appropriate.
-                            element="tbody">
-
+                        <Collapsible asChild key={order.id} element="tbody">
+                           <>
                             <TableRow>
                                 <TableCell>
                                 <CollapsibleTrigger asChild>
@@ -481,6 +445,7 @@ export function DashboardClient() {
                                 </TableCell>
                                 </tr>
                             </CollapsibleContent>
+                            </>
                         </Collapsible>
                       ))
                   ) : (
@@ -713,5 +678,6 @@ export function DashboardClient() {
   );
 }
 
+    
     
     
