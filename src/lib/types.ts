@@ -57,3 +57,23 @@ export interface Expense {
   items: ExpenseItem[];
   totalAmount: number;
 }
+
+
+export interface InvoiceItem {
+  id: string;
+  description: string;
+  quantity: number;
+  amount: number;
+}
+
+export interface Invoice {
+  id: string;
+  invoiceNumber: string;
+  clientName: string;
+  date: string;
+  dueDate: string;
+  items: InvoiceItem[];
+  totalAmount: number;
+  status: 'Unpaid' | 'Paid';
+  notes?: string;
+}

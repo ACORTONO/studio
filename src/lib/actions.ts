@@ -2,7 +2,8 @@
 "use server";
 
 import { generateJobOrderNumber } from "@/ai/flows/generate-job-order-number";
-import type { JobOrder, Payment } from "@/lib/types";
+import { generateInvoiceNumber } from "@/ai/flows/generate-invoice-number";
+import type { JobOrder, Payment, Invoice } from "@/lib/types";
 import { z } from "zod";
 
 const jobOrderItemSchema = z.object({
@@ -187,6 +188,113 @@ export async function updateJobOrderAction(
         };
         
         return { success: true, data: updatedJobOrder };
+    } catch (error) {
+        console.error(error);
+        return { success: false, error: "An unexpected error occurred." };
+    }
+}
+
+
+// Invoice Actions
+const invoiceItemSchema = z.object({
+  id: z.string().optional(),
+  description: z.string().min(1, "Description is required."),
+  quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
+  amount: z.coerce.number().min(0, "Amount must be >= 0."),
+});
+
+const invoiceSchemaBase = z.object({
+  clientName: z.string().min(1, "Client name is required."),
+  date: z.date({ required_error: "An invoice date is required." }),
+  dueDate: z.date({ required_error: "A due date is required." }),
+  notes: z.string().optional(),
+  status: z.enum(["Unpaid", "Paid"]),
+  items: z.array(invoiceItemSchema).min(1, "At least one item is required."),
+});
+
+const invoiceSchema = invoiceSchemaBase;
+
+const updateInvoiceSchema = invoiceSchemaBase.extend({
+    id: z.string(),
+    invoiceNumber: z.string(),
+});
+
+export async function createInvoiceAction(
+  formData: z.infer<typeof invoiceSchema>,
+  existingInvoiceNumbers: string[]
+): Promise<{ success: boolean; data?: Invoice; error?: any }> {
+  const validation = invoiceSchema.safeParse(formData);
+  if (!validation.success) {
+    return { success: false, error: validation.error.format() };
+  }
+
+  try {
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const { invoiceNumber } = await generateInvoiceNumber({ existingInvoiceNumbers, currentDate });
+    if (!invoiceNumber) {
+      throw new Error("Failed to generate invoice number.");
+    }
+
+    const totalAmount = validation.data.items.reduce(
+      (acc, item) => acc + item.quantity * item.amount,
+      0
+    );
+
+    const validatedData = validation.data;
+
+    const newInvoice: Invoice = {
+      id: crypto.randomUUID(),
+      invoiceNumber,
+      clientName: validatedData.clientName,
+      date: validatedData.date.toISOString(),
+      dueDate: validatedData.dueDate.toISOString(),
+      notes: validatedData.notes,
+      status: validatedData.status,
+      items: validatedData.items.map((item) => ({
+        ...item,
+        id: item.id || crypto.randomUUID(),
+      })),
+      totalAmount,
+    };
+
+    return { success: true, data: newInvoice };
+  } catch (error) {
+    console.error(error);
+    return { success: false, error: "An unexpected error occurred." };
+  }
+}
+
+export async function updateInvoiceAction(
+  formData: z.infer<typeof updateInvoiceSchema>
+): Promise<{ success: boolean; data?: Invoice; error?: any }> {
+    const validation = updateInvoiceSchema.safeParse(formData);
+    if (!validation.success) {
+        return { success: false, error: validation.error.format() };
+    }
+
+    try {
+        const existingInvoice = validation.data;
+        const totalAmount = existingInvoice.items.reduce(
+            (acc, item) => acc + item.quantity * item.amount,
+            0
+        );
+
+        const updatedInvoice: Invoice = {
+            id: existingInvoice.id,
+            invoiceNumber: existingInvoice.invoiceNumber,
+            clientName: existingInvoice.clientName,
+            date: existingInvoice.date.toISOString(),
+            dueDate: existingInvoice.dueDate.toISOString(),
+            notes: existingInvoice.notes,
+            status: existingInvoice.status,
+            items: existingInvoice.items.map((item) => ({
+                ...item,
+                id: item.id || crypto.randomUUID(),
+            })),
+            totalAmount,
+        };
+        
+        return { success: true, data: updatedInvoice };
     } catch (error) {
         console.error(error);
         return { success: false, error: "An unexpected error occurred." };

@@ -9,6 +9,7 @@ import {
   SidebarInset,
 } from '@/components/ui/sidebar';
 import { JobOrderProvider } from '@/contexts/JobOrderContext';
+import { InvoiceProvider } from '@/contexts/InvoiceContext';
 
 export const metadata: Metadata = {
   title: 'Job Order Generator',
@@ -38,17 +39,19 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <JobOrderProvider>
-          <SidebarProvider>
-            <div className="flex min-h-screen">
-              <Sidebar>
-                <AppSidebar />
-              </Sidebar>
-              <SidebarInset className="flex-1">
-                <main className="p-4 sm:p-6 lg:p-8">{children}</main>
-              </SidebarInset>
-            </div>
-            <Toaster />
-          </SidebarProvider>
+          <InvoiceProvider>
+            <SidebarProvider>
+              <div className="flex min-h-screen">
+                <Sidebar>
+                  <AppSidebar />
+                </Sidebar>
+                <SidebarInset className="flex-1">
+                  <main className="p-4 sm:p-6 lg:p-8">{children}</main>
+                </SidebarInset>
+              </div>
+              <Toaster />
+            </SidebarProvider>
+          </InvoiceProvider>
         </JobOrderProvider>
       </body>
     </html>
