@@ -120,7 +120,7 @@ const getStatusBadge = (status: JobOrder['status']) => {
     }
 }
 
-const JobOrderRow = ({ jobOrder }: { jobOrder: JobOrder }) => {
+const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id: string) => void }) => {
     const { updateJobOrder } = useJobOrders();
     const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
@@ -203,6 +203,25 @@ const JobOrderRow = ({ jobOrder }: { jobOrder: JobOrder }) => {
                             <Printer className="h-4 w-4" />
                         </Link>
                     </Button>
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete this job order.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(jobOrder.id)}>Delete</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </TableCell>
             </TableRow>
             {isOpen && (
@@ -317,7 +336,7 @@ const JobOrderRow = ({ jobOrder }: { jobOrder: JobOrder }) => {
 }
 
 export function DashboardClient() {
-  const { jobOrders, expenses, addExpense, updateExpense, deleteExpense } = useJobOrders();
+  const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder } = useJobOrders();
   const [timeFilter, setTimeFilter] = useState("today");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
@@ -325,6 +344,7 @@ export function DashboardClient() {
   const [expenseSearchQuery, setExpenseSearchQuery] = useState("");
   const [jobOrderSortConfig, setJobOrderSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [expenseSortConfig, setExpenseSortConfig] = useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
+  const { toast } = useToast();
 
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
@@ -466,8 +486,10 @@ export function DashboardClient() {
   const handleExpenseSubmit = (values: z.infer<typeof expenseSchema>) => {
     if (editingExpense) {
       updateExpense({ ...values, id: editingExpense.id });
+       toast({ title: "Success", description: "Expense updated successfully." });
     } else {
       addExpense(values);
+       toast({ title: "Success", description: "Expense added successfully." });
     }
     expenseForm.reset({ description: '', category: 'General', items: [{ description: '', amount: 0 }] });
     setIsExpenseDialogOpen(false);
@@ -487,6 +509,12 @@ export function DashboardClient() {
 
   const handleDeleteExpense = (expenseId: string) => {
     deleteExpense(expenseId);
+    toast({ title: "Success", description: "Expense deleted successfully." });
+  }
+
+  const handleDeleteJobOrder = (jobOrderId: string) => {
+    deleteJobOrder(jobOrderId);
+    toast({ title: "Success", description: "Job order deleted successfully." });
   }
 
   const watchExpenseItems = expenseForm.watch("items");
@@ -597,7 +625,7 @@ export function DashboardClient() {
                   
                   <TableBody>
                     {filteredJobOrders.length > 0 ? (
-                        filteredJobOrders.map((jobOrder) => <JobOrderRow key={jobOrder.id} jobOrder={jobOrder} />)
+                        filteredJobOrders.map((jobOrder) => <JobOrderRow key={jobOrder.id} jobOrder={jobOrder} onDelete={handleDeleteJobOrder} />)
                     ) : (
                       <TableRow>
                         <TableCell colSpan={9} className="h-24 text-center">

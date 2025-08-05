@@ -157,6 +157,7 @@ interface JobOrderContextType {
   expenses: Expense[];
   addJobOrder: (order: JobOrder) => void;
   updateJobOrder: (order: JobOrder) => void;
+  deleteJobOrder: (id: string) => void;
   getJobOrderById: (id: string) => JobOrder | undefined;
   addExpense: (expense: Omit<Expense, 'id' | 'date' | 'totalAmount'>) => void;
   updateExpense: (expense: Omit<Expense, 'date' | 'totalAmount'>) => void;
@@ -226,6 +227,10 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     setJobOrders(prev => prev.map(order => order.id === updatedOrder.id ? updatedOrder : order));
   };
   
+  const deleteJobOrder = (id: string) => {
+    setJobOrders(prev => prev.filter(order => order.id !== id));
+  };
+
   const getJobOrderById = useCallback((id: string) => {
     return jobOrders.find(order => order.id === id);
   }, [jobOrders]);
@@ -262,7 +267,7 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <JobOrderContext.Provider value={{ jobOrders, expenses, addJobOrder, updateJobOrder, getJobOrderById, addExpense, updateExpense, deleteExpense }}>
+    <JobOrderContext.Provider value={{ jobOrders, expenses, addJobOrder, updateJobOrder, deleteJobOrder, getJobOrderById, addExpense, updateExpense, deleteExpense }}>
       {children}
     </JobOrderContext.Provider>
   );
