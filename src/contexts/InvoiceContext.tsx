@@ -40,6 +40,7 @@ interface InvoiceContextType {
   invoices: Invoice[];
   addInvoice: (invoice: Invoice) => void;
   updateInvoice: (invoice: Invoice) => void;
+  deleteInvoice: (id: string) => void;
   getInvoiceById: (id: string) => Invoice | undefined;
 }
 
@@ -86,6 +87,10 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
   const updateInvoice = (updatedInvoice: Invoice) => {
     setInvoices(prev => prev.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv));
   };
+
+  const deleteInvoice = (id: string) => {
+    setInvoices(prev => prev.filter(inv => inv.id !== id));
+  };
   
   const getInvoiceById = useCallback((id: string) => {
     return invoices.find(inv => inv.id === id);
@@ -93,7 +98,7 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
 
 
   return (
-    <InvoiceContext.Provider value={{ invoices, addInvoice, updateInvoice, getInvoiceById }}>
+    <InvoiceContext.Provider value={{ invoices, addInvoice, updateInvoice, deleteInvoice, getInvoiceById }}>
       {children}
     </InvoiceContext.Provider>
   );
