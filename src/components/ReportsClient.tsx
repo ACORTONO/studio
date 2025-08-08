@@ -262,9 +262,15 @@ export function ReportsClient() {
      if (data.length === 0 && title !== "All Job Orders") {
         return (
              <Card>
-                <CardHeader>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>A list of job orders for the selected period.</CardDescription>
+                <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
+                    <div>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>A list of job orders for the selected period.</CardDescription>
+                    </div>
+                    <Button onClick={handlePrint} variant="outline">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Save Report as PDF
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -292,17 +298,23 @@ export function ReportsClient() {
                     <CardTitle>{title}</CardTitle>
                     <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
                 </div>
-                 { title === "All Job Orders" && (
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search by client or JO #" 
-                            className="pl-10 w-full sm:w-64"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                 )}
+                 <div className="flex items-center gap-2">
+                    { title === "All Job Orders" && (
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                            <Input 
+                                placeholder="Search by client or JO #" 
+                                className="pl-10 w-full sm:w-64"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                        </div>
+                     )}
+                     <Button onClick={handlePrint} variant="outline">
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Save Report as PDF
+                    </Button>
+                 </div>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -391,12 +403,13 @@ export function ReportsClient() {
     // This hidden component is what gets sent to the printer
     const printableComponent = (
         <div className="hidden">
-            <PrintableReport
-                ref={componentToPrintRef}
+           <div ref={componentToPrintRef}>
+             <PrintableReport
                 jobOrders={data}
                 title={title}
                 formatCurrency={formatCurrency}
             />
+           </div>
         </div>
     );
     
@@ -424,12 +437,8 @@ export function ReportsClient() {
                     <TabsTrigger value="today">Today</TabsTrigger>
                     <TabsTrigger value="weekly">Weekly</TabsTrigger>
                     <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                    <TabsTrigger value="yearly">YearYearly</TabsTrigger>
+                    <TabsTrigger value="yearly">Yearly</TabsTrigger>
                 </TabsList>
-                <Button onClick={handlePrint} variant="outline">
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Save Report as PDF
-                </Button>
             </div>
             <div className="mt-4">
                 {renderActiveTabContent()}
@@ -438,3 +447,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    
