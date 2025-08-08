@@ -361,7 +361,7 @@ export function ReportsClient() {
     const displayedReport = renderJobOrderTable(title, data);
 
     const printableComponent = (
-        <div style={{ display: "none" }}>
+        <div className="print-only">
             <PrintableReport
                 ref={componentToPrintRef}
                 jobOrders={data}
@@ -405,3 +405,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    
