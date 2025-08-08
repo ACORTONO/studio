@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, Printer } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
@@ -28,12 +28,6 @@ import { Input } from "./ui/input";
 import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
-
-class PrintableWrapper extends React.Component {
-  render() {
-    return <div>{this.props.children}</div>;
-  }
-}
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card className="no-print">
@@ -287,16 +281,6 @@ export function ReportsClient() {
         </Card>
     );
   }
-  
-  const ReportTabContent = React.forwardRef<HTMLDivElement, { title: string, data: JobOrder[] }>(({ title, data }, ref) => {
-    return (
-      <div ref={ref}>
-        {renderJobOrderTable(title, data)}
-      </div>
-    );
-  });
-  ReportTabContent.displayName = 'ReportTabContent';
-
 
   const renderActiveTabContent = () => {
     let data;
@@ -323,9 +307,9 @@ export function ReportsClient() {
             title = "All Job Orders";
     }
     return (
-        <PrintableWrapper ref={printRef}>
+        <div ref={printRef}>
             {renderJobOrderTable(title, data)}
-        </PrintableWrapper>
+        </div>
     )
   }
 
@@ -359,5 +343,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
