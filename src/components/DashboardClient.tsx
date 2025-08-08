@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Link from 'next/link';
 import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
@@ -221,24 +221,26 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         if (jobOrder.status === 'Cancelled') {
             return 'Cancelled';
         }
-        
-        // This logic ensures that the status in the form is the source of truth if it's been manually set.
-        // We only override if it's still 'Pending' or 'In Progress' based on item statuses.
-        const manualStatus = jobOrder.status;
+
         const itemStatuses = jobOrder.items.map(item => item.status);
         
         if (itemStatuses.every(s => s === 'Paid')) {
             return 'Completed';
         }
-        if (manualStatus === 'Completed' && !itemStatuses.every(s => s === 'Paid')) {
-             return 'In Progress'; // It was manually set to complete, but items are not all paid.
-        }
-        if (itemStatuses.some(s => s === 'Paid' || s === 'Balance') || jobOrder.paidAmount > 0) {
+        
+        if (itemStatuses.some(s => s === 'Paid' || s === 'Balance') || (jobOrder.paidAmount || 0) > 0) {
             return 'In Progress';
         }
 
-        return manualStatus; // Fallback to whatever is saved in the data.
+        return 'Pending';
     }, [jobOrder]);
+    
+    useEffect(() => {
+        if (jobOrder.status !== derivedStatus) {
+            updateJobOrder({ ...jobOrder, status: derivedStatus });
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [derivedStatus, jobOrder.id]);
 
 
     return (
@@ -265,7 +267,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                 <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>{formatCurrency(balance)}</TableCell>
-                <TableCell>{getStatusBadge(derivedStatus, jobOrder.items)}</TableCell>
+                <TableCell>{getStatusBadge(jobOrder.status, jobOrder.items)}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="icon">
                         <Link href={`/edit/${jobOrder.id}`}>
@@ -947,5 +949,7 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
 
     
