@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, Printer } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, FileDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
@@ -332,8 +332,8 @@ export function ReportsClient() {
                     <TabsTrigger value="yearly">Yearly</TabsTrigger>
                 </TabsList>
                 <Button onClick={handlePrint} variant="outline">
-                    <Printer className="mr-2 h-4 w-4" />
-                    Print Report
+                    <FileDown className="mr-2 h-4 w-4" />
+                    Save Report as PDF
                 </Button>
             </div>
             <div className="mt-4">
