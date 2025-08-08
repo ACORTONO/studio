@@ -51,70 +51,72 @@ class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: st
     const { jobOrders, title, formatCurrency } = this.props;
 
     return (
-      <Card>
+      <div className="p-4">
           <div className="print-only text-center mb-4">
               <h1 className="text-2xl font-bold">{title} Report</h1>
               <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
           </div>
-          <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
-              <div>
-                  <CardTitle>{title}</CardTitle>
-                  <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
-              </div>
-          </CardHeader>
-          <CardContent>
-              <Table>
-                  <TableHeader>
-                  <TableRow>
-                      <TableHead>JO #</TableHead>
-                      <TableHead>Start Date</TableHead>
-                      <TableHead>Client Name</TableHead>
-                      <TableHead>Total Amount</TableHead>
-                      <TableHead>Paid</TableHead>
-                      <TableHead className="text-right">Balance</TableHead>
-                      <TableHead>Status</TableHead>
-                  </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                  {jobOrders.map((jobOrder) => {
-                       const discountValue = jobOrder.discount || 0;
-                       const discountAmount = jobOrder.discountType === 'percent'
-                           ? jobOrder.totalAmount * (discountValue / 100)
-                           : discountValue;
-                       const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
-                      return (
-                          <TableRow key={jobOrder.id}>
-                              <TableCell>
-                                  <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                              </TableCell>
-                              <TableCell>
-                                  {new Date(jobOrder.startDate).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell>
-                                  <span className="font-medium">{jobOrder.clientName}</span>
-                                  {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
-                              </TableCell>
-                              <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                              <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                              <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
-                              <TableCell className="text-center">
-                                  {getStatusBadge(jobOrder.status)}
-                              </TableCell>
-                          </TableRow>
-                      );
-                      })
-                  }
-                  {jobOrders.length === 0 && (
-                      <TableRow>
-                          <TableCell colSpan={7} className="h-24 text-center">
-                              No job orders found for this period.
-                          </TableCell>
-                      </TableRow>
-                  )}
-                  </TableBody>
-              </Table>
-          </CardContent>
-      </Card>
+          <Card>
+            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
+                <div>
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                    <TableRow>
+                        <TableHead>JO #</TableHead>
+                        <TableHead>Start Date</TableHead>
+                        <TableHead>Client Name</TableHead>
+                        <TableHead>Total Amount</TableHead>
+                        <TableHead>Paid</TableHead>
+                        <TableHead className="text-right">Balance</TableHead>
+                        <TableHead>Status</TableHead>
+                    </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                    {jobOrders.map((jobOrder) => {
+                        const discountValue = jobOrder.discount || 0;
+                        const discountAmount = jobOrder.discountType === 'percent'
+                            ? jobOrder.totalAmount * (discountValue / 100)
+                            : discountValue;
+                        const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
+                        return (
+                            <TableRow key={jobOrder.id}>
+                                <TableCell>
+                                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {new Date(jobOrder.startDate).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>
+                                    <span className="font-medium">{jobOrder.clientName}</span>
+                                    {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
+                                </TableCell>
+                                <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                                <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
+                                <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
+                                <TableCell className="text-center">
+                                    {getStatusBadge(jobOrder.status)}
+                                </TableCell>
+                            </TableRow>
+                        );
+                        })
+                    }
+                    {jobOrders.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={7} className="h-24 text-center">
+                                No job orders found for this period.
+                            </TableCell>
+                        </TableRow>
+                    )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+      </div>
     );
   }
 }
@@ -383,19 +385,18 @@ export function ReportsClient() {
             title = "All Job Orders";
     }
 
-    // This component is only for display on the screen
+    // This component is for display on the screen
     const displayedReport = renderJobOrderTable(title, data);
 
     // This hidden component is what gets sent to the printer
     const printableComponent = (
         <div className="hidden">
-            <div ref={componentToPrintRef}>
-                 <PrintableReport
-                    jobOrders={data}
-                    title={title}
-                    formatCurrency={formatCurrency}
-                />
-            </div>
+            <PrintableReport
+                ref={componentToPrintRef}
+                jobOrders={data}
+                title={title}
+                formatCurrency={formatCurrency}
+            />
         </div>
     );
     
@@ -423,7 +424,7 @@ export function ReportsClient() {
                     <TabsTrigger value="today">Today</TabsTrigger>
                     <TabsTrigger value="weekly">Weekly</TabsTrigger>
                     <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                    <TabsTrigger value="yearly">Yearly</TabsTrigger>
+                    <TabsTrigger value="yearly">YearYearly</TabsTrigger>
                 </TabsList>
                 <Button onClick={handlePrint} variant="outline">
                     <FileDown className="mr-2 h-4 w-4" />
