@@ -29,6 +29,12 @@ import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
+class PrintableWrapper extends React.Component {
+  render() {
+    return <div>{this.props.children}</div>;
+  }
+}
+
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
     <Card className="no-print">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -180,8 +186,8 @@ export function ReportsClient() {
     </TableHead>
   )
   
-  const renderJobOrderTable = (title: string, jobOrders: JobOrder[]) => {
-     if (jobOrders.length === 0) {
+  const renderJobOrderTable = (title: string, data: JobOrder[]) => {
+     if (data.length === 0 && title !== "All Job Orders") {
         return (
              <Card>
                 <CardHeader>
@@ -240,7 +246,7 @@ export function ReportsClient() {
                     </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {jobOrders.map((jobOrder) => {
+                    {data.map((jobOrder) => {
                          const discountValue = jobOrder.discount || 0;
                          const discountAmount = jobOrder.discountType === 'percent'
                              ? jobOrder.totalAmount * (discountValue / 100)
@@ -268,26 +274,59 @@ export function ReportsClient() {
                         );
                         })
                     }
+                    {data.length === 0 && title === "All Job Orders" && (
+                        <TableRow>
+                            <TableCell colSpan={7} className="h-24 text-center">
+                                No job orders found.
+                            </TableCell>
+                        </TableRow>
+                    )}
                     </TableBody>
                 </Table>
             </CardContent>
         </Card>
     );
   }
+  
+  const ReportTabContent = React.forwardRef<HTMLDivElement, { title: string, data: JobOrder[] }>(({ title, data }, ref) => {
+    return (
+      <div ref={ref}>
+        {renderJobOrderTable(title, data)}
+      </div>
+    );
+  });
+  ReportTabContent.displayName = 'ReportTabContent';
+
 
   const renderActiveTabContent = () => {
+    let data;
+    let title;
     switch (activeTab) {
         case 'today':
-            return renderJobOrderTable("Today's Sales", todayJobOrders);
+            data = todayJobOrders;
+            title = "Today's Sales";
+            break;
         case 'weekly':
-            return renderJobOrderTable("This Week's Sales", weeklyJobOrders);
+            data = weeklyJobOrders;
+            title = "This Week's Sales";
+            break;
         case 'monthly':
-            return renderJobOrderTable("This Month's Sales", monthlyJobOrders);
+            data = monthlyJobOrders;
+            title = "This Month's Sales";
+            break;
         case 'yearly':
-            return renderJobOrderTable("This Year's Sales", yearlyJobOrders);
+            data = yearlyJobOrders;
+            title = "This Year's Sales";
+            break;
         default:
-            return renderJobOrderTable("All Job Orders", sortedAndFilteredJobOrders);
+            data = sortedAndFilteredJobOrders;
+            title = "All Job Orders";
     }
+    return (
+        <PrintableWrapper ref={printRef}>
+            {renderJobOrderTable(title, data)}
+        </PrintableWrapper>
+    )
   }
 
   return (
@@ -313,10 +352,12 @@ export function ReportsClient() {
                     Print Report
                 </Button>
             </div>
-            <div className="mt-4" ref={printRef}>
+            <div className="mt-4">
                 {renderActiveTabContent()}
             </div>
         </Tabs>
     </div>
   );
 }
+
+    
