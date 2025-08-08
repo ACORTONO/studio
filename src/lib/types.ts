@@ -77,3 +77,13 @@ export interface Invoice {
   status: 'Unpaid' | 'Paid';
   notes?: string;
 }
+
+export interface SalaryPayment {
+    id: string;
+    employeeName: string;
+    paymentDate: string;
+    amount: number;
+    notes?: string;
+}
+
+    

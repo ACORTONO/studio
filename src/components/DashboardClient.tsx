@@ -64,7 +64,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Expense, ExpenseCategory, JobOrder, Payment } from "@/lib/types";
+import { Expense, ExpenseCategory, JobOrder, JobOrderItem, Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Textarea } from "./ui/textarea";
@@ -105,14 +105,47 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
     </Card>
 );
 
-const getStatusBadge = (status: JobOrder['status']) => {
+const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) => {
+    
+    const itemStatusCounts = items.reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+    }, {} as Record<JobOrderItem['status'], number>);
+
+    const statusSummary = Object.entries(itemStatusCounts)
+        .map(([st, count]) => `${count} ${st.toLowerCase()}`)
+        .join(', ');
+
+
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'In Progress':
-            return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
+             return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>{statusSummary}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
         case 'Pending':
-            return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
+            return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>{statusSummary}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
         case 'Cancelled':
             return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
         default:
@@ -222,7 +255,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                 <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>{formatCurrency(balance)}</TableCell>
-                <TableCell>{getStatusBadge(derivedStatus)}</TableCell>
+                <TableCell>{getStatusBadge(derivedStatus, jobOrder.items)}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="icon">
                         <Link href={`/edit/${jobOrder.id}`}>
@@ -904,3 +937,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
