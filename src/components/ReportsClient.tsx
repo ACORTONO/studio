@@ -57,9 +57,11 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
     </Card>
 );
 
-const PrintableReportContent = React.forwardRef<HTMLDivElement, { jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }>(({ jobOrders, title, formatCurrency }, ref) => {
+class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
+  render() {
+    const { jobOrders, title, formatCurrency } = this.props;
     return (
-      <div ref={ref} className="p-4">
+      <div className="p-4">
           <div className="text-center mb-4">
               <h1 className="text-2xl font-bold">{title} Report</h1>
               <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
@@ -120,8 +122,8 @@ const PrintableReportContent = React.forwardRef<HTMLDivElement, { jobOrders: Job
         </Card>
       </div>
     );
-});
-PrintableReportContent.displayName = "PrintableReportContent";
+  }
+}
 
 
 export function ReportsClient() {
@@ -130,7 +132,7 @@ export function ReportsClient() {
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
-  const componentToPrintRef = useRef<HTMLDivElement>(null);
+  const componentToPrintRef = useRef<PrintableReport>(null);
 
   const handlePrint = useReactToPrint({
     content: () => componentToPrintRef.current,
@@ -354,13 +356,11 @@ export function ReportsClient() {
             title = "All Job Orders";
     }
 
-    // This component is for display on the screen
     const displayedReport = renderJobOrderTable(title, data);
 
-    // This hidden component is what gets sent to the printer
     const printableComponent = (
         <div className="hidden">
-           <PrintableReportContent
+            <PrintableReport
                 ref={componentToPrintRef}
                 jobOrders={data}
                 title={title}
