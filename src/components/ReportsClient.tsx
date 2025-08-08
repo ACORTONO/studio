@@ -362,7 +362,7 @@ export function ReportsClient() {
 
     const printableComponent = (
         <div className="print-only">
-            <PrintableReport
+             <PrintableReport
                 ref={componentToPrintRef}
                 jobOrders={data}
                 title={title}
@@ -405,5 +405,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
