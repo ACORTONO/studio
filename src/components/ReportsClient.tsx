@@ -388,13 +388,14 @@ export function ReportsClient() {
 
     // This hidden component is what gets sent to the printer
     const printableComponent = (
-        <div style={{ display: "none" }}>
-            <PrintableReport
-                ref={componentToPrintRef}
-                jobOrders={data}
-                title={title}
-                formatCurrency={formatCurrency}
-            />
+        <div className="hidden">
+            <div ref={componentToPrintRef}>
+                 <PrintableReport
+                    jobOrders={data}
+                    title={title}
+                    formatCurrency={formatCurrency}
+                />
+            </div>
         </div>
     );
     
@@ -436,5 +437,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
