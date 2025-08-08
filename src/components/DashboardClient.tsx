@@ -89,7 +89,7 @@ const paymentSchema = z.object({
     notes: z.string().optional()
 });
 
-type SortableJobOrderKeys = keyof JobOrder | 'items';
+type SortableJobOrderKeys = keyof JobOrder | 'items' | 'amountDue';
 type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
@@ -131,6 +131,14 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         resolver: zodResolver(paymentSchema),
         defaultValues: { amount: 0, notes: "" }
     });
+    
+    const subtotal = jobOrder.totalAmount;
+    const discountValue = jobOrder.discount || 0;
+    const discountAmount = jobOrder.discountType === 'percent'
+        ? subtotal * (discountValue / 100)
+        : discountValue;
+    const paidAmount = jobOrder.paidAmount || 0;
+    const balance = subtotal - discountAmount - paidAmount;
 
     const handleAddPayment = (values: z.infer<typeof paymentSchema>) => {
         const newPayment: Payment = {
@@ -144,13 +152,8 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         const updatedPayments = [...existingPayments, newPayment];
         const newPaidAmount = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
         
-        const discountValue = jobOrder.discount || 0;
-        const discountAmount = jobOrder.discountType === 'percent'
-            ? jobOrder.totalAmount * (discountValue / 100)
-            : discountValue;
-
-        const amountDue = jobOrder.totalAmount - discountAmount;
-        const newStatus = newPaidAmount >= amountDue ? 'Completed' : 'In Progress';
+        const amountDueAfterPayment = subtotal - discountAmount;
+        const newStatus = newPaidAmount >= amountDueAfterPayment ? 'Completed' : 'In Progress';
         
         const updatedJobOrder: JobOrder = {
             ...jobOrder,
@@ -164,8 +167,6 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         paymentForm.reset();
         setIsPaymentDialogOpen(false);
     }
-    
-    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
 
     return (
         <React.Fragment>
@@ -190,7 +191,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                 </TableCell>
                 <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
-                <TableCell>{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                <TableCell>{formatCurrency(balance)}</TableCell>
                 <TableCell>{getStatusBadge(jobOrder.status)}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="icon">
@@ -392,6 +393,24 @@ export function DashboardClient() {
 
     if (jobOrderSortConfig !== null) {
         sortedAndFilteredJobOrders.sort((a, b) => {
+            if (jobOrderSortConfig.key === 'amountDue') {
+                const aSubtotal = a.totalAmount;
+                const aDiscountValue = a.discount || 0;
+                const aDiscountAmount = a.discountType === 'percent' ? aSubtotal * (aDiscountValue / 100) : aDiscountValue;
+                const aPaidAmount = a.paidAmount || 0;
+                const aValue = aSubtotal - aDiscountAmount - aPaidAmount;
+
+                const bSubtotal = b.totalAmount;
+                const bDiscountValue = b.discount || 0;
+                const bDiscountAmount = b.discountType === 'percent' ? bSubtotal * (bDiscountValue / 100) : bDiscountValue;
+                const bPaidAmount = b.paidAmount || 0;
+                const bValue = bSubtotal - bDiscountAmount - bPaidAmount;
+
+                const comparison = aValue - bValue;
+                return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
+            }
+
+
             const aValue = a[jobOrderSortConfig.key as keyof JobOrder];
             const bValue = b[jobOrderSortConfig.key as keyof JobOrder];
 
@@ -617,7 +636,7 @@ export function DashboardClient() {
                       <SortableJobOrderHeader title="Items" sortKey="items" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
-                      <SortableJobOrderHeader title="Amount" sortKey="totalAmount" />
+                      <SortableJobOrderHeader title="Amount Due" sortKey="amountDue" />
                       <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
