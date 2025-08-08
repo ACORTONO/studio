@@ -44,26 +44,28 @@ const getStatusBadge = (status: JobOrder['status']) => {
     }
 }
 
-// A dedicated class component for printing.
-// This provides a stable ref for `react-to-print` to avoid `findDOMNode` errors.
-class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
-  render() {
-    const { jobOrders, title, formatCurrency } = this.props;
+const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
+    <Card className="no-print">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+);
 
+const PrintableReportContent = React.forwardRef<HTMLDivElement, { jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }>(({ jobOrders, title, formatCurrency }, ref) => {
     return (
-      <div className="p-4">
-          <div className="print-only text-center mb-4">
+      <div ref={ref} className="p-4">
+          <div className="text-center mb-4">
               <h1 className="text-2xl font-bold">{title} Report</h1>
               <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
           </div>
           <Card>
-            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
-                <div>
-                    <CardTitle>{title}</CardTitle>
-                    <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
-                </div>
-            </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
                 <Table>
                     <TableHeader>
                     <TableRow>
@@ -118,22 +120,9 @@ class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: st
         </Card>
       </div>
     );
-  }
-}
+});
+PrintableReportContent.displayName = "PrintableReportContent";
 
-
-const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
-    <Card className="no-print">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
-      </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
-      </CardContent>
-    </Card>
-);
 
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
@@ -141,7 +130,7 @@ export function ReportsClient() {
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
-  const componentToPrintRef = useRef<PrintableReport>(null);
+  const componentToPrintRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     content: () => componentToPrintRef.current,
@@ -259,34 +248,6 @@ export function ReportsClient() {
   )
   
   const renderJobOrderTable = (title: string, data: JobOrder[]) => {
-     if (data.length === 0 && title !== "All Job Orders") {
-        return (
-             <Card>
-                <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <div>
-                        <CardTitle>{title}</CardTitle>
-                        <CardDescription>A list of job orders for the selected period.</CardDescription>
-                    </div>
-                    <Button onClick={handlePrint} variant="outline" disabled>
-                        <FileDown className="mr-2 h-4 w-4" />
-                        Save Report as PDF
-                    </Button>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableBody>
-                            <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
-                                    No sales data available for this period.
-                                </TableCell>
-                            </TableRow>
-                        </TableBody>
-                    </Table>
-                </CardContent>
-             </Card>
-        );
-    }
-    
     return (
         <Card>
             <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
@@ -306,7 +267,7 @@ export function ReportsClient() {
                             />
                         </div>
                      )}
-                     <Button onClick={handlePrint} variant="outline">
+                     <Button onClick={handlePrint} variant="outline" disabled={data.length === 0}>
                         <FileDown className="mr-2 h-4 w-4" />
                         Save Report as PDF
                     </Button>
@@ -354,10 +315,10 @@ export function ReportsClient() {
                         );
                         })
                     }
-                    {data.length === 0 && title === "All Job Orders" && (
+                    {data.length === 0 && (
                         <TableRow>
                             <TableCell colSpan={7} className="h-24 text-center">
-                                No job orders found.
+                                No job orders found for this period.
                             </TableCell>
                         </TableRow>
                     )}
@@ -399,7 +360,7 @@ export function ReportsClient() {
     // This hidden component is what gets sent to the printer
     const printableComponent = (
         <div className="hidden">
-           <PrintableReport
+           <PrintableReportContent
                 ref={componentToPrintRef}
                 jobOrders={data}
                 title={title}
@@ -442,3 +403,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    
