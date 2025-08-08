@@ -262,12 +262,12 @@ export function ReportsClient() {
      if (data.length === 0 && title !== "All Job Orders") {
         return (
              <Card>
-                <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
+                <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                     <div>
                         <CardTitle>{title}</CardTitle>
                         <CardDescription>A list of job orders for the selected period.</CardDescription>
                     </div>
-                    <Button onClick={handlePrint} variant="outline">
+                    <Button onClick={handlePrint} variant="outline" disabled>
                         <FileDown className="mr-2 h-4 w-4" />
                         Save Report as PDF
                     </Button>
@@ -289,10 +289,6 @@ export function ReportsClient() {
     
     return (
         <Card>
-            <div className="print-only text-center mb-4">
-                <h1 className="text-2xl font-bold">{title} Report</h1>
-                <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-            </div>
             <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
                 <div>
                     <CardTitle>{title}</CardTitle>
@@ -403,13 +399,12 @@ export function ReportsClient() {
     // This hidden component is what gets sent to the printer
     const printableComponent = (
         <div className="hidden">
-           <div ref={componentToPrintRef}>
-             <PrintableReport
+           <PrintableReport
+                ref={componentToPrintRef}
                 jobOrders={data}
                 title={title}
                 formatCurrency={formatCurrency}
             />
-           </div>
         </div>
     );
     
@@ -447,5 +442,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
