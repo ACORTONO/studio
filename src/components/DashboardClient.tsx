@@ -69,6 +69,7 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 
 const expenseItemSchema = z.object({
@@ -523,7 +524,7 @@ export function DashboardClient() {
                 } else {
                     comparison = aValue.localeCompare(bValue);
                 }
-            } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+            } else if (typeof bValue === 'number' && typeof bValue === 'number') {
                 comparison = aValue - bValue;
             }
             
