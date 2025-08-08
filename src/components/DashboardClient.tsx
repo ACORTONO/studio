@@ -129,7 +129,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                             <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
-                           <p>{statusSummary}</p>
+                           <p>{statusSummary || 'Items being processed'}</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -142,7 +142,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                             <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
-                           <p>{statusSummary}</p>
+                           <p>{statusSummary || 'Awaiting work'}</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -221,15 +221,24 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         if (jobOrder.status === 'Cancelled') {
             return 'Cancelled';
         }
+        
+        // This logic ensures that the status in the form is the source of truth if it's been manually set.
+        // We only override if it's still 'Pending' or 'In Progress' based on item statuses.
+        const manualStatus = jobOrder.status;
         const itemStatuses = jobOrder.items.map(item => item.status);
+        
         if (itemStatuses.every(s => s === 'Paid')) {
             return 'Completed';
         }
-        if (itemStatuses.some(s => s === 'Paid' || s === 'Balance')) {
+        if (manualStatus === 'Completed' && !itemStatuses.every(s => s === 'Paid')) {
+             return 'In Progress'; // It was manually set to complete, but items are not all paid.
+        }
+        if (itemStatuses.some(s => s === 'Paid' || s === 'Balance') || jobOrder.paidAmount > 0) {
             return 'In Progress';
         }
-        return 'Pending';
-    }, [jobOrder.items, jobOrder.status]);
+
+        return manualStatus; // Fallback to whatever is saved in the data.
+    }, [jobOrder]);
 
 
     return (

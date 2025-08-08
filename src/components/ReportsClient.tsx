@@ -29,26 +29,26 @@ import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
+const getStatusBadge = (status: JobOrder['status']) => {
+    switch (status) {
+        case 'Completed':
+            return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
+        case 'In Progress':
+            return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
+        case 'Pending':
+            return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
+        case 'Cancelled':
+            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
+        default:
+            return <Badge>{status}</Badge>;
+    }
+}
+
 // A dedicated class component for printing.
 // This provides a stable ref for `react-to-print` to avoid `findDOMNode` errors.
 class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
   render() {
     const { jobOrders, title, formatCurrency } = this.props;
-    
-    const getStatusBadge = (status: JobOrder['status']) => {
-        switch (status) {
-            case 'Completed':
-                return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
-            case 'In Progress':
-                return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
-            case 'Pending':
-                return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
-            case 'Cancelled':
-                return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
-            default:
-                return <Badge>{status}</Badge>;
-        }
-    }
 
     return (
       <Card>
@@ -132,21 +132,6 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
       </CardContent>
     </Card>
 );
-
-const getStatusBadge = (status: JobOrder['status']) => {
-    switch (status) {
-        case 'Completed':
-            return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
-        case 'In Progress':
-            return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
-        case 'Pending':
-            return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
-        case 'Cancelled':
-            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
-        default:
-            return <Badge>{status}</Badge>;
-    }
-}
 
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
