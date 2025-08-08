@@ -152,14 +152,29 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         const updatedPayments = [...existingPayments, newPayment];
         const newPaidAmount = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
         
-        const amountDueAfterPayment = subtotal - discountAmount;
-        const newStatus = newPaidAmount >= amountDueAfterPayment ? 'Completed' : 'In Progress';
-        
+        let remainingPayment = values.amount;
+        const updatedItems = jobOrder.items.map(item => {
+            if (item.status === 'Paid') return item;
+            
+            const itemTotal = item.quantity * item.amount;
+            // This is a simplification. A real system might need more complex logic
+            // for partial payments on items. Here we just mark as Paid if covered.
+            if (remainingPayment > 0) {
+                 if (item.status === 'Unpaid' && remainingPayment >= itemTotal) {
+                    remainingPayment -= itemTotal;
+                    return {...item, status: 'Paid' as const};
+                 } else if (item.status === 'Unpaid' || item.status === 'Balance') {
+                    return {...item, status: 'Balance' as const};
+                 }
+            }
+            return item;
+        });
+
         const updatedJobOrder: JobOrder = {
             ...jobOrder,
+            items: updatedItems,
             payments: updatedPayments,
             paidAmount: newPaidAmount,
-            status: newStatus
         };
         
         updateJobOrder(updatedJobOrder);
@@ -167,6 +182,21 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         paymentForm.reset();
         setIsPaymentDialogOpen(false);
     }
+    
+    const derivedStatus = useMemo(() => {
+        if (jobOrder.status === 'Cancelled') {
+            return 'Cancelled';
+        }
+        const itemStatuses = jobOrder.items.map(item => item.status);
+        if (itemStatuses.every(s => s === 'Paid')) {
+            return 'Completed';
+        }
+        if (itemStatuses.some(s => s === 'Paid' || s === 'Balance')) {
+            return 'In Progress';
+        }
+        return 'Pending';
+    }, [jobOrder.items, jobOrder.status]);
+
 
     return (
         <React.Fragment>
@@ -192,7 +222,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                 <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>{formatCurrency(balance)}</TableCell>
-                <TableCell>{getStatusBadge(jobOrder.status)}</TableCell>
+                <TableCell>{getStatusBadge(derivedStatus)}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="icon">
                         <Link href={`/edit/${jobOrder.id}`}>
@@ -637,7 +667,7 @@ export function DashboardClient() {
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
                       <SortableJobOrderHeader title="Amount Due" sortKey="amountDue" />
-                      <TableHead>Status</TableHead>
+                      <SortableJobOrderHeader title="Status" sortKey="status" />
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                   </TableHeader>
