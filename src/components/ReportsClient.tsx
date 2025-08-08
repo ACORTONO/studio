@@ -57,6 +57,8 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
     </Card>
 );
 
+// A class component is used here because react-to-print has issues with functional components and refs.
+// This provides a stable instance for the print library to reference.
 class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
   render() {
     const { jobOrders, title, formatCurrency } = this.props;
@@ -359,7 +361,7 @@ export function ReportsClient() {
     const displayedReport = renderJobOrderTable(title, data);
 
     const printableComponent = (
-        <div className="hidden">
+        <div style={{ display: "none" }}>
             <PrintableReport
                 ref={componentToPrintRef}
                 jobOrders={data}
@@ -403,5 +405,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
