@@ -5,6 +5,12 @@ export interface Payment {
   date: string;
   amount: number;
   notes?: string;
+  paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
+  bankName?: string;
+  chequeNumber?: string;
+  chequeDate?: string; 
+  eWalletReference?: string;
+  bankTransferReference?: string;
 }
 
 export interface JobOrderItem {
@@ -32,12 +38,6 @@ export interface JobOrder {
   discountType?: 'amount' | 'percent';
   status: 'Pending' | 'Downpayment' | 'Completed' | 'Cancelled';
   notes?: string;
-  paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
-  bankName?: string;
-  chequeNumber?: string;
-  chequeDate?: string; // Using string to be serializable
-  eWalletReference?: string;
-  bankTransferReference?: string;
 }
 
 export interface ExpenseItem {
@@ -84,5 +84,7 @@ export interface SalaryPayment {
     amount: number;
     notes?: string;
 }
+
+    
 
     

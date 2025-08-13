@@ -63,7 +63,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useJobOrders } from "@/contexts/JobOrderContext";
 import { createJobOrderAction, updateJobOrderAction } from "@/lib/actions";
-import { JobOrder } from "@/lib/types";
+import { JobOrder, Payment } from "@/lib/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import React, { useEffect, useCallback } from "react";
@@ -71,6 +71,20 @@ import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Switch } from "./ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+
+const paymentSchema = z.object({
+  id: z.string().optional(),
+  date: z.date(),
+  amount: z.coerce.number().min(0, "Amount must be non-negative."),
+  notes: z.string().optional(),
+  paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
+  bankName: z.string().optional(),
+  chequeNumber: z.string().optional(),
+  chequeDate: z.date().optional(),
+  eWalletReference: z.string().optional(),
+  bankTransferReference: z.string().optional(),
+});
+
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -82,13 +96,7 @@ const formSchema = z.object({
   status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  paidAmount: z.coerce.number().min(0, "Paid amount must be non-negative.").optional(),
-  paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
-  bankName: z.string().optional(),
-  chequeNumber: z.string().optional(),
-  chequeDate: z.date().optional(),
-  eWalletReference: z.string().optional(),
-  bankTransferReference: z.string().optional(),
+  payments: z.array(paymentSchema).optional(),
   items: z
     .array(
       z.object({
@@ -101,24 +109,6 @@ const formSchema = z.object({
       })
     )
     .min(1, "At least one item is required."),
-}).superRefine((data, ctx) => {
-    if (data.paymentMethod === 'Cheque') {
-        if (!data.bankName) {
-            ctx.addIssue({ code: 'custom', message: 'Bank name is required for cheque payments.', path: ['bankName']});
-        }
-        if (!data.chequeNumber) {
-            ctx.addIssue({ code: 'custom', message: 'Cheque number is required for cheque payments.', path: ['chequeNumber']});
-        }
-        if (!data.chequeDate) {
-            ctx.addIssue({ code: 'custom', message: 'Cheque date is required for cheque payments.', path: ['chequeDate']});
-        }
-    }
-    if (data.paymentMethod === 'E-Wallet' && !data.eWalletReference) {
-        ctx.addIssue({ code: 'custom', message: 'E-Wallet reference is required.', path: ['eWalletReference']});
-    }
-    if (data.paymentMethod === 'Bank Transfer' && !data.bankTransferReference) {
-        ctx.addIssue({ code: 'custom', message: 'Bank transfer reference is required.', path: ['bankTransferReference']});
-    }
 });
 
 type JobOrderFormValues = z.infer<typeof formSchema>;
@@ -143,7 +133,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         ...initialData,
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
+        payments: initialData.payments?.map(p => ({
+          ...p,
+          date: new Date(p.date),
+          chequeDate: p.chequeDate ? new Date(p.chequeDate) : undefined,
+        })) || [],
     } : {
       clientName: "",
       contactMethod: 'Contact No.',
@@ -154,12 +148,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       status: "Pending",
       discount: 0,
       discountType: 'amount',
-      paidAmount: 0,
-      paymentMethod: "Cash",
-      bankName: "",
-      chequeNumber: "",
-      eWalletReference: "",
-      bankTransferReference: "",
+      payments: [],
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
@@ -168,13 +157,18 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     control: form.control,
     name: "items",
   });
+  const { fields: paymentFields, append: appendPayment, remove: removePayment } = useFieldArray({
+      control: form.control,
+      name: "payments",
+  });
 
   const watchItems = form.watch("items");
   const watchDiscountValue = form.watch("discount") || 0;
-  const watchPaidAmount = form.watch("paidAmount") || 0;
+  const watchPayments = form.watch("payments") || [];
   const watchStatus = form.watch('status');
   const discountType = form.watch('discountType');
-  const paymentMethod = form.watch('paymentMethod');
+  
+  const paidAmount = watchPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
 
   const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
@@ -186,7 +180,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     : watchDiscountValue;
 
   const total = subTotal - calculatedDiscount;
-  const balance = total - watchPaidAmount;
+  const balance = total - paidAmount;
 
 
   const handleStatusChange = useCallback((status: string) => {
@@ -194,17 +188,22 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     const newItems = currentItems.map(item => ({ ...item, status: 'Unpaid' as const }));
 
     if (status === 'Completed') {
-        form.setValue('paidAmount', total, { shouldDirty: true });
+        form.setValue('payments', [{
+            date: new Date(),
+            amount: total,
+            notes: 'Full payment on completion.',
+            paymentMethod: 'Cash'
+        }]);
         form.setValue('items', currentItems.map(item => ({ ...item, status: 'Paid' as const })), { shouldDirty: true });
     } else if (status === 'Pending' || status === 'Cancelled') {
-        form.setValue('paidAmount', 0, { shouldDirty: true });
+        form.setValue('payments', []);
         form.setValue('items', newItems, { shouldDirty: true });
     }
   }, [form, total]);
 
   useEffect(() => {
     if(watchStatus) {
-        handleStatusChange(watchStatus);
+        // handleStatusChange(watchStatus);
     }
   }, [watchStatus, handleStatusChange]);
 
@@ -215,7 +214,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         ...initialData,
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
+        payments: initialData.payments?.map(p => ({
+            ...p,
+            date: new Date(p.date),
+            chequeDate: p.chequeDate ? new Date(p.chequeDate) : undefined,
+        })) || [],
       });
     } else {
        form.reset({
@@ -224,7 +227,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         dueDate: new Date(),
       });
     }
-  }, [initialData, form]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
 
   const onSubmit = async (data: JobOrderFormValues) => {
     setIsSubmitting(true);
@@ -247,24 +251,18 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       setLastSavedOrder(result.data);
       setIsSuccessDialogOpen(true);
       if (!isEditMode) {
-        form.reset();
-         form.reset({
-            ...form.getValues(),
+        form.reset({
             clientName: "",
             contactMethod: 'Contact No.',
             contactDetail: "",
-            notes: "",
-            discount: 0,
-            discountType: 'amount',
-            paidAmount: 0,
-            paymentMethod: "Cash",
-            bankName: "",
-            chequeNumber: "",
-            eWalletReference: "",
-            bankTransferReference: "",
-            items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
             startDate: new Date(),
             dueDate: new Date(),
+            notes: "",
+            status: "Pending",
+            discount: 0,
+            discountType: 'amount',
+            payments: [],
+            items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
         });
       }
     } else {
@@ -478,10 +476,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-2/5">Description</TableHead>
+                    <TableHead className="w-1/3">Description</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Amount</TableHead>
                     <TableHead>Total</TableHead>
+                    <TableHead className="w-1/5">Remarks</TableHead>
                     <TableHead className="w-1/5">Status</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
@@ -536,6 +535,20 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                           (watchItems[index]?.quantity || 0) *
                             (watchItems[index]?.amount || 0)
                         )}
+                      </TableCell>
+                       <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.remarks`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Optional notes" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       </TableCell>
                       <TableCell>
                         <FormField
@@ -636,21 +649,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             </FormItem>
                         )}
                     />
-                     <FormField
-                        control={form.control}
-                        name="paidAmount"
-                        render={({ field }) => (
-                             <FormItem>
-                               <div className="flex justify-between items-center">
-                                <FormLabel className="text-muted-foreground">Paid Amount</FormLabel>
-                                <FormControl>
-                                    <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
-                                </FormControl>
-                               </div>
-                               <FormMessage className="text-right" />
-                            </FormItem>
-                        )}
-                    />
+                     <div className="flex justify-between">
+                        <span className="text-muted-foreground">Paid Amount</span>
+                        <span className="font-medium">{formatCurrency(paidAmount)}</span>
+                    </div>
                      <div className="flex justify-between">
                         <span className="text-muted-foreground">Balance</span>
                         <span className="font-medium">{formatCurrency(balance)}</span>
@@ -667,165 +669,97 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           <Card>
              <CardHeader>
                 <CardTitle>Payment Details</CardTitle>
-                <CardDescription>Record payment information for this order.</CardDescription>
+                <CardDescription>Record all payments for this job order.</CardDescription>
             </CardHeader>
             <CardContent>
-                 <FormField
-                      control={form.control}
-                      name="paymentMethod"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel>Payment Method</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
-                              className="grid grid-cols-2 gap-4"
-                            >
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="Cash" />
-                                </FormControl>
-                                <FormLabel className="font-normal flex items-center gap-2"><Banknote/>Cash</FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="Cheque" />
-                                </FormControl>
-                                <FormLabel className="font-normal flex items-center gap-2"><FileText/>Cheque</FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="E-Wallet" />
-                                </FormControl>
-                                <FormLabel className="font-normal flex items-center gap-2"><Wallet/>E-Wallet</FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="Bank Transfer" />
-                                </FormControl>
-                                <FormLabel className="font-normal flex items-center gap-2"><Landmark/>Bank Transfer</FormLabel>
-                              </FormItem>
-                            </RadioGroup>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {paymentMethod === 'Cheque' && (
-                        <div className="space-y-4 border-l-2 border-primary pl-4 mt-4">
-                             <FormField
-                                control={form.control}
-                                name="bankName"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Bank Name</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                            <Input placeholder="e.g., BDO Unibank" {...field} className="pl-10"/>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="chequeNumber"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Cheque No.</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                             <Banknote className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                             <Input placeholder="e.g., 123456789" {...field} className="pl-10"/>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                             <FormField
-                                control={form.control}
-                                name="chequeDate"
-                                render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                    <FormLabel>Cheque Date</FormLabel>
-                                    <Popover>
-                                    <PopoverTrigger asChild>
-                                        <FormControl>
-                                        <Button
-                                            variant={"outline"}
-                                            className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !field.value && "text-muted-foreground"
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Amount</TableHead>
+                            <TableHead>Payment Method</TableHead>
+                            <TableHead>Notes/Reference</TableHead>
+                            <TableHead className="w-[50px]"></TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {paymentFields.map((field, index) => {
+                            const paymentMethod = form.watch(`payments.${index}.paymentMethod`);
+                            return (
+                                <TableRow key={field.id}>
+                                    <TableCell>
+                                        <FormField
+                                            control={form.control}
+                                            name={`payments.${index}.date`}
+                                            render={({ field }) => (
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                    <FormControl>
+                                                        <Button
+                                                            variant={"outline"}
+                                                            className={cn("w-[240px] pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                                        >
+                                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                                        </Button>
+                                                    </FormControl>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0" align="start">
+                                                        <Calendar
+                                                            mode="single"
+                                                            selected={field.value}
+                                                            onSelect={field.onChange}
+                                                            initialFocus
+                                                        />
+                                                    </PopoverContent>
+                                                </Popover>
                                             )}
-                                        >
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
-                                            format(field.value, "PPP")
-                                            ) : (
-                                            <span>Pick a date</span>
-                                            )}
-                                        </Button>
-                                        </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        initialFocus
                                         />
-                                    </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                        </div>
-                    )}
-                     {paymentMethod === 'E-Wallet' && (
-                        <div className="space-y-4 border-l-2 border-primary pl-4 mt-4">
-                             <FormField
-                                control={form.control}
-                                name="eWalletReference"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>E-Wallet Reference</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                            <Input placeholder="e.g., GCash Ref: 12345" {...field} className="pl-10"/>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                        </div>
-                    )}
-                    {paymentMethod === 'Bank Transfer' && (
-                        <div className="space-y-4 border-l-2 border-primary pl-4 mt-4">
-                             <FormField
-                                control={form.control}
-                                name="bankTransferReference"
-                                render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Bank Transfer Reference</FormLabel>
-                                    <FormControl>
-                                        <div className="relative">
-                                            <Landmark className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"/>
-                                            <Input placeholder="e.g., BDO Ref: 67890" {...field} className="pl-10"/>
-                                        </div>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                                )}
-                            />
-                        </div>
-                    )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <FormField control={form.control} name={`payments.${index}.amount`} render={({ field }) => ( <Input type="number" {...field} /> )}/>
+                                    </TableCell>
+                                    <TableCell>
+                                        <FormField control={form.control} name={`payments.${index}.paymentMethod`} render={({ field }) => (
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl><SelectTrigger><SelectValue/></SelectTrigger></FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="Cash">Cash</SelectItem>
+                                                    <SelectItem value="Cheque">Cheque</SelectItem>
+                                                    <SelectItem value="E-Wallet">E-Wallet</SelectItem>
+                                                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        )}/>
+                                    </TableCell>
+                                    <TableCell>
+                                        {paymentMethod === 'Cheque' ? (
+                                             <div className="grid grid-cols-2 gap-2">
+                                                <FormField control={form.control} name={`payments.${index}.bankName`} render={({ field }) => (<Input placeholder="Bank Name" {...field} />)} />
+                                                <FormField control={form.control} name={`payments.${index}.chequeNumber`} render={({ field }) => (<Input placeholder="Cheque No." {...field} />)} />
+                                            </div>
+                                        ) : paymentMethod === 'E-Wallet' ? (
+                                             <FormField control={form.control} name={`payments.${index}.eWalletReference`} render={({ field }) => (<Input placeholder="e.g. GCash Ref No." {...field} />)} />
+                                        ) : paymentMethod === 'Bank Transfer' ? (
+                                            <FormField control={form.control} name={`payments.${index}.bankTransferReference`} render={({ field }) => (<Input placeholder="e.g. BDO Ref No." {...field} />)} />
+                                        ) : (
+                                            <FormField control={form.control} name={`payments.${index}.notes`} render={({ field }) => (<Input placeholder="Optional notes" {...field} />)} />
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Button type="button" variant="ghost" size="icon" onClick={() => removePayment(index)}>
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                </Table>
+                <Button type="button" variant="outline" size="sm" className="mt-4" onClick={() => appendPayment({ date: new Date(), amount: 0, paymentMethod: 'Cash' })}>
+                    <PlusCircle className="mr-2 h-4 w-4"/>
+                    Add Payment
+                </Button>
             </CardContent>
           </Card>
            <Card>
@@ -886,3 +820,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   );
 }
 
+
+
+    

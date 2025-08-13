@@ -7,6 +7,19 @@ import { generateInvoiceNumber } from "@/ai/flows/generate-invoice-number";
 import type { JobOrder, Payment, Invoice } from "@/lib/types";
 import { z } from "zod";
 
+const paymentSchema = z.object({
+    id: z.string().optional(),
+    date: z.date(),
+    amount: z.coerce.number().min(0, "Amount must be non-negative."),
+    notes: z.string().optional(),
+    paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
+    bankName: z.string().optional(),
+    chequeNumber: z.string().optional(),
+    chequeDate: z.date().optional(),
+    eWalletReference: z.string().optional(),
+    bankTransferReference: z.string().optional(),
+});
+
 const jobOrderItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Description is required."),
@@ -16,14 +29,7 @@ const jobOrderItemSchema = z.object({
   status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
 });
 
-const paymentSchema = z.object({
-    id: z.string(),
-    date: z.string(),
-    amount: z.number(),
-    notes: z.string().optional(),
-});
-
-const jobOrderSchemaBase = z.object({
+const jobOrderSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
   contactMethod: z.enum(['Contact No.', 'FB Messenger', 'Email']).default('Contact No.'),
   contactDetail: z.string().min(1, "Contact detail is required."),
@@ -33,43 +39,14 @@ const jobOrderSchemaBase = z.object({
   status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  paidAmount: z.coerce.number().min(0).optional().default(0),
+  payments: z.array(paymentSchema).optional(),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
-  payments: z.array(paymentSchema).optional().default([]),
-  paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
-  bankName: z.string().optional(),
-  chequeNumber: z.string().optional(),
-  chequeDate: z.date().optional(),
-  eWalletReference: z.string().optional(),
-  bankTransferReference: z.string().optional(),
 });
 
-const refinement = (data: z.infer<typeof jobOrderSchemaBase>, ctx: z.RefinementCtx) => {
-    if (data.paymentMethod === 'Cheque') {
-        if (!data.bankName) {
-            ctx.addIssue({ code: 'custom', message: 'Bank name is required for cheque payments.', path: ['bankName']});
-        }
-        if (!data.chequeNumber) {
-            ctx.addIssue({ code: 'custom', message: 'Cheque number is required for cheque payments.', path: ['chequeNumber']});
-        }
-        if (!data.chequeDate) {
-            ctx.addIssue({ code: 'custom', message: 'Cheque date is required for cheque payments.', path: ['chequeDate']});
-        }
-    }
-    if (data.paymentMethod === 'E-Wallet' && !data.eWalletReference) {
-        ctx.addIssue({ code: 'custom', message: 'E-Wallet reference is required.', path: ['eWalletReference']});
-    }
-    if (data.paymentMethod === 'Bank Transfer' && !data.bankTransferReference) {
-        ctx.addIssue({ code: 'custom', message: 'Bank transfer reference is required.', path: ['bankTransferReference']});
-    }
-};
-
-const jobOrderSchema = jobOrderSchemaBase.superRefine(refinement);
-
-const updateJobOrderSchema = jobOrderSchemaBase.extend({
+const updateJobOrderSchema = jobOrderSchema.extend({
     id: z.string(),
     jobOrderNumber: z.string(),
-}).superRefine(refinement);
+});
 
 
 export async function createJobOrderAction(
@@ -88,23 +65,22 @@ export async function createJobOrderAction(
       throw new Error("Failed to generate job order number.");
     }
 
-    const totalAmount = validation.data.items.reduce(
+    const validatedData = validation.data;
+    
+    const totalAmount = validatedData.items.reduce(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
     
-    const validatedData = validation.data;
-    const paidAmount = validatedData.paidAmount || 0;
-    const payments: Payment[] = [];
+    const payments = validatedData.payments?.map(p => ({
+        ...p,
+        id: p.id || crypto.randomUUID(),
+        date: p.date.toISOString(),
+        chequeDate: p.chequeDate?.toISOString(),
+    })) || [];
+    
+    const paidAmount = payments.reduce((acc, p) => acc + p.amount, 0);
 
-    if (paidAmount > 0) {
-        payments.push({
-            id: crypto.randomUUID(),
-            date: new Date().toISOString(),
-            amount: paidAmount,
-            notes: "Initial payment"
-        });
-    }
 
     const newJobOrder: JobOrder = {
       id: crypto.randomUUID(),
@@ -125,12 +101,6 @@ export async function createJobOrderAction(
         id: item.id || crypto.randomUUID(),
       })),
       totalAmount,
-      paymentMethod: validatedData.paymentMethod,
-      bankName: validatedData.bankName,
-      chequeNumber: validatedData.chequeNumber,
-      chequeDate: validatedData.chequeDate?.toISOString(),
-      eWalletReference: validatedData.eWalletReference,
-      bankTransferReference: validatedData.bankTransferReference,
     };
 
     return { success: true, data: newJobOrder };
@@ -150,58 +120,41 @@ export async function updateJobOrderAction(
     }
 
     try {
-        const existingJobOrder = validation.data;
-        const totalAmount = existingJobOrder.items.reduce(
+        const validatedData = validation.data;
+
+        const totalAmount = validatedData.items.reduce(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
         
-        const validatedData = validation.data;
-        const paidAmount = validatedData.paidAmount || 0;
-        
-        // Simple logic: if paidAmount has changed, update payments array
-        // A more robust solution would handle multiple payments better in the form
-        const payments = [...validatedData.payments];
-        const totalFromPayments = payments.reduce((sum, p) => sum + p.amount, 0);
-
-        if (paidAmount !== totalFromPayments) {
-            payments.splice(0, payments.length); // Clear existing
-            if (paidAmount > 0) {
-                 payments.push({
-                    id: crypto.randomUUID(),
-                    date: new Date().toISOString(),
-                    amount: paidAmount,
-                    notes: "Updated payment amount"
-                });
-            }
-        }
-
+        const payments = validatedData.payments?.map(p => ({
+            ...p,
+            id: p.id || crypto.randomUUID(),
+            date: p.date.toISOString(),
+            chequeDate: p.chequeDate?.toISOString(),
+        })) || [];
+    
+        const paidAmount = payments.reduce((acc, p) => acc + p.amount, 0);
 
         const updatedJobOrder: JobOrder = {
-            id: existingJobOrder.id,
-            jobOrderNumber: existingJobOrder.jobOrderNumber,
-            clientName: existingJobOrder.clientName,
+            id: validatedData.id,
+            jobOrderNumber: validatedData.jobOrderNumber,
+            clientName: validatedData.clientName,
             contactMethod: validatedData.contactMethod,
             contactDetail: validatedData.contactDetail,
-            startDate: existingJobOrder.startDate.toISOString(),
-            dueDate: existingJobOrder.dueDate.toISOString(),
-            notes: existingJobOrder.notes,
-            status: existingJobOrder.status,
+            startDate: validatedData.startDate.toISOString(),
+            dueDate: validatedData.dueDate.toISOString(),
+            notes: validatedData.notes,
+            status: validatedData.status,
             discount: validatedData.discount,
             discountType: validatedData.discountType,
             paidAmount: paidAmount,
             payments: payments,
-            items: existingJobOrder.items.map((item) => ({
+            items: validatedData.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),
             })),
             totalAmount,
-            paymentMethod: validatedData.paymentMethod,
-            bankName: validatedData.bankName,
-            chequeNumber: validatedData.chequeNumber,
-            chequeDate: validatedData.chequeDate?.toISOString(),
-            eWalletReference: validatedData.eWalletReference,
-            bankTransferReference: validatedData.bankTransferReference,
         };
         
         return { success: true, data: updatedJobOrder };
@@ -317,3 +270,5 @@ export async function updateInvoiceAction(
         return { success: false, error: "An unexpected error occurred." };
     }
 }
+
+    
