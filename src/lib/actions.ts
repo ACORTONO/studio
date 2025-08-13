@@ -13,7 +13,7 @@ const jobOrderItemSchema = z.object({
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
   amount: z.coerce.number().min(0, "Amount is required."),
   remarks: z.string().optional(),
-  status: z.enum(['Unpaid', 'Paid', 'Working']).default('Unpaid'),
+  status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
 });
 
 const jobOrderSchema = z.object({
@@ -37,7 +37,6 @@ const jobOrderSchema = z.object({
 const updateJobOrderSchema = jobOrderSchema.extend({
     id: z.string(),
     jobOrderNumber: z.string(),
-    status: z.enum(["Pending", "Working", "Completed", "Cancelled"]),
 });
 
 
@@ -68,8 +67,8 @@ export async function createJobOrderAction(
     let derivedStatus: JobOrder['status'] = 'Pending';
     if (itemStatuses.every(s => s === 'Paid')) {
         derivedStatus = 'Completed';
-    } else if (itemStatuses.some(s => s === 'Paid' || s === 'Working') || (validatedData.paidAmount || 0) > 0) {
-        derivedStatus = 'Working';
+    } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (validatedData.paidAmount || 0) > 0) {
+        derivedStatus = 'Downpayment';
     }
 
 
@@ -121,6 +120,15 @@ export async function updateJobOrderAction(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
+    
+        const itemStatuses = validatedData.items.map(item => item.status);
+        let derivedStatus: JobOrder['status'] = 'Pending';
+        if (itemStatuses.every(s => s === 'Paid')) {
+            derivedStatus = 'Completed';
+        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (validatedData.paidAmount || 0) > 0) {
+            derivedStatus = 'Downpayment';
+        }
+
 
         const updatedJobOrder: JobOrder = {
             id: validatedData.id,
@@ -131,7 +139,7 @@ export async function updateJobOrderAction(
             startDate: validatedData.startDate.toISOString(),
             dueDate: validatedData.dueDate.toISOString(),
             notes: validatedData.notes,
-            status: validatedData.status,
+            status: derivedStatus,
             paidAmount: validatedData.paidAmount || 0,
             discount: validatedData.discount,
             discountType: validatedData.discountType,

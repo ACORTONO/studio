@@ -76,7 +76,7 @@ const formSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
   paidAmount: z.coerce.number().min(0).optional().default(0),
-  discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
+  discount: z.coerce.number().min(0, "Discount must be non-negative.").optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
   paymentMethod: z.enum(['Cash', 'E-Wallet (GCASH, MAYA)', 'Cheque', 'Bank Transfer']).default('Cash'),
   paymentReference: z.string().optional(),
@@ -91,7 +91,7 @@ const formSchema = z.object({
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
         remarks: z.string().optional(),
-        status: z.enum(['Unpaid', 'Paid', 'Working']).default('Unpaid'),
+        status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
       })
     )
     .min(1, "At least one item is required."),
@@ -473,7 +473,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                 <SelectContent>
                                   <SelectItem value="Unpaid">Unpaid</SelectItem>
                                   <SelectItem value="Paid">Paid</SelectItem>
-                                  <SelectItem value="Working">Working</SelectItem>
+                                  <SelectItem value="Downpayment">Downpayment</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />

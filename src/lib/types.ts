@@ -13,7 +13,7 @@ export interface JobOrderItem {
   quantity: number;
   amount: number;
   remarks?: string;
-  status: 'Unpaid' | 'Paid' | 'Working';
+  status: 'Unpaid' | 'Paid' | 'Downpayment';
 }
 
 export interface JobOrder {
@@ -27,7 +27,7 @@ export interface JobOrder {
   items: JobOrderItem[];
   totalAmount: number;
   paidAmount: number;
-  status: 'Pending' | 'Working' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Downpayment' | 'Completed' | 'Cancelled';
   notes?: string;
   discount?: number;
   discountType?: 'amount' | 'percent';

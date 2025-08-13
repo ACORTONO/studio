@@ -111,8 +111,8 @@ export function ReportsClient() {
                  return sortConfig.direction === 'ascending' ? aBalance - bBalance : bBalance - aBalance;
             }
 
-            const aValue = a[sortConfig.key];
-            const bValue = b[sortConfig.key];
+            const aValue = a[sortConfig.key as keyof JobOrder];
+            const bValue = b[sortConfig.key as keyof JobOrder];
 
             if (aValue === undefined || bValue === undefined) return 0;
 
