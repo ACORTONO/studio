@@ -96,6 +96,7 @@ export default function PrintReportPage() {
                             <TableHead>JO #</TableHead>
                             <TableHead>Start Date</TableHead>
                             <TableHead>Client Name</TableHead>
+                            <TableHead>Description</TableHead>
                             <TableHead className="text-right">Total Amount</TableHead>
                             <TableHead className="text-right">Paid</TableHead>
                             <TableHead className="text-right">Balance</TableHead>
@@ -121,6 +122,14 @@ export default function PrintReportPage() {
                                         <span className="font-medium">{jobOrder.clientName}</span>
                                         {jobOrder.notes && <p className="text-xs text-muted-foreground whitespace-pre-wrap">{jobOrder.notes}</p>}
                                     </TableCell>
+                                    <TableCell>
+                                        <ul className="list-disc list-inside text-xs">
+                                            {jobOrder.items.slice(0, 2).map(item => (
+                                                <li key={item.id} className="truncate">{item.description}</li>
+                                            ))}
+                                            {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
+                                        </ul>
+                                    </TableCell>
                                     <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
                                     <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
@@ -133,7 +142,7 @@ export default function PrintReportPage() {
                         }
                         {data.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={7} className="h-24 text-center">
+                                <TableCell colSpan={8} className="h-24 text-center">
                                     No job orders found for this period.
                                 </TableCell>
                             </TableRow>
