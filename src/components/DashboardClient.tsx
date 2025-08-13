@@ -169,7 +169,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
             derivedStatus = 'Cancelled';
         } else if (itemStatuses.every(s => s === 'Paid')) {
             derivedStatus = 'Completed';
-        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (jobOrder.paidAmount || 0) > 0) {
+        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (jobOrder.paidAmount || 0) > 0) {
             derivedStatus = 'Downpayment';
         }
 

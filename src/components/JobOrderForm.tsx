@@ -91,7 +91,7 @@ const formSchema = z.object({
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
         remarks: z.string().optional(),
-        status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
+        status: z.enum(['Unpaid', 'Paid', 'Downpayment', 'Cheque']).default('Unpaid'),
       })
     )
     .min(1, "At least one item is required."),
@@ -165,7 +165,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
   const totalAmount = subTotal - calculatedDiscount - watchPaidAmount;
   
-  const markAllAs = (status: 'Paid' | 'Downpayment') => {
+  const markAllAs = (status: 'Paid' | 'Downpayment' | 'Cheque') => {
     const newItems = watchItems.map(item => ({ ...item, status: status }));
     form.setValue('items', newItems);
 
@@ -186,12 +186,13 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       const downpaymentItemsTotal = watchItems
           .filter(item => item.status === 'Downpayment')
           .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
+
+      const chequeItemsTotal = watchItems
+          .filter(item => item.status === 'Cheque')
+          .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
       
-      if (paidItemsTotal > 0 || downpaymentItemsTotal > 0) {
+      if (paidItemsTotal > 0 || downpaymentItemsTotal > 0 || chequeItemsTotal > 0) {
           // The form's paidAmount will be updated from user input, not automatically
-      } else {
-          // If no items are paid or downpayment, we can reset paid amount
-          // form.setValue('paidAmount', 0);
       }
   }, [watchItems, form]);
 
@@ -536,6 +537,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                   <SelectItem value="Unpaid">Unpaid</SelectItem>
                                   <SelectItem value="Paid">Paid</SelectItem>
                                   <SelectItem value="Downpayment">Downpayment</SelectItem>
+                                  <SelectItem value="Cheque">Cheque</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />

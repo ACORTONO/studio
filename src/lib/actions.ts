@@ -13,7 +13,7 @@ const jobOrderItemSchema = z.object({
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
   amount: z.coerce.number().min(0, "Amount is required."),
   remarks: z.string().optional(),
-  status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
+  status: z.enum(['Unpaid', 'Paid', 'Downpayment', 'Cheque']).default('Unpaid'),
 });
 
 const jobOrderSchema = z.object({
@@ -67,7 +67,7 @@ export async function createJobOrderAction(
     let derivedStatus: JobOrder['status'] = 'Pending';
     if (itemStatuses.every(s => s === 'Paid')) {
         derivedStatus = 'Completed';
-    } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (validatedData.paidAmount || 0) > 0) {
+    } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (validatedData.paidAmount || 0) > 0) {
         derivedStatus = 'Downpayment';
     }
 
@@ -125,7 +125,7 @@ export async function updateJobOrderAction(
         let derivedStatus: JobOrder['status'] = 'Pending';
         if (itemStatuses.every(s => s === 'Paid')) {
             derivedStatus = 'Completed';
-        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (validatedData.paidAmount || 0) > 0) {
+        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (validatedData.paidAmount || 0) > 0) {
             derivedStatus = 'Downpayment';
         }
 

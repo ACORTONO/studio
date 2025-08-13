@@ -13,7 +13,7 @@ export interface JobOrderItem {
   quantity: number;
   amount: number;
   remarks?: string;
-  status: 'Unpaid' | 'Paid' | 'Downpayment';
+  status: 'Unpaid' | 'Paid' | 'Downpayment' | 'Cheque';
 }
 
 export interface JobOrder {
