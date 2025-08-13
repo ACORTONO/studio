@@ -308,7 +308,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               <CardTitle>Job Order Details</CardTitle>
               <CardDescription>Set the dates for this job order.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
+            <CardContent className="grid md:grid-cols-3 gap-6">
               <FormField
                 control={form.control}
                 name="startDate"
@@ -687,7 +687,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         render={({ field }) => (
                            <FormItem>
                              <div className="flex justify-between items-center">
-                                <FormLabel className="text-muted-foreground">Paid Amount</FormLabel>
+                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
                                 <FormControl>
                                     <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
                                 </FormControl>
