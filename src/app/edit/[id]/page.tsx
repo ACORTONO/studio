@@ -9,7 +9,8 @@ import { useLayoutEffect, useState } from "react";
 import { JobOrder } from "@/lib/types";
 
 export default function EditJobOrderPage() {
-    const { id } = useParams();
+    const params = useParams();
+    const id = params.id;
     const { getJobOrderById } = useJobOrders();
     const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);

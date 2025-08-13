@@ -9,7 +9,8 @@ import { useLayoutEffect, useState } from "react";
 import { Invoice } from "@/lib/types";
 
 export default function EditInvoicePage() {
-    const { id } = useParams();
+    const params = useParams();
+    const id = params.id;
     const { getInvoiceById } = useInvoices();
     const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);

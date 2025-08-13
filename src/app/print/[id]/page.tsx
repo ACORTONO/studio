@@ -14,7 +14,8 @@ import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PrintPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id;
   const { jobOrders, getJobOrderById } = useJobOrders();
   const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);

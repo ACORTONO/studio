@@ -14,7 +14,8 @@ import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function PrintInvoicePage() {
-  const { id } = useParams();
+  const params = useParams();
+  const id = params.id;
   const { invoices, getInvoiceById } = useInvoices();
   const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);
