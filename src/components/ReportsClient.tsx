@@ -181,13 +181,13 @@ export function ReportsClient() {
   }
 
   const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
-     <TableHead className="text-center">
-        <Button variant="ghost" onClick={() => requestSort(sortKey)} className="justify-center w-full">
-            {title}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+    <TableHead className="text-center">
+      <Button variant="ghost" onClick={() => requestSort(sortKey)} className="justify-center w-full">
+        {title}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
     </TableHead>
-  )
+  );
   
   const renderJobOrderTable = (title: string, data: JobOrder[]) => {
     return (
