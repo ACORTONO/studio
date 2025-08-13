@@ -126,6 +126,8 @@
   .report-print-area, .report-print-area * {
     background-color: #fff !important;
     color: #000 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
   
   .report-print-area .text-muted-foreground {

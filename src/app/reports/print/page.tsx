@@ -5,7 +5,6 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { JobOrder } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getStatusBadge } from '@/components/ReportsClient';
@@ -79,12 +78,12 @@ export default function PrintReportPage() {
                     </div>
                 </div>
             </div>
-             <div className="report-print-area bg-white shadow-lg mx-auto mt-4 p-6 max-w-4xl">
-                 <div className="shadow-none border-none">
+             <div className="report-print-area bg-white">
+                 <div className="p-6">
                     <header>
                         <div className="text-center">
                             <h1 className="text-2xl font-bold">{reportTitle}</h1>
-                            <p className="text-sm text-gray-500">As of {currentDate}</p>
+                            <p className="text-sm text-muted-foreground">As of {currentDate}</p>
                         </div>
                     </header>
                     <div className="mt-6">
