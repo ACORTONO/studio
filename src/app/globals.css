@@ -103,12 +103,21 @@ body.print-preview-page {
   .printable-area {
     padding: 0 !important;
     margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: visible;
+    background-color: #fff !important;
+    color: #000 !important;
   }
-  
-  .print-only {
-    display: block !important;
+
+  .printable-area table th,
+  .printable-area table td {
+    text-align: center;
+    vertical-align: middle;
+    white-space: normal !important;
+    word-wrap: break-word;
   }
-  
+
   .print-area {
       box-shadow: none !important;
       border: none !important;
@@ -134,11 +143,14 @@ body.print-preview-page {
   
   .report-print-area, .report-print-area * {
     background-color: #fff !important;
-    color: #000 !important;
     box-shadow: none !important;
     border: none !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  .report-print-area * {
+    color: #000 !important;
   }
   
   .report-print-area .text-muted-foreground {
@@ -162,7 +174,6 @@ body.print-preview-page {
 
 .report-print-area {
   background-color: #fff !important;
-  color: #000 !important;
   border: none !important;
   padding: 0 !important;
   margin: 0 !important;
