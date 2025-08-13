@@ -105,8 +105,8 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
         dueDate: new Date(initialData.dueDate),
     } : {
       clientName: "",
-      date: undefined, 
-      dueDate: undefined,
+      date: new Date(), 
+      dueDate: new Date(),
       notes: "",
       status: "Unpaid",
       items: [{ description: "", quantity: 1, amount: 0 }],
