@@ -45,7 +45,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -197,9 +197,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                         <span className="sr-only">Toggle details</span>
                     </Button>
                 </TableCell>
-                <TableCell>
-                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                </TableCell>
+                <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell className="font-medium">{jobOrder.clientName}</TableCell>
                 <TableCell>
                     <ul className="list-disc list-inside text-xs">
@@ -209,7 +207,9 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                         {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
                     </ul>
                 </TableCell>
-                <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                </TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>{formatCurrency(jobOrder.totalAmount)}</TableCell>
                 <TableCell>{formatCurrency(jobOrder.paidAmount)}</TableCell>
@@ -587,10 +587,10 @@ export function DashboardClient() {
                   <TableHeader>
                   <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <SortableJobOrderHeader title="JO #" sortKey="jobOrderNumber" />
+                      <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
                       <SortableJobOrderHeader title="Items" sortKey="items" />
-                      <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
+                      <SortableJobOrderHeader title="JO #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
                       <SortableJobOrderHeader title="Total Amount" sortKey="totalAmount" />
                       <SortableJobOrderHeader title="Paid" sortKey="paidAmount" />
