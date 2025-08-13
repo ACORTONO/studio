@@ -1,7 +1,6 @@
 
 "use client";
 
-import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -15,12 +14,6 @@ import { InvoiceProvider } from '@/contexts/InvoiceContext';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import React from 'react';
-
-// export const metadata: Metadata = {
-//   title: 'Job Order Generator',
-//   description: 'Automated Job Order form and dashboard',
-//   manifest: '/manifest.json',
-// };
 
 const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
