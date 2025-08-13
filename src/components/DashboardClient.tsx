@@ -85,7 +85,7 @@ const expenseSchema = z.object({
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
 });
 
-type SortableJobOrderKeys = keyof JobOrder | 'items' | 'balance';
+type SortableJobOrderKeys = keyof JobOrder | 'balance';
 type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
@@ -162,30 +162,21 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
     const paidAmount = jobOrder.paidAmount || 0;
     const balance = subtotal - discountAmount - paidAmount;
 
-    const derivedStatus = React.useMemo(() => {
-        if (jobOrder.status === 'Cancelled') {
-            return 'Cancelled';
-        }
-
-        const itemStatuses = jobOrder.items.map(item => item.status);
-        
-        if (itemStatuses.every(s => s === 'Paid')) {
-            return 'Completed';
-        }
-        
-        if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (jobOrder.paidAmount || 0) > 0) {
-            return 'Downpayment';
-        }
-
-        return 'Pending';
-    }, [jobOrder]);
-    
     React.useEffect(() => {
+        const itemStatuses = jobOrder.items.map(item => item.status);
+        let derivedStatus: JobOrder['status'] = 'Pending';
+        if (jobOrder.status === 'Cancelled') {
+            derivedStatus = 'Cancelled';
+        } else if (itemStatuses.every(s => s === 'Paid')) {
+            derivedStatus = 'Completed';
+        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (jobOrder.paidAmount || 0) > 0) {
+            derivedStatus = 'Downpayment';
+        }
+
         if (jobOrder.status !== derivedStatus) {
             updateJobOrder({ ...jobOrder, status: derivedStatus });
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [derivedStatus, jobOrder.id]);
+    }, [jobOrder, updateJobOrder]);
 
 
     return (
