@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -43,7 +43,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogClose,
   DialogFooter
 } from "@/components/ui/dialog";
@@ -413,7 +412,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
 
 export function DashboardClient() {
   const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder } = useJobOrders();
-  const [timeFilter, setTimeFilter] = useState("today");
+  const [timeFilter, setTimeFilter] = useState("all");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [jobOrderSearchQuery, setJobOrderSearchQuery] = useState("");
@@ -437,9 +436,9 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, dailySales } = useMemo(() => {
+  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid } = useMemo(() => {
     const now = new Date();
-    let interval: Interval;
+    let interval: Interval | null = null;
 
     switch (timeFilter) {
       case "weekly":
@@ -451,15 +450,16 @@ export function DashboardClient() {
       case "yearly":
         interval = { start: startOfYear(now), end: endOfYear(now) };
         break;
-      default:
+      case "today":
         interval = { start: startOfToday(), end: endOfToday() };
+        break;
+      default:
+        interval = null; // 'all'
     }
     
-    const todayInterval = { start: startOfToday(), end: endOfToday() };
-    const todayJobOrders = jobOrders.filter(jobOrder => isWithinInterval(parseISO(jobOrder.startDate), todayInterval));
-    const dailySales = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
-
-    const dateFilteredJobOrders = jobOrders.filter(jobOrder => isWithinInterval(parseISO(jobOrder.startDate), interval));
+    const dateFilteredJobOrders = interval 
+        ? jobOrders.filter(jo => isWithinInterval(parseISO(jo.startDate), interval as Interval))
+        : jobOrders;
     
     let sortedAndFilteredJobOrders = dateFilteredJobOrders.filter(jobOrder => 
       jobOrder.clientName.toLowerCase().includes(jobOrderSearchQuery.toLowerCase()) ||
@@ -513,7 +513,9 @@ export function DashboardClient() {
         });
     }
 
-    const dateFilteredExpenses = expenses.filter(expense => isWithinInterval(parseISO(expense.date), interval));
+    const dateFilteredExpenses = interval
+        ? expenses.filter(ex => isWithinInterval(parseISO(ex.date), interval as Interval))
+        : expenses;
 
     let sortedAndFilteredExpenses = dateFilteredExpenses.filter(expense => 
         expense.description.toLowerCase().includes(expenseSearchQuery.toLowerCase()) ||
@@ -544,18 +546,26 @@ export function DashboardClient() {
     }
 
 
-    const totalSales = sortedAndFilteredJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
-    const totalExpenses = sortedAndFilteredExpenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-    const uniqueClients = new Set(sortedAndFilteredJobOrders.map(jobOrder => jobOrder.clientName));
+    const totalSales = sortedAndFilteredJobOrders.reduce((sum, jo) => sum + jo.totalAmount, 0);
+    const totalExpenses = sortedAndFilteredExpenses.reduce((sum, ex) => sum + ex.totalAmount, 0);
+    const totalPaid = sortedAndFilteredJobOrders.reduce((sum, jo) => sum + (jo.paidAmount || 0), 0);
+    const totalDiscount = sortedAndFilteredJobOrders.reduce((sum, jo) => {
+        const discountValue = jo.discount || 0;
+        const discountAmount = jo.discountType === 'percent' ? jo.totalAmount * (discountValue / 100) : discountValue;
+        return sum + discountAmount;
+    }, 0);
+    
+    const totalUnpaid = totalSales - totalPaid - totalDiscount;
+    const uniqueClients = new Set(sortedAndFilteredJobOrders.map(jo => jo.clientName));
 
     return {
       filteredJobOrders: sortedAndFilteredJobOrders,
       filteredExpenses: sortedAndFilteredExpenses,
       totalSales,
       totalExpenses,
-      netProfit: totalSales - totalExpenses,
+      netProfit: totalPaid - totalExpenses,
       totalCustomers: uniqueClients.size,
-      dailySales
+      totalUnpaid
     };
   }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
@@ -649,31 +659,31 @@ export function DashboardClient() {
     <div className="space-y-4 mt-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
-            title="Daily Sales" 
-            value={formatCurrency(dailySales)} 
+            title="Total Sales" 
+            value={formatCurrency(totalSales)} 
             icon={TrendingUp} 
-            description="Total sales for today"
+            description="Total revenue from all orders"
             className="bg-green-600/20 border-green-600 text-green-100"
         />
         <StatCard 
-            title="Total Expenses" 
-            value={formatCurrency(totalExpenses)} 
-            icon={TrendingDown} 
-            description={`For the selected period`}
-            className="bg-red-600/20 border-red-600 text-red-100"
+            title="Total Unpaid" 
+            value={formatCurrency(totalUnpaid)} 
+            icon={AlertCircle} 
+            description="Total outstanding balance"
+            className="bg-yellow-600/20 border-yellow-600 text-yellow-100"
         />
         <StatCard 
             title="Net Profit" 
             value={formatCurrency(netProfit)} 
             icon={DollarSign} 
-            description={`For the selected period`}
+            description={`Total paid minus expenses`}
             className="bg-blue-600/20 border-blue-600 text-blue-100"
         />
          <StatCard 
             title="Total Customers" 
             value={totalCustomers.toString()} 
             icon={Users} 
-            description={`For the selected period`}
+            description={`Unique clients for the period`}
             className="bg-purple-600/20 border-purple-600 text-purple-100"
         />
       </div>
@@ -741,14 +751,122 @@ export function DashboardClient() {
                             <CardTitle>Expenses</CardTitle>
                             <CardDescription>A list of expenses for the selected period.</CardDescription>
                         </div>
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
-                                placeholder="Search expenses..." 
-                                className="pl-10 w-full sm:w-64"
-                                value={expenseSearchQuery}
-                                onChange={(e) => setExpenseSearchQuery(e.target.value)}
-                            />
+                        <div className="flex items-center gap-2">
+                           <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search expenses..." 
+                                    className="pl-10 w-full sm:w-64"
+                                    value={expenseSearchQuery}
+                                    onChange={(e) => setExpenseSearchQuery(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isExpenseDialogOpen} onOpenChange={(isOpen) => {
+                                setIsExpenseDialogOpen(isOpen);
+                                if (!isOpen) {
+                                    setEditingExpense(null);
+                                    expenseForm.reset();
+                                }
+                            }}>
+                                <DialogTrigger asChild>
+                                    <Button onClick={() => handleOpenExpenseDialog()}>
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-xl">
+                                    <form onSubmit={expenseForm.handleSubmit(handleExpenseSubmit)}>
+                                        <DialogHeader>
+                                            <DialogTitle>{editingExpense ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
+                                            <DialogDescription>
+                                                {editingExpense ? 'Update the details of your expense.' : 'Record a new expense with multiple items.'}
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="description" className="text-right">Description</Label>
+                                                <Input id="description" {...expenseForm.register('description')} className="col-span-3" placeholder="e.g., Office Supplies"/>
+                                                {expenseForm.formState.errors.description && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.description.message}</p>}
+                                            </div>
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="category" className="text-right">Category</Label>
+                                                <Select onValueChange={(value: ExpenseCategory) => expenseForm.setValue('category', value)} defaultValue={expenseForm.getValues('category')}>
+                                                    <SelectTrigger className="col-span-3">
+                                                        <SelectValue placeholder="Select a category" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="General">General</SelectItem>
+                                                        <SelectItem value="Cash Advance">Cash Advance</SelectItem>
+                                                        <SelectItem value="Salary">Salary</SelectItem>
+                                                        <SelectItem value="Fixed Expense">Fixed Expense</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {expenseForm.formState.errors.category && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.category.message}</p>}
+                                            </div>
+
+                                            <Card>
+                                                <CardHeader>
+                                                    <CardTitle className="text-base">Expense Items</CardTitle>
+                                                </CardHeader>
+                                                <CardContent>
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow>
+                                                                <TableHead>Description</TableHead>
+                                                                <TableHead className="w-[120px]">Amount</TableHead>
+                                                                <TableHead className="w-[50px]"></TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {fields.map((field, index) => (
+                                                                <TableRow key={field.id}>
+                                                                    <TableCell>
+                                                                        <Input {...expenseForm.register(`items.${index}.description`)} placeholder="e.g., Bond paper"/>
+                                                                        {expenseForm.formState.errors.items?.[index]?.description && <p className="text-red-500 text-xs mt-1">{expenseForm.formState.errors.items?.[index]?.description?.message}</p>}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Input type="number" {...expenseForm.register(`items.${index}.amount`)} placeholder="0.00"/>
+                                                                        {expenseForm.formState.errors.items?.[index]?.amount && <p className="text-red-500 text-xs mt-1">{expenseForm.formState.errors.items?.[index]?.amount?.message}</p>}
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Button
+                                                                        type="button"
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        onClick={() => remove(index)}
+                                                                        disabled={fields.length <= 1}
+                                                                        >
+                                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                                        </Button>
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        className="mt-4"
+                                                        onClick={() => append({ description: "", amount: 0 })}
+                                                    >
+                                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                                        Add Item
+                                                    </Button>
+                                                </CardContent>
+                                                <CardFooter className="flex justify-end bg-muted/50 p-3 font-bold">
+                                                    Total: {formatCurrency(expenseTotalAmount)}
+                                                </CardFooter>
+                                            </Card>
+                                        </div>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="secondary">Cancel</Button>
+                                            </DialogClose>
+                                            <Button type="submit">{editingExpense ? 'Update' : 'Save'} Expense</Button>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
                         </div>
                     </div>
                 </CardHeader>
@@ -826,121 +944,17 @@ export function DashboardClient() {
     <div className="space-y-4">
         <div className="flex items-center justify-between">
             <h1 className="text-3xl font-headline font-bold">Dashboard</h1>
-            <Dialog open={isExpenseDialogOpen} onOpenChange={(isOpen) => {
-                 setIsExpenseDialogOpen(isOpen);
-                 if (!isOpen) {
-                    setEditingExpense(null);
-                    expenseForm.reset();
-                 }
-            }}>
-                <DialogTrigger asChild>
-                    <Button onClick={() => handleOpenExpenseDialog()}>
-                        <PlusCircle className="mr-2 h-4 w-4" /> Add Expense
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-xl">
-                    <form onSubmit={expenseForm.handleSubmit(handleExpenseSubmit)}>
-                        <DialogHeader>
-                            <DialogTitle>{editingExpense ? 'Edit Expense' : 'Add New Expense'}</DialogTitle>
-                            <DialogDescription>
-                                {editingExpense ? 'Update the details of your expense.' : 'Record a new expense with multiple items.'}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="description" className="text-right">Description</Label>
-                                <Input id="description" {...expenseForm.register('description')} className="col-span-3" placeholder="e.g., Office Supplies"/>
-                                {expenseForm.formState.errors.description && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.description.message}</p>}
-                            </div>
-                            <div className="grid grid-cols-4 items-center gap-4">
-                                <Label htmlFor="category" className="text-right">Category</Label>
-                                 <Select onValueChange={(value: ExpenseCategory) => expenseForm.setValue('category', value)} defaultValue={expenseForm.getValues('category')}>
-                                    <SelectTrigger className="col-span-3">
-                                        <SelectValue placeholder="Select a category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="General">General</SelectItem>
-                                        <SelectItem value="Cash Advance">Cash Advance</SelectItem>
-                                        <SelectItem value="Salary">Salary</SelectItem>
-                                        <SelectItem value="Fixed Expense">Fixed Expense</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {expenseForm.formState.errors.category && <p className="text-red-500 text-xs col-span-4 text-right">{expenseForm.formState.errors.category.message}</p>}
-                            </div>
-
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-base">Expense Items</CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead>Description</TableHead>
-                                                <TableHead className="w-[120px]">Amount</TableHead>
-                                                <TableHead className="w-[50px]"></TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {fields.map((field, index) => (
-                                                <TableRow key={field.id}>
-                                                    <TableCell>
-                                                        <Input {...expenseForm.register(`items.${index}.description`)} placeholder="e.g., Bond paper"/>
-                                                        {expenseForm.formState.errors.items?.[index]?.description && <p className="text-red-500 text-xs mt-1">{expenseForm.formState.errors.items?.[index]?.description?.message}</p>}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                         <Input type="number" {...expenseForm.register(`items.${index}.amount`)} placeholder="0.00"/>
-                                                         {expenseForm.formState.errors.items?.[index]?.amount && <p className="text-red-500 text-xs mt-1">{expenseForm.formState.errors.items?.[index]?.amount?.message}</p>}
-                                                    </TableCell>
-                                                     <TableCell>
-                                                        <Button
-                                                        type="button"
-                                                        variant="ghost"
-                                                        size="icon"
-                                                        onClick={() => remove(index)}
-                                                        disabled={fields.length <= 1}
-                                                        >
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                     <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="mt-4"
-                                        onClick={() => append({ description: "", amount: 0 })}
-                                    >
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        Add Item
-                                    </Button>
-                                </CardContent>
-                                <CardFooter className="flex justify-end bg-muted/50 p-3 font-bold">
-                                    Total: {formatCurrency(expenseTotalAmount)}
-                                </CardFooter>
-                            </Card>
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild>
-                                <Button type="button" variant="secondary">Cancel</Button>
-                            </DialogClose>
-                            <Button type="submit">{editingExpense ? 'Update' : 'Save'} Expense</Button>
-                        </DialogFooter>
-                    </form>
-                </DialogContent>
-            </Dialog>
         </div>
 
-      <Tabs defaultValue="today" onValueChange={setTimeFilter} className="space-y-4">
+      <Tabs defaultValue="all" onValueChange={setTimeFilter} className="space-y-4">
         <TabsList>
+            <TabsTrigger value="all">All Time</TabsTrigger>
             <TabsTrigger value="today">Today</TabsTrigger>
             <TabsTrigger value="weekly">This Week</TabsTrigger>
             <TabsTrigger value="monthly">This Month</TabsTrigger>
             <TabsTrigger value="yearly">This Year</TabsTrigger>
         </TabsList>
+        <TabsContent value="all">{renderContent()}</TabsContent>
         <TabsContent value="today">{renderContent()}</TabsContent>
         <TabsContent value="weekly">{renderContent()}</TabsContent>
         <TabsContent value="monthly">{renderContent()}</TabsContent>
@@ -949,7 +963,5 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
 
     
