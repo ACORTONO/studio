@@ -84,7 +84,7 @@
   }
 }
 
-.print-preview-page {
+body.print-preview-page {
   background-color: white !important;
 }
 
@@ -159,6 +159,8 @@
   background-color: #fff !important;
   color: #000 !important;
   border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 .report-print-area th {
@@ -175,7 +177,7 @@
 }
 
 @page {
-  size: auto;
+  size: letter;
   margin: 0.5in;
 }
 
