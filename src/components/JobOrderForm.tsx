@@ -79,7 +79,7 @@ const formSchema = z.object({
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  paymentMethod: z.enum(['Cash', 'E-Wallet', 'Cheque', 'Bank Transfer']).default('Cash'),
+  paymentMethod: z.enum(['Cash', 'E-Wallet (GCASH, MAYA)', 'Cheque', 'Bank Transfer']).default('Cash'),
   paymentReference: z.string().optional(),
   chequeBankName: z.string().optional(),
   chequeNumber: z.string().optional(),
@@ -586,9 +586,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                               </FormItem>
                               <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl>
-                                  <RadioGroupItem value="E-Wallet" />
+                                  <RadioGroupItem value="E-Wallet (GCASH, MAYA)" />
                                 </FormControl>
-                                <FormLabel className="font-normal">E-Wallet</FormLabel>
+                                <FormLabel className="font-normal">E-Wallet (GCASH, MAYA)</FormLabel>
                               </FormItem>
                               <FormItem className="flex items-center space-x-3 space-y-0">
                                 <FormControl>
@@ -608,7 +608,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         </FormItem>
                       )}
                     />
-                    {(paymentMethod === 'E-Wallet' || paymentMethod === 'Bank Transfer') && (
+                    {(paymentMethod === 'E-Wallet (GCASH, MAYA)' || paymentMethod === 'Bank Transfer') && (
                          <FormField
                             control={form.control}
                             name="paymentReference"

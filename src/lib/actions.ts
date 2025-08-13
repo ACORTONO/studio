@@ -27,7 +27,7 @@ const jobOrderSchema = z.object({
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  paymentMethod: z.enum(['Cash', 'E-Wallet', 'Cheque', 'Bank Transfer']).default('Cash'),
+  paymentMethod: z.enum(['Cash', 'E-Wallet (GCASH, MAYA)', 'Cheque', 'Bank Transfer']).default('Cash'),
   paymentReference: z.string().optional(),
   chequeBankName: z.string().optional(),
   chequeNumber: z.string().optional(),

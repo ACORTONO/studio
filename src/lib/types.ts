@@ -31,7 +31,7 @@ export interface JobOrder {
   notes?: string;
   discount?: number;
   discountType?: 'amount' | 'percent';
-  paymentMethod?: 'Cash' | 'E-Wallet' | 'Cheque' | 'Bank Transfer';
+  paymentMethod?: 'Cash' | 'E-Wallet (GCASH, MAYA)' | 'Cheque' | 'Bank Transfer';
   paymentReference?: string;
   chequeBankName?: string;
   chequeNumber?: string;
