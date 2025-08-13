@@ -117,6 +117,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: initialData ? {
         ...initialData,
+        notes: initialData.notes || "",
+        paymentReference: initialData.paymentReference || "",
+        chequeBankName: initialData.chequeBankName || "",
+        chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
         chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
@@ -131,6 +135,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       discount: 0,
       discountType: 'amount',
       paymentMethod: 'Cash',
+      paymentReference: "",
+      chequeBankName: "",
+      chequeNumber: "",
+      chequeDate: undefined,
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
@@ -161,15 +169,31 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     if (initialData) {
       form.reset({
         ...initialData,
+        notes: initialData.notes || "",
+        paymentReference: initialData.paymentReference || "",
+        chequeBankName: initialData.chequeBankName || "",
+        chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
         chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined
       });
     } else {
        form.reset({
-        ...form.getValues(),
+        clientName: "",
+        contactMethod: 'Contact No.',
+        contactDetail: "",
         startDate: new Date(),
         dueDate: new Date(),
+        notes: "",
+        paidAmount: 0,
+        discount: 0,
+        discountType: 'amount',
+        paymentMethod: 'Cash',
+        paymentReference: "",
+        chequeBankName: "",
+        chequeNumber: "",
+        chequeDate: undefined,
+        items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -771,5 +795,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 }
 
 
+
+    
 
     
