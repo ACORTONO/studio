@@ -44,7 +44,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogClose,
-  DialogFooter
+  DialogFooter,
+  DialogTrigger
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -963,5 +964,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
