@@ -10,13 +10,13 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 216 84% 53%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 145 63% 85%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --accent-teal: 145 63% 42%;
     --accent-neon-blue: 220 89% 61%;
@@ -46,13 +46,13 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
+    --primary: 216 84% 53%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
+    --accent: 145 63% 85%;
     --accent-foreground: 222.2 47.4% 11.2%;
     --accent-teal: 145 63% 42%;
     --accent-neon-blue: 220 89% 61%;
@@ -145,8 +145,6 @@ body.print-preview-page {
     background-color: #fff !important;
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
   .report-print-area * {
@@ -175,8 +173,6 @@ body.print-preview-page {
 .report-print-area {
   background-color: #fff !important;
   border: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
 }
 
 .report-print-area th {

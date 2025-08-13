@@ -63,7 +63,7 @@ export default function PrintReportPage() {
 
 
     return (
-        <div className="min-h-screen bg-white text-black">
+        <div className="min-h-screen bg-gray-100 text-black">
             <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4 no-print">
                 <div className="flex justify-between items-center">
                     <div>
@@ -82,7 +82,7 @@ export default function PrintReportPage() {
                     </div>
                 </div>
              </div>
-             <div className="report-print-area bg-white">
+             <div className="report-print-area bg-white p-6">
                 <header>
                     <div className="text-center">
                         <h1 className="text-2xl font-bold">{reportTitle}</h1>
@@ -111,13 +111,13 @@ export default function PrintReportPage() {
                             const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
                             return (
                                 <TableRow key={jobOrder.id}>
-                                    <TableCell>
+                                    <TableCell className="text-left">
                                         <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="text-left">
                                         {new Date(jobOrder.startDate).toLocaleDateString()}
                                     </TableCell>
-                                    <TableCell>
+                                    <TableCell className="text-left">
                                         <span className="font-medium">{jobOrder.clientName}</span>
                                         {jobOrder.notes && <p className="text-xs text-muted-foreground whitespace-pre-wrap">{jobOrder.notes}</p>}
                                     </TableCell>
