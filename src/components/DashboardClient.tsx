@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, from 'react';
 import Link from 'next/link';
 import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
@@ -151,7 +151,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
 
 const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id: string) => void }) => {
     const { updateJobOrder } = useJobOrders();
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = React.useState(false);
     const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
     
     const subtotal = jobOrder.totalAmount;
@@ -162,7 +162,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
     const paidAmount = jobOrder.paidAmount || 0;
     const balance = subtotal - discountAmount - paidAmount;
 
-    const derivedStatus = useMemo(() => {
+    const derivedStatus = React.useMemo(() => {
         if (jobOrder.status === 'Cancelled') {
             return 'Cancelled';
         }
@@ -180,7 +180,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         return 'Pending';
     }, [jobOrder]);
     
-    useEffect(() => {
+    React.useEffect(() => {
         if (jobOrder.status !== derivedStatus) {
             updateJobOrder({ ...jobOrder, status: derivedStatus });
         }
@@ -284,13 +284,13 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
 
 export function DashboardClient() {
   const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder } = useJobOrders();
-  const [timeFilter, setTimeFilter] = useState("today");
-  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
-  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [jobOrderSearchQuery, setJobOrderSearchQuery] = useState("");
-  const [expenseSearchQuery, setExpenseSearchQuery] = useState("");
-  const [jobOrderSortConfig, setJobOrderSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
-  const [expenseSortConfig, setExpenseSortConfig] = useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
+  const [timeFilter, setTimeFilter] = React.useState("today");
+  const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
+  const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
+  const [jobOrderSearchQuery, setJobOrderSearchQuery] = React.useState("");
+  const [expenseSearchQuery, setExpenseSearchQuery] = React.useState("");
+  const [jobOrderSortConfig, setJobOrderSortConfig] = React.useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
+  const [expenseSortConfig, setExpenseSortConfig] = React.useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
   const { toast } = useToast();
 
 
@@ -308,7 +308,7 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid } = useMemo(() => {
+  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid } = React.useMemo(() => {
     const now = new Date();
     let interval: Interval | null = null;
 
@@ -537,7 +537,7 @@ export function DashboardClient() {
             className="bg-green-600/20 border-green-600"
         />
         <StatCard 
-            title="Total Unpaid" 
+            title="Collectibles" 
             value={formatCurrency(totalUnpaid)} 
             icon={AlertCircle} 
             description="Total outstanding balance"
@@ -838,3 +838,4 @@ export function DashboardClient() {
     
 
     
+
