@@ -27,6 +27,11 @@ const jobOrderSchema = z.object({
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
+  paymentMethod: z.enum(['Cash', 'E-Wallet', 'Cheque', 'Bank Transfer']).default('Cash'),
+  paymentReference: z.string().optional(),
+  chequeBankName: z.string().optional(),
+  chequeNumber: z.string().optional(),
+  chequeDate: z.date().optional(),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
 });
 
@@ -77,6 +82,11 @@ export async function createJobOrderAction(
         id: item.id || crypto.randomUUID(),
       })),
       totalAmount,
+      paymentMethod: validatedData.paymentMethod,
+      paymentReference: validatedData.paymentReference,
+      chequeBankName: validatedData.chequeBankName,
+      chequeNumber: validatedData.chequeNumber,
+      chequeDate: validatedData.chequeDate?.toISOString(),
     };
 
     return { success: true, data: newJobOrder };
@@ -121,6 +131,11 @@ export async function updateJobOrderAction(
                 id: item.id || crypto.randomUUID(),
             })),
             totalAmount,
+            paymentMethod: validatedData.paymentMethod,
+            paymentReference: validatedData.paymentReference,
+            chequeBankName: validatedData.chequeBankName,
+            chequeNumber: validatedData.chequeNumber,
+            chequeDate: validatedData.chequeDate?.toISOString(),
         };
         
         return { success: true, data: updatedJobOrder };

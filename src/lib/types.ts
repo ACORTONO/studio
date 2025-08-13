@@ -31,6 +31,11 @@ export interface JobOrder {
   notes?: string;
   discount?: number;
   discountType?: 'amount' | 'percent';
+  paymentMethod?: 'Cash' | 'E-Wallet' | 'Cheque' | 'Bank Transfer';
+  paymentReference?: string;
+  chequeBankName?: string;
+  chequeNumber?: string;
+  chequeDate?: string;
 }
 
 export interface ExpenseItem {

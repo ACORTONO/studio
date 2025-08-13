@@ -79,6 +79,11 @@ const formSchema = z.object({
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
   discountType: z.enum(['amount', 'percent']).default('amount'),
+  paymentMethod: z.enum(['Cash', 'E-Wallet', 'Cheque', 'Bank Transfer']).default('Cash'),
+  paymentReference: z.string().optional(),
+  chequeBankName: z.string().optional(),
+  chequeNumber: z.string().optional(),
+  chequeDate: z.date().optional(),
   items: z
     .array(
       z.object({
@@ -115,6 +120,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         ...initialData,
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
     } : {
       clientName: "",
       contactMethod: 'Contact No.',
@@ -126,6 +132,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       paidAmount: 0,
       discount: 0,
       discountType: 'amount',
+      paymentMethod: 'Cash',
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
@@ -140,6 +147,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const watchPaidAmount = form.watch("paidAmount") || 0;
   const watchStatus = form.watch('status');
   const discountType = form.watch('discountType');
+  const paymentMethod = form.watch('paymentMethod');
   
   const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
@@ -180,6 +188,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         ...initialData,
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined
       });
     } else {
        form.reset({
@@ -223,6 +232,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             paidAmount: 0,
             discount: 0,
             discountType: 'amount',
+            paymentMethod: 'Cash',
             items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
         });
       }
@@ -553,8 +563,132 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 Add Item
               </Button>
             </CardContent>
-            <CardFooter className="flex flex-col items-end space-y-4 bg-muted/50 p-6">
-                <div className="w-full max-w-sm space-y-2">
+            <CardFooter className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-8 bg-muted/50 p-6">
+                <div className="w-full md:w-1/2 space-y-4">
+                    <h4 className="font-semibold">Payment Details</h4>
+                    <FormField
+                      control={form.control}
+                      name="paymentMethod"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Payment Method</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex flex-col space-y-1"
+                            >
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Cash" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Cash</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="E-Wallet" />
+                                </FormControl>
+                                <FormLabel className="font-normal">E-Wallet</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Cheque" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Cheque</FormLabel>
+                              </FormItem>
+                               <FormItem className="flex items-center space-x-3 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Bank Transfer" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Bank Transfer</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    {(paymentMethod === 'E-Wallet' || paymentMethod === 'Bank Transfer') && (
+                         <FormField
+                            control={form.control}
+                            name="paymentReference"
+                            render={({ field }) => (
+                               <FormItem>
+                                 <FormLabel>Reference Number</FormLabel>
+                                 <FormControl>
+                                     <Input placeholder="Enter reference number" {...field} />
+                                 </FormControl>
+                                 <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
+                     {paymentMethod === 'Cheque' && (
+                        <div className="grid grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="chequeBankName"
+                                render={({ field }) => (
+                                   <FormItem>
+                                     <FormLabel>Bank Name</FormLabel>
+                                     <FormControl>
+                                         <Input placeholder="e.g., BDO" {...field} />
+                                     </FormControl>
+                                     <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                             <FormField
+                                control={form.control}
+                                name="chequeNumber"
+                                render={({ field }) => (
+                                   <FormItem>
+                                     <FormLabel>Cheque Number</FormLabel>
+                                     <FormControl>
+                                         <Input placeholder="Enter cheque number" {...field} />
+                                     </FormControl>
+                                     <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="chequeDate"
+                                render={({ field }) => (
+                                <FormItem className="flex flex-col col-span-2">
+                                    <FormLabel>Cheque Date</FormLabel>
+                                    <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                        <Button
+                                            variant={"outline"}
+                                            className={cn(
+                                            "w-full justify-start text-left font-normal",
+                                            !field.value && "text-muted-foreground"
+                                            )}
+                                        >
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0" align="start">
+                                        <Calendar
+                                        mode="single"
+                                        selected={field.value}
+                                        onSelect={field.onChange}
+                                        initialFocus
+                                        />
+                                    </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                    )}
+                </div>
+                <div className="w-full md:w-1/2 space-y-2">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Subtotal</span>
                         <span className="font-medium">{formatCurrency(subTotal)}</span>
@@ -587,7 +721,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                       )}
                                   />
                                   <FormControl>
-                                      <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                      <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
                                   </FormControl>
                                 </div>
                             </div>
@@ -603,7 +737,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                              <div className="flex justify-between items-center">
                                 <FormLabel className="text-muted-foreground">Paid Amount</FormLabel>
                                 <FormControl>
-                                    <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                    <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
                                 </FormControl>
                             </div>
                              <FormMessage className="text-right" />
