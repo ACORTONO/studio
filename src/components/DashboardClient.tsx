@@ -266,6 +266,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                 </TableCell>
                 <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
+                <TableCell>{formatCurrency(jobOrder.totalAmount)}</TableCell>
                 <TableCell>{formatCurrency(jobOrder.paidAmount)}</TableCell>
                 <TableCell>{formatCurrency(balance)}</TableCell>
                 <TableCell>{getStatusBadge(jobOrder.status, jobOrder.items)}</TableCell>
@@ -303,7 +304,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
             </TableRow>
             {isOpen && (
                 <TableRow>
-                    <TableCell colSpan={10} className="p-0">
+                    <TableCell colSpan={11} className="p-0">
                         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50">
                            <div>
                                 <h4 className="font-semibold mb-2 ml-4">Job Order Items:</h4>
@@ -722,6 +723,7 @@ export function DashboardClient() {
                       <SortableJobOrderHeader title="Items" sortKey="items" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
+                      <SortableJobOrderHeader title="Total Amount" sortKey="totalAmount" />
                       <SortableJobOrderHeader title="Paid" sortKey="paidAmount" />
                       <SortableJobOrderHeader title="Balance" sortKey="balance" />
                       <SortableJobOrderHeader title="Status" sortKey="status" />
@@ -734,7 +736,7 @@ export function DashboardClient() {
                         filteredJobOrders.map((jobOrder) => <JobOrderRow key={jobOrder.id} jobOrder={jobOrder} onDelete={handleDeleteJobOrder} />)
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={10} className="h-24 text-center">
+                        <TableCell colSpan={11} className="h-24 text-center">
                           No job orders for this period.
                         </TableCell>
                       </TableRow>
