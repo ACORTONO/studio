@@ -13,7 +13,7 @@ export interface JobOrderItem {
   quantity: number;
   amount: number;
   remarks?: string;
-  status: 'Unpaid' | 'Paid' | 'Balance';
+  status: 'Unpaid' | 'Paid' | 'Downpayment';
 }
 
 export interface JobOrder {
@@ -31,7 +31,7 @@ export interface JobOrder {
   discount?: number;
   discountType?: 'amount' | 'percent';
   downpayment?: number; // This can now represent the initial payment
-  status: 'Pending' | 'Balance' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Downpayment' | 'Completed' | 'Cancelled';
   notes?: string;
   paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
   bankName?: string;

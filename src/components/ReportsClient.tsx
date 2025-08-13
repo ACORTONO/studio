@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
@@ -32,8 +33,8 @@ export const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
-        case 'Balance':
-            return <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Balance</Badge>;
+        case 'Downpayment':
+            return <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>;
         case 'Pending':
             return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
         case 'Cancelled':

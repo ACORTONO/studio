@@ -79,7 +79,7 @@ const formSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.enum(["Pending", "Balance", "Completed", "Cancelled"]),
+  status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
   discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0, "Downpayment must be non-negative.").optional(),
@@ -97,7 +97,7 @@ const formSchema = z.object({
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
         remarks: z.string().optional(),
-        status: z.enum(['Unpaid', 'Paid', 'Balance']).default('Unpaid'),
+        status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
       })
     )
     .min(1, "At least one item is required."),
@@ -201,8 +201,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     const statuses = watchItems.map(item => item.status);
     if (statuses.every(s => s === 'Paid')) {
         form.setValue('status', 'Completed');
-    } else if (statuses.some(s => s === 'Paid' || s === 'Balance')) {
-        form.setValue('status', 'Balance');
+    } else if (statuses.some(s => s === 'Paid' || s === 'Downpayment')) {
+        form.setValue('status', 'Downpayment');
     } else {
         form.setValue('status', 'Pending');
     }
@@ -219,7 +219,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
           return { ...item, status: 'Paid' as const };
         } else if (remainingDownpayment > 0) {
           remainingDownpayment = 0;
-          return { ...item, status: 'Balance' as const };
+          return { ...item, status: 'Downpayment' as const };
         }
         return { ...item, status: 'Unpaid' as const };
       });
@@ -543,7 +543,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                 <SelectContent>
                                   <SelectItem value="Unpaid">Unpaid</SelectItem>
                                   <SelectItem value="Paid">Paid</SelectItem>
-                                  <SelectItem value="Balance">Balance</SelectItem>
+                                  <SelectItem value="Downpayment">Downpayment</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />

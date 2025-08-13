@@ -37,7 +37,7 @@ const mockJobOrders: JobOrder[] = [
     contactDetail: "098-765-4321",
     startDate: new Date().toISOString(),
     dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    items: [{ id: "i2", description: "Website Development", quantity: 1, amount: 2500, remarks: "5 pages", status: 'Balance' }, { id: 'i3', description: 'Hosting (1 year)', quantity: 1, amount: 150, remarks: '', status: 'Unpaid' }],
+    items: [{ id: "i2", description: "Website Development", quantity: 1, amount: 2500, remarks: "5 pages", status: 'Downpayment' }, { id: 'i3', description: 'Hosting (1 year)', quantity: 1, amount: 150, remarks: '', status: 'Unpaid' }],
     totalAmount: 2650,
     payments: [{id: 'p2', date: new Date().toISOString(), amount: 1000, notes: 'Downpayment'}],
     discount: 0,
@@ -45,7 +45,7 @@ const mockJobOrders: JobOrder[] = [
     downpayment: 1000,
     paidAmount: 1000,
     paymentMethod: 'Cash',
-    status: 'Balance',
+    status: 'Downpayment',
     notes: ""
   },
    {
@@ -95,7 +95,7 @@ const mockJobOrders: JobOrder[] = [
     contactDetail: "444-555-6666",
     startDate: new Date().toISOString(),
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    items: [{ id: 'i6', description: 'Video Production', quantity: 1, amount: 5000, remarks: '3-minute corporate video', status: 'Balance' }],
+    items: [{ id: 'i6', description: 'Video Production', quantity: 1, amount: 5000, remarks: '3-minute corporate video', status: 'Downpayment' }],
     totalAmount: 5000,
     payments: [{id: 'p4', date: new Date().toISOString(), amount: 2500, notes: 'Bank Transfer DP'}],
     discount: 10,
@@ -104,7 +104,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 2500,
     paymentMethod: 'Bank Transfer',
     bankTransferReference: 'BDO Ref: ABC12345',
-    status: 'Balance',
+    status: 'Downpayment',
     notes: 'First half paid upfront.'
   },
   {

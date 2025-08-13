@@ -13,7 +13,7 @@ const jobOrderItemSchema = z.object({
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
   amount: z.coerce.number().min(0, "Amount is required."),
   remarks: z.string().optional(),
-  status: z.enum(['Unpaid', 'Paid', 'Balance']).default('Unpaid'),
+  status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
 });
 
 const paymentSchema = z.object({
@@ -30,7 +30,7 @@ const jobOrderSchemaBase = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.enum(["Pending", "Balance", "Completed", "Cancelled"]),
+  status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0).optional().default(0),

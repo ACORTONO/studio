@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -120,12 +121,12 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
-        case 'Balance':
+        case 'Downpayment':
              return (
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Balance</Badge>
+                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                            <p>{statusSummary || 'Partially paid'}</p>
@@ -196,8 +197,8 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                  if (item.status === 'Unpaid' && remainingPayment >= itemTotal) {
                     remainingPayment -= itemTotal;
                     return {...item, status: 'Paid' as const};
-                 } else if (item.status === 'Unpaid' || item.status === 'Balance') {
-                    return {...item, status: 'Balance' as const};
+                 } else if (item.status === 'Unpaid' || item.status === 'Downpayment') {
+                    return {...item, status: 'Downpayment' as const};
                  }
             }
             return item;
@@ -227,8 +228,8 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
             return 'Completed';
         }
         
-        if (itemStatuses.some(s => s === 'Paid' || s === 'Balance') || (jobOrder.paidAmount || 0) > 0) {
-            return 'Balance';
+        if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment') || (jobOrder.paidAmount || 0) > 0) {
+            return 'Downpayment';
         }
 
         return 'Pending';
