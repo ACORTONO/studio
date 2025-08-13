@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
@@ -300,7 +299,7 @@ export function ReportsClient() {
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
         </div>
         
-        <Tabs defaultValue="overall" onValueChange={setActiveTab}>
+        <Tabs defaultValue="overall" onValueChange={setActiveTab} value={activeTab}>
             <div className="flex justify-between items-center">
                 <TabsList>
                     <TabsTrigger value="overall">Overall</TabsTrigger>
@@ -317,3 +316,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    
