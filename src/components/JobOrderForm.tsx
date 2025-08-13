@@ -155,7 +155,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     ? subTotal * (watchDiscountValue / 100)
     : watchDiscountValue;
 
-  const total = subTotal - calculatedDiscount - watchPaidAmount;
+  const totalAmount = subTotal - calculatedDiscount - watchPaidAmount;
 
   useEffect(() => {
     if (initialData) {
@@ -398,10 +398,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-2/5">Description</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead className="w-1/5">Status</TableHead>
+                    <TableHead className="w-[30%]">Description</TableHead>
+                    <TableHead className="w-[10%]">Quantity</TableHead>
+                    <TableHead className="w-[15%]">Amount</TableHead>
+                    <TableHead className="w-[20%]">Remarks</TableHead>
+                    <TableHead className="w-[15%]">Status</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -444,6 +445,20 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             <FormItem>
                               <FormControl>
                                 <Input type="number" {...field} />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <FormField
+                          control={form.control}
+                          name={`items.${index}.remarks`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Notes..." />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -691,7 +706,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
                     <div className="flex justify-between border-t pt-2 mt-2 border-border">
                         <span className="text-lg font-bold">Total Amount</span>
-                        <span className="text-lg font-bold text-primary">{formatCurrency(total)}</span>
+                        <span className="text-lg font-bold text-primary">{formatCurrency(totalAmount)}</span>
                     </div>
                 </div>
             </CardFooter>
