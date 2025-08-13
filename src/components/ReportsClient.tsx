@@ -20,13 +20,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet, Printer, ArrowLeft } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { useReactToPrint } from "react-to-print";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
@@ -58,88 +57,12 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
     </Card>
 );
 
-class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
-    render() {
-        const { jobOrders, title, formatCurrency } = this.props;
-        return (
-            <div className="p-4">
-                <div className="text-center mb-4">
-                    <h1 className="text-2xl font-bold">{title} Report</h1>
-                    <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-                </div>
-                <Card>
-                  <CardContent className="pt-6">
-                      <Table>
-                          <TableHeader>
-                          <TableRow>
-                              <TableHead>JO #</TableHead>
-                              <TableHead>Start Date</TableHead>
-                              <TableHead>Client Name</TableHead>
-                              <TableHead>Total Amount</TableHead>
-                              <TableHead>Paid</TableHead>
-                              <TableHead className="text-right">Balance</TableHead>
-                              <TableHead>Status</TableHead>
-                          </TableRow>
-                          </TableHeader>
-                          <TableBody>
-                          {jobOrders.map((jobOrder) => {
-                              const discountValue = jobOrder.discount || 0;
-                              const discountAmount = jobOrder.discountType === 'percent'
-                                  ? jobOrder.totalAmount * (discountValue / 100)
-                                  : discountValue;
-                              const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
-                              return (
-                                  <TableRow key={jobOrder.id}>
-                                      <TableCell>
-                                          <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                                      </TableCell>
-                                      <TableCell>
-                                          {new Date(jobOrder.startDate).toLocaleDateString()}
-                                      </TableCell>
-                                      <TableCell>
-                                          <span className="font-medium">{jobOrder.clientName}</span>
-                                          {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
-                                      </TableCell>
-                                      <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                                      <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                                      <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
-                                      <TableCell className="text-center">
-                                          {getStatusBadge(jobOrder.status)}
-                                      </TableCell>
-                                  </TableRow>
-                              );
-                              })
-                          }
-                          {jobOrders.length === 0 && (
-                              <TableRow>
-                                  <TableCell colSpan={7} className="h-24 text-center">
-                                      No job orders found for this period.
-                                  </TableCell>
-                              </TableRow>
-                          )}
-                          </TableBody>
-                      </Table>
-                  </CardContent>
-              </Card>
-            </div>
-        );
-    }
-}
-
-
 export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
-
-  const componentToPrintRef = useRef<PrintableReport>(null);
-
-  const handlePrint = useReactToPrint({
-    content: () => componentToPrintRef.current,
-    pageStyle: `@page { size: auto; margin: 0.5in; } body { background-color: #fff; }`,
-    documentTitle: 'Sales_Report'
-  });
+  const [isPreview, setIsPreview] = useState(false);
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -242,6 +165,10 @@ export function ReportsClient() {
     setSortConfig({ key, direction });
   }
 
+  const handlePrint = () => {
+    window.print();
+  }
+
   const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
      <TableHead>
         <Button variant="ghost" onClick={() => requestSort(sortKey)} className="no-print">
@@ -254,7 +181,7 @@ export function ReportsClient() {
   
   const renderJobOrderTable = (title: string, data: JobOrder[]) => {
     return (
-        <Card>
+        <Card className="print-area">
             <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
                 <div>
                     <CardTitle>{title}</CardTitle>
@@ -272,13 +199,19 @@ export function ReportsClient() {
                             />
                         </div>
                      )}
-                     <Button onClick={handlePrint} variant="outline" disabled={data.length === 0}>
+                     <Button onClick={() => setIsPreview(true)} variant="outline" disabled={data.length === 0}>
                         <FileDown className="mr-2 h-4 w-4" />
                         Print / Save Report
                     </Button>
                  </div>
             </CardHeader>
-            <CardContent>
+
+            <div className="print-only text-center mb-4 hidden">
+              <h1 className="text-2xl font-bold">{title} Report</h1>
+              <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+            </div>
+            
+            <CardContent className="pt-6">
                 <Table>
                     <TableHeader>
                     <TableRow>
@@ -358,24 +291,34 @@ export function ReportsClient() {
             data = sortedAndFilteredJobOrders;
             title = "All Job Orders";
     }
-
-    const displayedReport = renderJobOrderTable(title, data);
-
-    const printableComponent = (
-        <div className="print-only report-print-area">
-            <PrintableReport
-                ref={componentToPrintRef}
-                jobOrders={data}
-                title={title}
-                formatCurrency={formatCurrency}
-            />
-        </div>
-    );
     
+    return renderJobOrderTable(title, data);
+  }
+
+  if (isPreview) {
     return (
-        <div>
-            {displayedReport}
-            {printableComponent}
+        <div className="bg-gray-100 p-4 sm:p-6 lg:p-8 min-h-screen">
+            <div className="max-w-4xl mx-auto space-y-4 no-print">
+                <div className="flex justify-between items-center text-gray-800">
+                    <div>
+                        <h1 className="text-2xl font-bold">Print Preview</h1>
+                        <p className="text-gray-500">Review the report before printing.</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button onClick={() => setIsPreview(false)} variant="outline">
+                            <ArrowLeft className="mr-2 h-4 w-4"/>
+                            Back to Reports
+                        </Button>
+                        <Button onClick={handlePrint} variant="default">
+                            <Printer className="mr-2 h-4 w-4"/>
+                            Print Now
+                        </Button>
+                    </div>
+                </div>
+            </div>
+             <div className="report-print-area bg-white shadow-lg mx-auto mt-4 p-6">
+                {renderActiveTabContent()}
+             </div>
         </div>
     )
   }
@@ -406,4 +349,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
 
