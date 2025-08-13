@@ -155,7 +155,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     ? subTotal * (watchDiscountValue / 100)
     : watchDiscountValue;
 
-  const total = subTotal - calculatedDiscount;
+  const total = subTotal - calculatedDiscount - watchPaidAmount;
 
   useEffect(() => {
     if (initialData) {
