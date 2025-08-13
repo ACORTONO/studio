@@ -80,16 +80,16 @@ export default function PrintReportPage() {
                         </Button>
                     </div>
                 </div>
-            </div>
+             </div>
              <div className="report-print-area bg-white">
-                 <div className="p-6">
+                 <div>
                     <header>
-                        <div className="text-center">
+                        <div className="text-center p-6">
                             <h1 className="text-2xl font-bold">{reportTitle}</h1>
                             <p className="text-sm text-muted-foreground">As of {currentDate}</p>
                         </div>
                     </header>
-                    <div className="mt-6">
+                    <div className="mt-6 px-6">
                         <Table>
                             <TableHeader>
                             <TableRow>

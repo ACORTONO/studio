@@ -132,6 +132,8 @@
     color: #000 !important;
     box-shadow: none !important;
     border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
   
   .report-print-area .text-muted-foreground {
