@@ -156,6 +156,10 @@
     color: #000 !important;
 }
 
+.report-print-area * {
+    color: #000 !important;
+}
+
 .print-area {
   background-color: #fff !important;
   color: #000 !important;
