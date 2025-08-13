@@ -171,7 +171,7 @@ export function ReportsClient() {
   }
 
   const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
-     <TableHead>
+     <TableHead className="text-center">
         <Button variant="ghost" onClick={() => requestSort(sortKey)}>
             {title}
             <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -215,7 +215,7 @@ export function ReportsClient() {
                         <SortableHeader title="Client Name" sortKey="clientName" />
                         <SortableHeader title="Total Amount" sortKey="totalAmount" />
                         <SortableHeader title="Paid" sortKey="paidAmount" />
-                        <TableHead className="text-right">Balance</TableHead>
+                        <TableHead className="text-center">Balance</TableHead>
                         <SortableHeader title="Status" sortKey="status" />
                     </TableRow>
                     </TableHeader>
@@ -228,19 +228,19 @@ export function ReportsClient() {
                          const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
                         return (
                             <TableRow key={jobOrder.id}>
-                                <TableCell>
+                                <TableCell className="text-center">
                                     <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-center">
                                     {new Date(jobOrder.startDate).toLocaleDateString()}
                                 </TableCell>
-                                <TableCell>
+                                <TableCell className="text-center">
                                     <span className="font-medium">{jobOrder.clientName}</span>
                                     {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
                                 </TableCell>
-                                <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                                <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
+                                <TableCell className="text-center">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                                <TableCell className="text-center">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
+                                <TableCell className="text-center font-semibold">{formatCurrency(balance)}</TableCell>
                                 <TableCell className="text-center">
                                     {getStatusBadge(jobOrder.status)}
                                 </TableCell>
@@ -299,20 +299,22 @@ export function ReportsClient() {
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
         </div>
         
-        <Tabs defaultValue="overall" onValueChange={setActiveTab} value={activeTab}>
-            <div className="flex justify-between items-center no-print">
-                <TabsList>
-                    <TabsTrigger value="overall">Overall</TabsTrigger>
-                    <TabsTrigger value="today">Today</TabsTrigger>
-                    <TabsTrigger value="weekly">Weekly</TabsTrigger>
-                    <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                    <TabsTrigger value="yearly">Yearly</TabsTrigger>
-                </TabsList>
-            </div>
-            <div className="mt-4">
-                {renderActiveTabContent()}
-            </div>
-        </Tabs>
+        <div className="printable-area">
+            <Tabs defaultValue="overall" onValueChange={setActiveTab} value={activeTab}>
+                <div className="flex justify-between items-center no-print">
+                    <TabsList>
+                        <TabsTrigger value="overall">Overall</TabsTrigger>
+                        <TabsTrigger value="today">Today</TabsTrigger>
+                        <TabsTrigger value="weekly">Weekly</TabsTrigger>
+                        <TabsTrigger value="monthly">Monthly</TabsTrigger>
+                        <TabsTrigger value="yearly">Yearly</TabsTrigger>
+                    </TabsList>
+                </div>
+                <div className="mt-4">
+                    {renderActiveTabContent()}
+                </div>
+            </Tabs>
+        </div>
     </div>
   );
 }
