@@ -312,30 +312,29 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     <>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Client Information</CardTitle>
-                <CardDescription>
-                  Enter the client's details for the job order.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="clientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="John Doe" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="grid grid-cols-3 gap-2">
-                  <FormField
+          <Card>
+            <CardHeader>
+              <CardTitle>Client Information</CardTitle>
+              <CardDescription>
+                Enter the client's details for the job order.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="clientName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Client Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-3 gap-2">
+                 <FormField
                     control={form.control}
                     name="contactMethod"
                     render={({ field }) => (
@@ -370,95 +369,94 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                       </FormItem>
                     )}
                   />
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Job Order Details</CardTitle>
-                <CardDescription>Set the dates for this job order.</CardDescription>
-              </CardHeader>
-              <CardContent className="grid md:grid-cols-2 gap-6">
-                <FormField
-                  control={form.control}
-                  name="startDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Start Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-col">
-                      <FormLabel>Due Date</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant={"outline"}
-                              className={cn(
-                                "w-full justify-start text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-            </Card>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Job Order Details</CardTitle>
+              <CardDescription>Set the dates for this job order.</CardDescription>
+            </CardHeader>
+            <CardContent className="grid md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="startDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Start Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel>Due Date</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <FormControl>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
+                              format(field.value, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
 
           <Card>
             <CardHeader>
@@ -652,16 +650,14 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 </div>
             </CardFooter>
           </Card>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Payment Details</CardTitle>
-                    <CardDescription>Record payment information for this order.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    
-                    <FormField
+          
+          <Card>
+             <CardHeader>
+                <CardTitle>Payment Details</CardTitle>
+                <CardDescription>Record payment information for this order.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                 <FormField
                       control={form.control}
                       name="paymentMethod"
                       render={({ field }) => (
@@ -704,7 +700,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                       )}
                     />
                     {paymentMethod === 'Cheque' && (
-                        <div className="space-y-4 border-l-2 border-primary pl-4">
+                        <div className="space-y-4 border-l-2 border-primary pl-4 mt-4">
                              <FormField
                                 control={form.control}
                                 name="bankName"
@@ -778,7 +774,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         </div>
                     )}
                      {paymentMethod === 'E-Wallet' && (
-                        <div className="space-y-4 border-l-2 border-primary pl-4">
+                        <div className="space-y-4 border-l-2 border-primary pl-4 mt-4">
                              <FormField
                                 control={form.control}
                                 name="eWalletReference"
@@ -798,7 +794,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         </div>
                     )}
                     {paymentMethod === 'Bank Transfer' && (
-                        <div className="space-y-4 border-l-2 border-primary pl-4">
+                        <div className="space-y-4 border-l-2 border-primary pl-4 mt-4">
                              <FormField
                                 control={form.control}
                                 name="bankTransferReference"
@@ -817,9 +813,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             />
                         </div>
                     )}
-                </CardContent>
-            </Card>
-            <Card>
+            </CardContent>
+          </Card>
+           <Card>
                 <CardHeader>
                     <CardTitle>Additional Information</CardTitle>
                     <CardDescription>Add any extra notes or instructions for this job order.</CardDescription>
@@ -840,7 +836,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     />
                 </CardContent>
             </Card>
-          </div>
 
           <div className="flex justify-end">
             <Button type="submit" size="lg" disabled={isSubmitting}>
