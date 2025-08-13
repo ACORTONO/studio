@@ -220,8 +220,8 @@ export function ReportsClient() {
                 <Table>
                     <TableHeader>
                     <TableRow>
-                        <SortableHeader title="JO #" sortKey="jobOrderNumber" />
                         <SortableHeader title="Start Date" sortKey="startDate" />
+                        <SortableHeader title="JO #" sortKey="jobOrderNumber" />
                         <SortableHeader title="Client Name" sortKey="clientName" />
                         <SortableHeader title="Total Amount" sortKey="totalAmount" />
                         <SortableHeader title="Paid" sortKey="paidAmount" />
@@ -239,10 +239,10 @@ export function ReportsClient() {
                         return (
                             <TableRow key={jobOrder.id}>
                                 <TableCell className="text-center">
-                                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                                    {new Date(jobOrder.startDate).toLocaleDateString()}
                                 </TableCell>
                                 <TableCell className="text-center">
-                                    {new Date(jobOrder.startDate).toLocaleDateString()}
+                                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <span className="font-medium">{jobOrder.clientName}</span>
