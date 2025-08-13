@@ -75,7 +75,6 @@ const formSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
   discountType: z.enum(['amount', 'percent']).default('amount'),
@@ -92,7 +91,7 @@ const formSchema = z.object({
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
         remarks: z.string().optional(),
-        status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
+        status: z.enum(['Unpaid', 'Paid', 'Working']).default('Unpaid'),
       })
     )
     .min(1, "At least one item is required."),
@@ -128,7 +127,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       startDate: undefined,
       dueDate: undefined,
       notes: "",
-      status: "Pending",
       paidAmount: 0,
       discount: 0,
       discountType: 'amount',
@@ -145,7 +143,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const watchItems = form.watch("items");
   const watchDiscountValue = form.watch("discount") || 0;
   const watchPaidAmount = form.watch("paidAmount") || 0;
-  const watchStatus = form.watch('status');
   const discountType = form.watch('discountType');
   const paymentMethod = form.watch('paymentMethod');
   
@@ -160,27 +157,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
   const total = subTotal - calculatedDiscount;
   const balance = total - watchPaidAmount;
-
-
-  const handleStatusChange = useCallback((status: string) => {
-    const currentItems = form.getValues('items');
-    const newItems = currentItems.map(item => ({ ...item, status: 'Unpaid' as const }));
-
-    if (status === 'Completed') {
-        form.setValue('paidAmount', total);
-        form.setValue('items', currentItems.map(item => ({ ...item, status: 'Paid' as const })), { shouldDirty: true });
-    } else if (status === 'Pending' || status === 'Cancelled') {
-        form.setValue('paidAmount', 0);
-        form.setValue('items', newItems, { shouldDirty: true });
-    }
-  }, [form, total]);
-
-  useEffect(() => {
-    if(watchStatus) {
-        handleStatusChange(watchStatus);
-    }
-  }, [watchStatus, handleStatusChange]);
-
 
   useEffect(() => {
     if (initialData) {
@@ -228,7 +204,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             startDate: new Date(),
             dueDate: new Date(),
             notes: "",
-            status: "Pending",
             paidAmount: 0,
             discount: 0,
             discountType: 'amount',
@@ -333,30 +308,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               <CardTitle>Job Order Details</CardTitle>
               <CardDescription>Set the dates for this job order.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-3 gap-6">
-               <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Downpayment">Downpayment</SelectItem>
-                        <SelectItem value="Completed">Completed</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <CardContent className="grid md:grid-cols-2 gap-6">
               <FormField
                 control={form.control}
                 name="startDate"
@@ -521,7 +473,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                 <SelectContent>
                                   <SelectItem value="Unpaid">Unpaid</SelectItem>
                                   <SelectItem value="Paid">Paid</SelectItem>
-                                  <SelectItem value="Downpayment">Downpayment</SelectItem>
+                                  <SelectItem value="Working">Working</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />

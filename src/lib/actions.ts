@@ -13,7 +13,7 @@ const jobOrderItemSchema = z.object({
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
   amount: z.coerce.number().min(0, "Amount is required."),
   remarks: z.string().optional(),
-  status: z.enum(['Unpaid', 'Paid', 'Downpayment']).default('Unpaid'),
+  status: z.enum(['Unpaid', 'Paid', 'Working']).default('Unpaid'),
 });
 
 const jobOrderSchema = z.object({
@@ -23,7 +23,6 @@ const jobOrderSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
@@ -38,6 +37,7 @@ const jobOrderSchema = z.object({
 const updateJobOrderSchema = jobOrderSchema.extend({
     id: z.string(),
     jobOrderNumber: z.string(),
+    status: z.enum(["Pending", "Working", "Completed", "Cancelled"]),
 });
 
 
@@ -63,6 +63,15 @@ export async function createJobOrderAction(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
+    
+    const itemStatuses = validatedData.items.map(item => item.status);
+    let derivedStatus: JobOrder['status'] = 'Pending';
+    if (itemStatuses.every(s => s === 'Paid')) {
+        derivedStatus = 'Completed';
+    } else if (itemStatuses.some(s => s === 'Paid' || s === 'Working') || (validatedData.paidAmount || 0) > 0) {
+        derivedStatus = 'Working';
+    }
+
 
     const newJobOrder: JobOrder = {
       id: crypto.randomUUID(),
@@ -73,7 +82,7 @@ export async function createJobOrderAction(
       startDate: validatedData.startDate.toISOString(),
       dueDate: validatedData.dueDate.toISOString(),
       notes: validatedData.notes,
-      status: validatedData.status,
+      status: derivedStatus,
       paidAmount: validatedData.paidAmount || 0,
       discount: validatedData.discount,
       discountType: validatedData.discountType,
