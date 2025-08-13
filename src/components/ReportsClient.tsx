@@ -182,7 +182,7 @@ export function ReportsClient() {
   const renderJobOrderTable = (title: string, data: JobOrder[]) => {
     return (
         <Card>
-            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
                 <div>
                     <CardTitle>{title}</CardTitle>
                     <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
@@ -292,7 +292,7 @@ export function ReportsClient() {
 
   return (
     <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 no-print">
              <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders"/>
              <StatCard title="Total Collectibles" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
              <StatCard title="Total Unpaid" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
@@ -300,7 +300,7 @@ export function ReportsClient() {
         </div>
         
         <Tabs defaultValue="overall" onValueChange={setActiveTab} value={activeTab}>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center no-print">
                 <TabsList>
                     <TabsTrigger value="overall">Overall</TabsTrigger>
                     <TabsTrigger value="today">Today</TabsTrigger>
