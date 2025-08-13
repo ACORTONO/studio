@@ -696,13 +696,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             </FormItem>
                         )}
                     />
-                     <div className="flex justify-between">
-                        <span className="text-muted-foreground">Balance</span>
-                        <span className="font-medium">{formatCurrency(balance)}</span>
-                    </div>
 
                     <div className="flex justify-between border-t pt-2 mt-2 border-border">
-                        <span className="text-lg font-bold">Total</span>
+                        <span className="text-lg font-bold">Total Amount</span>
                         <span className="text-lg font-bold text-primary">{formatCurrency(total)}</span>
                     </div>
                 </div>
