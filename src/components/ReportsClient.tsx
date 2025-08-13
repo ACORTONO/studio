@@ -134,7 +134,8 @@ export function ReportsClient() {
 
   const handlePrint = useReactToPrint({
     content: () => componentToPrintRef.current,
-    pageStyle: `@page { margin: 0.5in; }`,
+    pageStyle: `@page { size: auto; margin: 0.5in; } body { background-color: #fff; }`,
+    documentTitle: 'Sales_Report'
   });
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
@@ -270,7 +271,7 @@ export function ReportsClient() {
                      )}
                      <Button onClick={handlePrint} variant="outline" disabled={data.length === 0}>
                         <FileDown className="mr-2 h-4 w-4" />
-                        Save Report as PDF
+                        Print / Save Report
                     </Button>
                  </div>
             </CardHeader>
