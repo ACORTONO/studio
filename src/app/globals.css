@@ -132,8 +132,8 @@ body.print-preview-page {
   
   .print-area .print-content {
       display: block !important;
-      font-size: 8px !important;
-      line-height: 1.2;
+      font-size: 10px !important;
+      line-height: 1.4;
       color: #000 !important;
   }
 
