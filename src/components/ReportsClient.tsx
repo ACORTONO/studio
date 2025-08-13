@@ -314,7 +314,7 @@ export function ReportsClient() {
              <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders"/>
              <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
              <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
-             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
+             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="ACTUAL CASH"/>
         </div>
         
         <div className="printable-area">
