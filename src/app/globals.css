@@ -147,7 +147,16 @@
   }
 }
 
-.report-print-area, .print-area {
+.report-print-area {
+  background-color: #fff !important;
+  color: #000 !important;
+}
+
+.report-print-area th {
+    color: #000 !important;
+}
+
+.print-area {
   background-color: #fff !important;
   color: #000 !important;
 }
