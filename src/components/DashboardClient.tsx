@@ -197,7 +197,9 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                         <span className="sr-only">Toggle details</span>
                     </Button>
                 </TableCell>
-                <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
+                <TableCell>
+                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                </TableCell>
                 <TableCell className="font-medium">{jobOrder.clientName}</TableCell>
                 <TableCell>
                     <ul className="list-disc list-inside text-xs">
@@ -207,9 +209,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                         {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
                     </ul>
                 </TableCell>
-                <TableCell>
-                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                </TableCell>
+                <TableCell>{new Date(jobOrder.startDate).toLocaleDateString()}</TableCell>
                 <TableCell>{new Date(jobOrder.dueDate).toLocaleDateString()}</TableCell>
                 <TableCell>{formatCurrency(jobOrder.totalAmount)}</TableCell>
                 <TableCell>{formatCurrency(jobOrder.paidAmount)}</TableCell>
@@ -528,13 +528,20 @@ export function DashboardClient() {
 
   const renderContent = () => (
     <div className="space-y-4 mt-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <StatCard 
             title="Total Sales" 
             value={formatCurrency(totalSales)} 
             icon={TrendingUp} 
             description="Total revenue from all orders"
             className="bg-green-600/20 border-green-600"
+        />
+        <StatCard 
+            title="Total Expenses" 
+            value={formatCurrency(totalExpenses)} 
+            icon={TrendingDown} 
+            description="Total operational costs"
+            className="bg-red-600/20 border-red-600"
         />
         <StatCard 
             title="Collectibles" 
@@ -587,10 +594,10 @@ export function DashboardClient() {
                   <TableHeader>
                   <TableRow>
                       <TableHead className="w-12"></TableHead>
-                      <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
+                      <SortableJobOrderHeader title="JO #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
                       <SortableJobOrderHeader title="Description" sortKey="items" />
-                      <SortableJobOrderHeader title="JO #" sortKey="jobOrderNumber" />
+                      <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
                       <SortableJobOrderHeader title="Total Amount" sortKey="totalAmount" />
                       <SortableJobOrderHeader title="Paid" sortKey="paidAmount" />
@@ -834,8 +841,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
-
-    
-

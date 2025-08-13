@@ -19,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, TrendingDown, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRouter } from "next/navigation";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
@@ -44,8 +44,8 @@ export const getStatusBadge = (status: JobOrder['status']) => {
     }
 }
 
-const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
-    <Card>
+const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
+    <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -77,6 +77,7 @@ export function ReportsClient() {
     weeklyJobOrders,
     monthlyJobOrders,
     yearlyJobOrders,
+    totalExpenses,
    } = useMemo(() => {
     const now = new Date();
     const grandTotalSales = jobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
@@ -164,7 +165,7 @@ export function ReportsClient() {
       });
 
 
-    return { totalCollectibles, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
+    return { totalCollectibles, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders, totalExpenses };
   }, [jobOrders, expenses, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -310,11 +311,12 @@ export function ReportsClient() {
 
   return (
     <div className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 no-print">
-             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders"/>
-             <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
-             <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
-             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="ACTUAL CASH"/>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 no-print">
+             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders" className="bg-green-600/20 border-green-600 text-black"/>
+             <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description="Total operational costs" className="bg-red-600/20 border-red-600 text-black" />
+             <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600/20 border-blue-600 text-black"/>
+             <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance" className="bg-yellow-600/20 border-yellow-600 text-black"/>
+             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="ACTUAL CASH" className="bg-purple-600/20 border-purple-600 text-black"/>
         </div>
         
         <div className="printable-area">
