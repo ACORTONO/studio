@@ -4,28 +4,25 @@
 
 @layer base {
   :root {
-    --background: 204 10% 96%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --background: 210 40% 9%;
+    --foreground: 210 40% 98%;
+    --card: 210 35% 12%;
+    --card-foreground: 210 40% 98%;
+    --popover: 210 35% 12%;
+    --popover-foreground: 210 40% 98%;
     --primary: 216 84% 53%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 145 63% 85%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --accent-teal: 145 63% 42%;
-    --accent-neon-blue: 220 89% 61%;
+    --secondary: 210 35% 28%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 210 35% 28%;
+    --muted-foreground: 210 40% 70%;
+    --accent: 210 35% 28%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --border: 210 35% 28%;
+    --input: 210 35% 28%;
+    --ring: 190 89% 61%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -188,4 +185,14 @@
 
 .print-only {
     display: none;
+}
+
+/* Hide number input arrows */
+input[type=number]::-webkit-inner-spin-button, 
+input[type=number]::-webkit-outer-spin-button { 
+  -webkit-appearance: none; 
+  margin: 0; 
+}
+input[type=number] {
+  -moz-appearance: textfield;
 }

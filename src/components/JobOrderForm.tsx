@@ -619,7 +619,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                       )}
                                   />
                                   <FormControl>
-                                      <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                      <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
                                   </FormControl>
                                 </div>
                             </div>
@@ -635,7 +635,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                <div className="flex justify-between items-center">
                                 <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
                                 <FormControl>
-                                    <Input type="number" className="w-24 h-8 text-right" placeholder="0.00" {...field} />
+                                    <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
                                 </FormControl>
                                </div>
                                <FormMessage className="text-right" />
