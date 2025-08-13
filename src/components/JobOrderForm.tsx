@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -78,7 +79,7 @@ const formSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
+  status: z.enum(["Pending", "Balance", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional(),
   discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0, "Downpayment must be non-negative.").optional(),
@@ -201,7 +202,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     if (statuses.every(s => s === 'Paid')) {
         form.setValue('status', 'Completed');
     } else if (statuses.some(s => s === 'Paid' || s === 'Balance')) {
-        form.setValue('status', 'In Progress');
+        form.setValue('status', 'Balance');
     } else {
         form.setValue('status', 'Pending');
     }

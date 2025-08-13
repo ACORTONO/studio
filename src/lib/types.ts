@@ -31,7 +31,7 @@ export interface JobOrder {
   discount?: number;
   discountType?: 'amount' | 'percent';
   downpayment?: number; // This can now represent the initial payment
-  status: 'Pending' | 'In Progress' | 'Completed' | 'Cancelled';
+  status: 'Pending' | 'Balance' | 'Completed' | 'Cancelled';
   notes?: string;
   paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
   bankName?: string;

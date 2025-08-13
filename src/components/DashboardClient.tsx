@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -121,15 +122,15 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
-        case 'In Progress':
+        case 'Balance':
              return (
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>
+                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Balance</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
-                           <p>{statusSummary || 'Items being processed'}</p>
+                           <p>{statusSummary || 'Partially paid'}</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
@@ -229,7 +230,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         }
         
         if (itemStatuses.some(s => s === 'Paid' || s === 'Balance') || (jobOrder.paidAmount || 0) > 0) {
-            return 'In Progress';
+            return 'Balance';
         }
 
         return 'Pending';
@@ -763,11 +764,11 @@ export function DashboardClient() {
                                 />
                             </div>
                             <Dialog open={isExpenseDialogOpen} onOpenChange={(isOpen) => {
-                                setIsExpenseDialogOpen(isOpen);
                                 if (!isOpen) {
                                     setEditingExpense(null);
                                     expenseForm.reset();
                                 }
+                                setIsExpenseDialogOpen(isOpen);
                             }}>
                                 <DialogTrigger asChild>
                                     <Button onClick={() => handleOpenExpenseDialog()}>

@@ -45,7 +45,7 @@ const mockJobOrders: JobOrder[] = [
     downpayment: 1000,
     paidAmount: 1000,
     paymentMethod: 'Cash',
-    status: 'In Progress',
+    status: 'Balance',
     notes: ""
   },
    {
@@ -104,7 +104,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 2500,
     paymentMethod: 'Bank Transfer',
     bankTransferReference: 'BDO Ref: ABC12345',
-    status: 'In Progress',
+    status: 'Balance',
     notes: 'First half paid upfront.'
   },
   {

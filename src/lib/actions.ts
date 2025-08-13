@@ -1,4 +1,5 @@
 
+
 "use server";
 
 import { generateJobOrderNumber } from "@/ai/flows/generate-job-order-number";
@@ -29,7 +30,7 @@ const jobOrderSchemaBase = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
-  status: z.enum(["Pending", "In Progress", "Completed", "Cancelled"]),
+  status: z.enum(["Pending", "Balance", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
   downpayment: z.coerce.number().min(0).optional().default(0),

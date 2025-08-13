@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useMemo, useState, useRef } from "react";
@@ -19,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, FileDown } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, FileDown, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
@@ -33,8 +34,8 @@ const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
-        case 'In Progress':
-            return <Badge variant="info"><Activity className="mr-1 h-3 w-3"/> In Progress</Badge>;
+        case 'Balance':
+            return <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Balance</Badge>;
         case 'Pending':
             return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
         case 'Cancelled':
