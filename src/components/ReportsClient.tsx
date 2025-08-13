@@ -58,75 +58,70 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
     </Card>
 );
 
-// A class component is used here because react-to-print has issues with functional components and refs.
-// This provides a stable instance for the print library to reference.
-class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
-  render() {
-    const { jobOrders, title, formatCurrency } = this.props;
+const ReportTable = ({ jobOrders, title, formatCurrency }: { jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }) => {
     return (
-      <div className="p-4">
-          <div className="text-center mb-4">
-              <h1 className="text-2xl font-bold">{title} Report</h1>
-              <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-          </div>
-          <Card>
-            <CardContent className="pt-6">
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>JO #</TableHead>
-                        <TableHead>Start Date</TableHead>
-                        <TableHead>Client Name</TableHead>
-                        <TableHead>Total Amount</TableHead>
-                        <TableHead>Paid</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
-                        <TableHead>Status</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {jobOrders.map((jobOrder) => {
-                        const discountValue = jobOrder.discount || 0;
-                        const discountAmount = jobOrder.discountType === 'percent'
-                            ? jobOrder.totalAmount * (discountValue / 100)
-                            : discountValue;
-                        const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
-                        return (
-                            <TableRow key={jobOrder.id}>
-                                <TableCell>
-                                    <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                                </TableCell>
-                                <TableCell>
-                                    {new Date(jobOrder.startDate).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell>
-                                    <span className="font-medium">{jobOrder.clientName}</span>
-                                    {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
-                                </TableCell>
-                                <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                                <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                                <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
-                                <TableCell className="text-center">
-                                    {getStatusBadge(jobOrder.status)}
-                                </TableCell>
-                            </TableRow>
-                        );
-                        })
-                    }
-                    {jobOrders.length === 0 && (
-                        <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
-                                No job orders found for this period.
-                            </TableCell>
-                        </TableRow>
-                    )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-        </Card>
-      </div>
+        <div className="p-4">
+            <div className="text-center mb-4">
+                <h1 className="text-2xl font-bold">{title} Report</h1>
+                <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+            </div>
+            <Card>
+              <CardContent className="pt-6">
+                  <Table>
+                      <TableHeader>
+                      <TableRow>
+                          <TableHead>JO #</TableHead>
+                          <TableHead>Start Date</TableHead>
+                          <TableHead>Client Name</TableHead>
+                          <TableHead>Total Amount</TableHead>
+                          <TableHead>Paid</TableHead>
+                          <TableHead className="text-right">Balance</TableHead>
+                          <TableHead>Status</TableHead>
+                      </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                      {jobOrders.map((jobOrder) => {
+                          const discountValue = jobOrder.discount || 0;
+                          const discountAmount = jobOrder.discountType === 'percent'
+                              ? jobOrder.totalAmount * (discountValue / 100)
+                              : discountValue;
+                          const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
+                          return (
+                              <TableRow key={jobOrder.id}>
+                                  <TableCell>
+                                      <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                                  </TableCell>
+                                  <TableCell>
+                                      {new Date(jobOrder.startDate).toLocaleDateString()}
+                                  </TableCell>
+                                  <TableCell>
+                                      <span className="font-medium">{jobOrder.clientName}</span>
+                                      {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
+                                  </TableCell>
+                                  <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                                  <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
+                                  <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
+                                  <TableCell className="text-center">
+                                      {getStatusBadge(jobOrder.status)}
+                                  </TableCell>
+                              </TableRow>
+                          );
+                          })
+                      }
+                      {jobOrders.length === 0 && (
+                          <TableRow>
+                              <TableCell colSpan={7} className="h-24 text-center">
+                                  No job orders found for this period.
+                              </TableCell>
+                          </TableRow>
+                      )}
+                      </TableBody>
+                  </Table>
+              </CardContent>
+          </Card>
+        </div>
     );
-  }
-}
+};
 
 
 export function ReportsClient() {
@@ -135,10 +130,11 @@ export function ReportsClient() {
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
-  const componentToPrintRef = useRef<PrintableReport>(null);
+  const componentToPrintRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useReactToPrint({
     content: () => componentToPrintRef.current,
+    pageStyle: `@page { margin: 0.5in; }`,
   });
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
@@ -362,13 +358,14 @@ export function ReportsClient() {
     const displayedReport = renderJobOrderTable(title, data);
 
     const printableComponent = (
-        <div className="print-only">
-             <PrintableReport
-                ref={componentToPrintRef}
-                jobOrders={data}
-                title={title}
-                formatCurrency={formatCurrency}
-            />
+        <div className="print-only report-print-area">
+             <div ref={componentToPrintRef}>
+                <ReportTable
+                    jobOrders={data}
+                    title={title}
+                    formatCurrency={formatCurrency}
+                />
+            </div>
         </div>
     );
     

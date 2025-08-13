@@ -85,39 +85,16 @@
 }
 
 @media print {
-  @page {
-    size: 4in 6in;
-    margin: 0.1in;
-  }
-
   body {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-    background-color: #fff !important;
     color: #000 !important;
-    font-size: 8px !important;
-    line-height: 1.2;
   }
 
   .no-print {
     display: none !important;
   }
   
-  .print-area {
-    box-shadow: none !important;
-    border: none !important;
-    color: #000 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-  }
-  
-  .print-content {
-    display: block !important;
-  }
-
   .print-only {
     display: block !important;
   }
@@ -131,7 +108,67 @@
    .recharts-wrapper .recharts-legend-item-text {
     color: #000 !important;
   }
+  
+  /* Styles for 4x6 receipt printing */
+  .print-area {
+    background-color: #fff !important;
+    font-size: 8px !important;
+    line-height: 1.2;
+    box-shadow: none !important;
+    border: none !important;
+    color: #000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .print-area-page {
+    size: 4in 6in;
+    margin: 0.1in;
+  }
+  
+  .print-content {
+    display: block !important;
+  }
+
+  /* Styles for full page report printing */
+  .report-print-area-page {
+      size: auto;
+      margin: 0.5in;
+  }
+
+  .report-print-area {
+    background-color: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100%;
+  }
+
+  .report-print-area body {
+     font-size: 10px !important;
+  }
+
+  .report-print-area .print-only {
+    display: block !important;
+  }
 }
+
+@page {
+  /* Default page settings, can be overridden */
+}
+
+@page print-area-page {
+  size: 4in 6in;
+  margin: 0.1in;
+}
+
+@page report-print-area-page {
+  size: auto; /* A4, Letter, etc. */
+  margin: 0.5in;
+}
+
 
 .print-only {
     display: none;
