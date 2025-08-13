@@ -166,9 +166,16 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const totalAmount = subTotal - calculatedDiscount - watchPaidAmount;
   
   const markAllAs = (status: 'Paid' | 'Downpayment') => {
-    watchItems.forEach((_, index) => {
-        update(index, { ...watchItems[index], status: status });
-    });
+    const newItems = watchItems.map(item => ({ ...item, status: status }));
+    form.setValue('items', newItems);
+
+    if (status === 'Paid') {
+        const currentTotal = newItems.reduce(
+            (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
+            0
+        );
+        form.setValue('paidAmount', currentTotal);
+    }
   }
   
   useEffect(() => {
@@ -821,3 +828,4 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
     
+
