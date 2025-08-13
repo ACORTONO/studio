@@ -589,7 +589,7 @@ export function DashboardClient() {
                       <TableHead className="w-12"></TableHead>
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Client Name" sortKey="clientName" />
-                      <SortableJobOrderHeader title="Items" sortKey="items" />
+                      <SortableJobOrderHeader title="Description" sortKey="items" />
                       <SortableJobOrderHeader title="JO #" sortKey="jobOrderNumber" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
                       <SortableJobOrderHeader title="Total Amount" sortKey="totalAmount" />
@@ -834,5 +834,7 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
 
     
