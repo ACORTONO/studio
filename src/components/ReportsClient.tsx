@@ -223,6 +223,7 @@ export function ReportsClient() {
                         <SortableHeader title="Start Date" sortKey="startDate" />
                         <SortableHeader title="JO #" sortKey="jobOrderNumber" />
                         <SortableHeader title="Client Name" sortKey="clientName" />
+                        <SortableHeader title="Description" sortKey="items" />
                         <SortableHeader title="Total Amount" sortKey="totalAmount" />
                         <SortableHeader title="Paid" sortKey="paidAmount" />
                         <SortableHeader title="Balance" sortKey="balance" />
@@ -246,7 +247,14 @@ export function ReportsClient() {
                                 </TableCell>
                                 <TableCell className="text-center">
                                     <span className="font-medium">{jobOrder.clientName}</span>
-                                    {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
+                                </TableCell>
+                                <TableCell>
+                                    <ul className="list-disc list-inside text-xs">
+                                        {jobOrder.items.slice(0, 2).map(item => (
+                                            <li key={item.id} className="truncate">{item.description}</li>
+                                        ))}
+                                        {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
+                                    </ul>
                                 </TableCell>
                                 <TableCell className="text-center">{formatCurrency(jobOrder.totalAmount)}</TableCell>
                                 <TableCell className="text-center">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
@@ -260,7 +268,7 @@ export function ReportsClient() {
                     }
                     {data.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={7} className="h-24 text-center">
+                            <TableCell colSpan={8} className="h-24 text-center">
                                 No job orders found for this period.
                             </TableCell>
                         </TableRow>
