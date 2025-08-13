@@ -12,8 +12,7 @@ import {
 import { JobOrderProvider } from '@/contexts/JobOrderContext';
 import { InvoiceProvider } from '@/contexts/InvoiceContext';
 import { usePathname } from 'next/navigation';
-import { useEffect } from 'react';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
@@ -26,11 +25,7 @@ const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
         } else {
             html.classList.remove('dark');
         }
-
-        return () => {
-            html.classList.remove('dark');
-        }
-    }, [isDarkPage]);
+    }, [pathname, isDarkPage]);
 
     return (
         <>
