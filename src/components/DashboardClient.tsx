@@ -98,7 +98,7 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4" />
+        <Icon className="h-4 w-4 text-foreground" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
@@ -665,28 +665,28 @@ export function DashboardClient() {
             value={formatCurrency(totalSales)} 
             icon={TrendingUp} 
             description="Total revenue from all orders"
-            className="bg-green-600/20 border-green-600 text-green-100"
+            className="bg-green-600/20 border-green-600"
         />
         <StatCard 
             title="Total Unpaid" 
             value={formatCurrency(totalUnpaid)} 
             icon={AlertCircle} 
             description="Total outstanding balance"
-            className="bg-yellow-600/20 border-yellow-600 text-yellow-100"
+            className="bg-yellow-600/20 border-yellow-600"
         />
         <StatCard 
             title="Net Profit" 
             value={formatCurrency(netProfit)} 
             icon={DollarSign} 
             description={`Total paid minus expenses`}
-            className="bg-blue-600/20 border-blue-600 text-blue-100"
+            className="bg-blue-600/20 border-blue-600"
         />
          <StatCard 
             title="Total Customers" 
             value={totalCustomers.toString()} 
             icon={Users} 
             description={`Unique clients for the period`}
-            className="bg-purple-600/20 border-purple-600 text-purple-100"
+            className="bg-purple-600/20 border-purple-600"
         />
       </div>
       <Tabs defaultValue="job-orders" className="space-y-4">
