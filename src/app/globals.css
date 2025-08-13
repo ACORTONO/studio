@@ -152,6 +152,7 @@
 .report-print-area {
   background-color: #fff !important;
   color: #000 !important;
+  border: none !important;
 }
 
 .report-print-area th {
