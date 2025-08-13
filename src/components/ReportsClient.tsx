@@ -349,5 +349,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-
