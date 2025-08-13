@@ -117,6 +117,7 @@ export default function PrintReportPage() {
                                         </TableCell>
                                         <TableCell>
                                             <span className="font-medium">{jobOrder.clientName}</span>
+                                            {jobOrder.notes && <p className="text-xs text-muted-foreground whitespace-pre-wrap">{jobOrder.notes}</p>}
                                         </TableCell>
                                         <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
