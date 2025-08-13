@@ -42,7 +42,7 @@ export default function RootLayout({
           <InvoiceProvider>
             <SidebarProvider>
               <div className="flex min-h-screen">
-                <Sidebar>
+                <Sidebar className='no-print'>
                   <AppSidebar />
                 </Sidebar>
                 <SidebarInset className="flex-1">
