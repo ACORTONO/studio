@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
   Card,
@@ -63,6 +63,11 @@ export function ReportsClient() {
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
   const [isPreview, setIsPreview] = useState(false);
+  const [currentDate, setCurrentDate] = useState("");
+
+  useEffect(() => {
+    setCurrentDate(new Date().toLocaleDateString());
+  }, []);
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -208,7 +213,7 @@ export function ReportsClient() {
 
             <div className="print-only text-center mb-4 hidden">
               <h1 className="text-2xl font-bold">{title} Report</h1>
-              <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+              <p className="text-sm text-gray-500">As of {currentDate}</p>
             </div>
             
             <CardContent className="pt-6">
