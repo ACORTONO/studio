@@ -23,7 +23,7 @@ export default function PrintReportPage() {
         if (storedData) {
             setReportData(JSON.parse(storedData));
         }
-        setCurrentDate(new Date().toLocaleDateString());
+        setCurrentDate(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
         setIsLoading(false);
     }, []);
 
@@ -55,6 +55,9 @@ export default function PrintReportPage() {
     }
     
     const { data, title } = reportData;
+    
+    const reportTitle = title === "Today's Sales" ? "Daily Sales Report" : `${title} Report`;
+
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -77,14 +80,14 @@ export default function PrintReportPage() {
                 </div>
             </div>
              <div className="report-print-area bg-white shadow-lg mx-auto mt-4 p-6 max-w-4xl">
-                 <Card className="shadow-none border-none">
-                    <CardHeader>
+                 <div className="shadow-none border-none">
+                    <header>
                         <div className="text-center">
-                            <CardTitle className="text-2xl">{title} Report</CardTitle>
-                            <CardDescription>As of {currentDate}</CardDescription>
+                            <h1 className="text-2xl font-bold">{reportTitle}</h1>
+                            <p className="text-sm text-gray-500">As of {currentDate}</p>
                         </div>
-                    </CardHeader>
-                    <CardContent>
+                    </header>
+                    <div className="mt-6">
                         <Table>
                             <TableHeader>
                             <TableRow>
@@ -134,8 +137,8 @@ export default function PrintReportPage() {
                             )}
                             </TableBody>
                         </Table>
-                    </CardContent>
-                 </Card>
+                    </div>
+                 </div>
              </div>
         </div>
     )
