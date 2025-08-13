@@ -20,7 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, Activity, FileDown, Wallet } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
@@ -58,70 +58,73 @@ const StatCard = ({ title, value, icon: Icon, description }: { title: string, va
     </Card>
 );
 
-const ReportTable = ({ jobOrders, title, formatCurrency }: { jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }) => {
-    return (
-        <div className="p-4">
-            <div className="text-center mb-4">
-                <h1 className="text-2xl font-bold">{title} Report</h1>
-                <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
-            </div>
-            <Card>
-              <CardContent className="pt-6">
-                  <Table>
-                      <TableHeader>
-                      <TableRow>
-                          <TableHead>JO #</TableHead>
-                          <TableHead>Start Date</TableHead>
-                          <TableHead>Client Name</TableHead>
-                          <TableHead>Total Amount</TableHead>
-                          <TableHead>Paid</TableHead>
-                          <TableHead className="text-right">Balance</TableHead>
-                          <TableHead>Status</TableHead>
-                      </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                      {jobOrders.map((jobOrder) => {
-                          const discountValue = jobOrder.discount || 0;
-                          const discountAmount = jobOrder.discountType === 'percent'
-                              ? jobOrder.totalAmount * (discountValue / 100)
-                              : discountValue;
-                          const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
-                          return (
-                              <TableRow key={jobOrder.id}>
-                                  <TableCell>
-                                      <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
-                                  </TableCell>
-                                  <TableCell>
-                                      {new Date(jobOrder.startDate).toLocaleDateString()}
-                                  </TableCell>
-                                  <TableCell>
-                                      <span className="font-medium">{jobOrder.clientName}</span>
-                                      {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
-                                  </TableCell>
-                                  <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                                  <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                                  <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
-                                  <TableCell className="text-center">
-                                      {getStatusBadge(jobOrder.status)}
+class PrintableReport extends React.Component<{ jobOrders: JobOrder[], title: string, formatCurrency: (amount: number) => string }> {
+    render() {
+        const { jobOrders, title, formatCurrency } = this.props;
+        return (
+            <div className="p-4">
+                <div className="text-center mb-4">
+                    <h1 className="text-2xl font-bold">{title} Report</h1>
+                    <p className="text-sm text-gray-500">As of {new Date().toLocaleDateString()}</p>
+                </div>
+                <Card>
+                  <CardContent className="pt-6">
+                      <Table>
+                          <TableHeader>
+                          <TableRow>
+                              <TableHead>JO #</TableHead>
+                              <TableHead>Start Date</TableHead>
+                              <TableHead>Client Name</TableHead>
+                              <TableHead>Total Amount</TableHead>
+                              <TableHead>Paid</TableHead>
+                              <TableHead className="text-right">Balance</TableHead>
+                              <TableHead>Status</TableHead>
+                          </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                          {jobOrders.map((jobOrder) => {
+                              const discountValue = jobOrder.discount || 0;
+                              const discountAmount = jobOrder.discountType === 'percent'
+                                  ? jobOrder.totalAmount * (discountValue / 100)
+                                  : discountValue;
+                              const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
+                              return (
+                                  <TableRow key={jobOrder.id}>
+                                      <TableCell>
+                                          <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
+                                      </TableCell>
+                                      <TableCell>
+                                          {new Date(jobOrder.startDate).toLocaleDateString()}
+                                      </TableCell>
+                                      <TableCell>
+                                          <span className="font-medium">{jobOrder.clientName}</span>
+                                          {jobOrder.notes && <p className="text-xs text-muted-foreground truncate max-w-xs">{jobOrder.notes}</p>}
+                                      </TableCell>
+                                      <TableCell className="text-right">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                                      <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
+                                      <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
+                                      <TableCell className="text-center">
+                                          {getStatusBadge(jobOrder.status)}
+                                      </TableCell>
+                                  </TableRow>
+                              );
+                              })
+                          }
+                          {jobOrders.length === 0 && (
+                              <TableRow>
+                                  <TableCell colSpan={7} className="h-24 text-center">
+                                      No job orders found for this period.
                                   </TableCell>
                               </TableRow>
-                          );
-                          })
-                      }
-                      {jobOrders.length === 0 && (
-                          <TableRow>
-                              <TableCell colSpan={7} className="h-24 text-center">
-                                  No job orders found for this period.
-                              </TableCell>
-                          </TableRow>
-                      )}
-                      </TableBody>
-                  </Table>
-              </CardContent>
-          </Card>
-        </div>
-    );
-};
+                          )}
+                          </TableBody>
+                      </Table>
+                  </CardContent>
+              </Card>
+            </div>
+        );
+    }
+}
 
 
 export function ReportsClient() {
@@ -130,7 +133,7 @@ export function ReportsClient() {
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
 
-  const componentToPrintRef = useRef<HTMLDivElement>(null);
+  const componentToPrintRef = useRef<PrintableReport>(null);
 
   const handlePrint = useReactToPrint({
     content: () => componentToPrintRef.current,
@@ -360,13 +363,12 @@ export function ReportsClient() {
 
     const printableComponent = (
         <div className="print-only report-print-area">
-             <div ref={componentToPrintRef}>
-                <ReportTable
-                    jobOrders={data}
-                    title={title}
-                    formatCurrency={formatCurrency}
-                />
-            </div>
+            <PrintableReport
+                ref={componentToPrintRef}
+                jobOrders={data}
+                title={title}
+                formatCurrency={formatCurrency}
+            />
         </div>
     );
     
@@ -404,3 +406,4 @@ export function ReportsClient() {
     </div>
   );
 }
+
