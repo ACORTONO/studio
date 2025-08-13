@@ -84,6 +84,10 @@
   }
 }
 
+.print-preview-page {
+  background-color: white !important;
+}
+
 @media print {
   body {
     -webkit-print-color-adjust: exact !important;

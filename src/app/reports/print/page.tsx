@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -24,6 +23,10 @@ export default function PrintReportPage() {
         }
         setCurrentDate(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
         setIsLoading(false);
+         document.body.classList.add('print-preview-page');
+        return () => {
+            document.body.classList.remove('print-preview-page');
+        };
     }, []);
 
     const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
@@ -34,7 +37,7 @@ export default function PrintReportPage() {
 
     if (isLoading) {
         return (
-            <div className="p-8">
+            <div className="p-8 bg-white">
                 <Skeleton className="h-10 w-1/4 mb-4" />
                 <Skeleton className="h-8 w-1/2 mb-8" />
                 <Skeleton className="h-96 w-full" />
@@ -44,7 +47,7 @@ export default function PrintReportPage() {
 
     if (!reportData) {
         return (
-            <div className="flex flex-col items-center justify-center h-screen">
+            <div className="flex flex-col items-center justify-center h-screen bg-white">
                 <p>No report data found.</p>
                 <Button onClick={() => router.push('/reports')} className="mt-4">
                     Go Back
@@ -59,9 +62,9 @@ export default function PrintReportPage() {
 
 
     return (
-        <div className="min-h-screen">
+        <div className="min-h-screen bg-white text-black">
             <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4 no-print">
-                <div className="flex justify-between items-center text-gray-800">
+                <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-2xl font-bold">Print Preview</h1>
                         <p className="text-gray-500">Review the report before printing.</p>
