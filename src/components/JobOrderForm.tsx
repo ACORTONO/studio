@@ -156,7 +156,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     : watchDiscountValue;
 
   const total = subTotal - calculatedDiscount;
-  const balance = total - watchPaidAmount;
 
   useEffect(() => {
     if (initialData) {
@@ -402,7 +401,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     <TableHead className="w-2/5">Description</TableHead>
                     <TableHead>Quantity</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Total</TableHead>
                     <TableHead className="w-1/5">Status</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
@@ -451,12 +449,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             </FormItem>
                           )}
                         />
-                      </TableCell>
-                      <TableCell>
-                        {formatCurrency(
-                          (watchItems[index]?.quantity || 0) *
-                            (watchItems[index]?.amount || 0)
-                        )}
                       </TableCell>
                       <TableCell>
                         <FormField
