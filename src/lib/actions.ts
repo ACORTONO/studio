@@ -33,7 +33,7 @@ const jobOrderSchemaBase = z.object({
   status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  downpayment: z.coerce.number().min(0).optional().default(0),
+  paidAmount: z.coerce.number().min(0).optional().default(0),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
   payments: z.array(paymentSchema).optional().default([]),
   paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
@@ -94,15 +94,15 @@ export async function createJobOrderAction(
     );
     
     const validatedData = validation.data;
-    const initialDownpayment = validatedData.downpayment || 0;
+    const paidAmount = validatedData.paidAmount || 0;
     const payments: Payment[] = [];
 
-    if (initialDownpayment > 0) {
+    if (paidAmount > 0) {
         payments.push({
             id: crypto.randomUUID(),
             date: new Date().toISOString(),
-            amount: initialDownpayment,
-            notes: "Initial downpayment"
+            amount: paidAmount,
+            notes: "Initial payment"
         });
     }
 
@@ -118,8 +118,7 @@ export async function createJobOrderAction(
       status: validatedData.status,
       discount: validatedData.discount,
       discountType: validatedData.discountType,
-      downpayment: validatedData.downpayment,
-      paidAmount: initialDownpayment,
+      paidAmount: paidAmount,
       payments: payments,
       items: validatedData.items.map((item) => ({
         ...item,
@@ -158,7 +157,25 @@ export async function updateJobOrderAction(
         );
         
         const validatedData = validation.data;
-        const paidAmount = validatedData.payments.reduce((sum, p) => sum + p.amount, 0);
+        const paidAmount = validatedData.paidAmount || 0;
+        
+        // Simple logic: if paidAmount has changed, update payments array
+        // A more robust solution would handle multiple payments better in the form
+        const payments = [...validatedData.payments];
+        const totalFromPayments = payments.reduce((sum, p) => sum + p.amount, 0);
+
+        if (paidAmount !== totalFromPayments) {
+            payments.splice(0, payments.length); // Clear existing
+            if (paidAmount > 0) {
+                 payments.push({
+                    id: crypto.randomUUID(),
+                    date: new Date().toISOString(),
+                    amount: paidAmount,
+                    notes: "Updated payment amount"
+                });
+            }
+        }
+
 
         const updatedJobOrder: JobOrder = {
             id: existingJobOrder.id,
@@ -172,9 +189,8 @@ export async function updateJobOrderAction(
             status: existingJobOrder.status,
             discount: validatedData.discount,
             discountType: validatedData.discountType,
-            downpayment: validatedData.downpayment,
             paidAmount: paidAmount,
-            payments: validatedData.payments,
+            payments: payments,
             items: existingJobOrder.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),

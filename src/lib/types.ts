@@ -30,7 +30,6 @@ export interface JobOrder {
   payments: Payment[];
   discount?: number;
   discountType?: 'amount' | 'percent';
-  downpayment?: number; // This can now represent the initial payment
   status: 'Pending' | 'Downpayment' | 'Completed' | 'Cancelled';
   notes?: string;
   paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
