@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
@@ -97,12 +95,12 @@ type SortableExpenseKeys = keyof Expense;
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
     <Card className={cn("text-black", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4" />
+        <CardTitle className="text-sm font-medium text-black">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-black" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs">{description}</p>
+        <div className="text-2xl font-bold text-black">{value}</div>
+        <p className="text-xs text-black">{description}</p>
       </CardContent>
     </Card>
 );
@@ -414,7 +412,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
 
 export function DashboardClient() {
   const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder } = useJobOrders();
-  const [timeFilter, setTimeFilter] = useState("all");
+  const [timeFilter, setTimeFilter] = useState("today");
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = useState(false);
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [jobOrderSearchQuery, setJobOrderSearchQuery] = useState("");
@@ -948,15 +946,13 @@ export function DashboardClient() {
             <h1 className="text-3xl font-headline font-bold">Dashboard</h1>
         </div>
 
-      <Tabs defaultValue="all" onValueChange={setTimeFilter} className="space-y-4">
+      <Tabs defaultValue="today" onValueChange={setTimeFilter} className="space-y-4">
         <TabsList>
-            <TabsTrigger value="all">All Time</TabsTrigger>
             <TabsTrigger value="today">Today</TabsTrigger>
             <TabsTrigger value="weekly">This Week</TabsTrigger>
             <TabsTrigger value="monthly">This Month</TabsTrigger>
             <TabsTrigger value="yearly">This Year</TabsTrigger>
         </TabsList>
-        <TabsContent value="all">{renderContent()}</TabsContent>
         <TabsContent value="today">{renderContent()}</TabsContent>
         <TabsContent value="weekly">{renderContent()}</TabsContent>
         <TabsContent value="monthly">{renderContent()}</TabsContent>

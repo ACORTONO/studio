@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
@@ -61,7 +60,7 @@ export function ReportsClient() {
   const { jobOrders, expenses } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
-  const [activeTab, setActiveTab] = useState("overall");
+  const [activeTab, setActiveTab] = useState("today");
   const router = useRouter();
 
 
@@ -198,7 +197,7 @@ export function ReportsClient() {
                     <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
                 </div>
                  <div className="flex items-center gap-2">
-                    { title === "All Job Orders" && (
+                    { activeTab === "today" && (
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                             <Input 
@@ -293,8 +292,8 @@ export function ReportsClient() {
             title = "This Year's Sales";
             break;
         default:
-            data = sortedAndFilteredJobOrders;
-            title = "All Job Orders";
+            data = todayJobOrders;
+            title = "Today's Sales";
     }
     
     return renderJobOrderTable(title, data);
@@ -310,10 +309,9 @@ export function ReportsClient() {
         </div>
         
         <div className="printable-area">
-            <Tabs defaultValue="overall" onValueChange={setActiveTab} value={activeTab}>
+            <Tabs defaultValue="today" onValueChange={setActiveTab} value={activeTab}>
                 <div className="flex justify-between items-center no-print">
                     <TabsList>
-                        <TabsTrigger value="overall">Overall</TabsTrigger>
                         <TabsTrigger value="today">Today</TabsTrigger>
                         <TabsTrigger value="weekly">Weekly</TabsTrigger>
                         <TabsTrigger value="monthly">Monthly</TabsTrigger>
