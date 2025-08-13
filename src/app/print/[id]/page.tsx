@@ -161,7 +161,7 @@ export default function PrintPage() {
                               </TableRow>
                            )}
                           <TableRow className="font-bold bg-gray-50">
-                              <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Amount Due</TableCell>
+                              <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Total</TableCell>
                               <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(amountDue)}</TableCell>
                           </TableRow>
                       </TableFooter>

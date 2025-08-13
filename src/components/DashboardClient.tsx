@@ -90,11 +90,11 @@ const paymentSchema = z.object({
     notes: z.string().optional()
 });
 
-type SortableJobOrderKeys = keyof JobOrder | 'items' | 'amountDue';
+type SortableJobOrderKeys = keyof JobOrder | 'items' | 'balance';
 type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
-    <Card className={cn("text-black", className)}>
+    <Card className={cn("", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-black">{title}</CardTitle>
         <Icon className="h-4 w-4 text-black" />
@@ -469,7 +469,7 @@ export function DashboardClient() {
 
     if (jobOrderSortConfig !== null) {
         sortedAndFilteredJobOrders.sort((a, b) => {
-            if (jobOrderSortConfig.key === 'amountDue') {
+            if (jobOrderSortConfig.key === 'balance') {
                 const aSubtotal = a.totalAmount;
                 const aDiscountValue = a.discount || 0;
                 const aDiscountAmount = a.discountType === 'percent' ? aSubtotal * (aDiscountValue / 100) : aDiscountValue;
@@ -722,7 +722,7 @@ export function DashboardClient() {
                       <SortableJobOrderHeader title="Items" sortKey="items" />
                       <SortableJobOrderHeader title="Start Date" sortKey="startDate" />
                       <SortableJobOrderHeader title="Due Date" sortKey="dueDate" />
-                      <SortableJobOrderHeader title="Amount Due" sortKey="amountDue" />
+                      <SortableJobOrderHeader title="Balance" sortKey="balance" />
                       <SortableJobOrderHeader title="Status" sortKey="status" />
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>

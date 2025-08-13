@@ -644,7 +644,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     />
 
                     <div className="flex justify-between border-t pt-2 mt-2 border-border">
-                        <span className="text-lg font-bold">Amount Due</span>
+                        <span className="text-lg font-bold">Total</span>
                         <span className="text-lg font-bold text-primary">{formatCurrency(amountDue)}</span>
                     </div>
                 </div>
@@ -872,3 +872,4 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
