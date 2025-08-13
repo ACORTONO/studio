@@ -169,11 +169,14 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     watchItems.forEach((_, index) => {
         update(index, { ...watchItems[index], status: status });
     });
-    if (status === 'Paid') {
-        const totalAfterDiscount = subTotal - calculatedDiscount;
-        form.setValue('paidAmount', totalAfterDiscount);
-    }
   }
+  
+  useEffect(() => {
+    const paidItemsTotal = watchItems
+        .filter(item => item.status === 'Paid')
+        .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
+    form.setValue('paidAmount', paidItemsTotal);
+  }, [watchItems, form]);
 
 
   useEffect(() => {
