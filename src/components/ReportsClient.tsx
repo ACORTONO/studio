@@ -313,7 +313,7 @@ export function ReportsClient() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 no-print">
              <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders"/>
              <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients"/>
-             <StatCard title="Total Unpaid" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
+             <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance"/>
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Collectibles minus expenses"/>
         </div>
         
