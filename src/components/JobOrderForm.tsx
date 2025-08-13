@@ -123,7 +123,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : new Date(),
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
     } : {
       clientName: "",
       contactMethod: 'Contact No.',
@@ -138,7 +138,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       paymentReference: "",
       chequeBankName: "",
       chequeNumber: "",
-      chequeDate: new Date(),
+      chequeDate: undefined,
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
@@ -179,10 +179,20 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   }
   
   useEffect(() => {
-    const paidItemsTotal = watchItems
-        .filter(item => item.status === 'Paid')
-        .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
-    form.setValue('paidAmount', paidItemsTotal);
+      const paidItemsTotal = watchItems
+          .filter(item => item.status === 'Paid')
+          .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
+      
+      const downpaymentItemsTotal = watchItems
+          .filter(item => item.status === 'Downpayment')
+          .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
+      
+      if (paidItemsTotal > 0 || downpaymentItemsTotal > 0) {
+          // The form's paidAmount will be updated from user input, not automatically
+      } else {
+          // If no items are paid or downpayment, we can reset paid amount
+          // form.setValue('paidAmount', 0);
+      }
   }, [watchItems, form]);
 
 
@@ -828,4 +838,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
     
-
