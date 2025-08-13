@@ -123,7 +123,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : new Date(),
     } : {
       clientName: "",
       contactMethod: 'Contact No.',
@@ -138,12 +138,12 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       paymentReference: "",
       chequeBankName: "",
       chequeNumber: "",
-      chequeDate: undefined,
+      chequeDate: new Date(),
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control: form.control,
     name: "items",
   });
@@ -164,6 +164,17 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     : watchDiscountValue;
 
   const totalAmount = subTotal - calculatedDiscount - watchPaidAmount;
+  
+  const markAllAs = (status: 'Paid' | 'Downpayment') => {
+    watchItems.forEach((_, index) => {
+        update(index, { ...watchItems[index], status: status });
+    });
+    if (status === 'Paid') {
+        const totalAfterDiscount = subTotal - calculatedDiscount;
+        form.setValue('paidAmount', totalAfterDiscount);
+    }
+  }
+
 
   useEffect(() => {
     if (initialData) {
@@ -548,7 +559,13 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             </CardContent>
             <CardFooter className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-8 bg-muted/50 p-6">
                 <div className="w-full md:w-1/2 space-y-4">
-                    <h4 className="font-semibold">Payment Details</h4>
+                    <div className="flex justify-between items-center">
+                         <h4 className="font-semibold">Payment Details</h4>
+                         <div className="flex gap-2">
+                             <Button type="button" size="sm" variant="outline" onClick={() => markAllAs('Downpayment')}>Mark All as Downpayment</Button>
+                             <Button type="button" size="sm" variant="outline" onClick={() => markAllAs('Paid')}>Mark All as Paid</Button>
+                         </div>
+                    </div>
                     <FormField
                       control={form.control}
                       name="paymentMethod"
@@ -599,7 +616,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                <FormItem>
                                  <FormLabel>Reference Number</FormLabel>
                                  <FormControl>
-                                     <Input placeholder="Enter reference number" {...field} />
+                                     <Input placeholder="Enter reference number" {...field} value={field.value || ''}/>
                                  </FormControl>
                                  <FormMessage />
                                 </FormItem>
@@ -615,7 +632,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                    <FormItem>
                                      <FormLabel>Bank Name</FormLabel>
                                      <FormControl>
-                                         <Input placeholder="e.g., BDO" {...field} />
+                                         <Input placeholder="e.g., BDO" {...field} value={field.value || ''} />
                                      </FormControl>
                                      <FormMessage />
                                     </FormItem>
@@ -628,7 +645,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                                    <FormItem>
                                      <FormLabel>Cheque Number</FormLabel>
                                      <FormControl>
-                                         <Input placeholder="Enter cheque number" {...field} />
+                                         <Input placeholder="Enter cheque number" {...field} value={field.value || ''} />
                                      </FormControl>
                                      <FormMessage />
                                     </FormItem>
@@ -749,7 +766,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             <FormItem>
                                 <FormLabel>Notes</FormLabel>
                                 <FormControl>
-                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} />
+                                    <Textarea rows={10} placeholder="e.g., Special delivery instructions." {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -795,6 +812,8 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 }
 
 
+
+    
 
     
 
