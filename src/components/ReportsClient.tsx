@@ -20,8 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet, Printer, ArrowLeft } from "lucide-react";
+import { DollarSign, TrendingUp, Banknote, AlertCircle, CheckCircle, Search, ArrowUpDown, CircleX, Hourglass, FileDown, Wallet } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useRouter } from "next/navigation";
 import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, startOfMonth, endOfMonth, endOfYear, startOfYear } from "date-fns";
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
@@ -29,7 +30,7 @@ import { Input } from "./ui/input";
 
 type SortableJobOrderKeys = keyof JobOrder;
 
-const getStatusBadge = (status: JobOrder['status']) => {
+export const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
@@ -45,7 +46,7 @@ const getStatusBadge = (status: JobOrder['status']) => {
 }
 
 const StatCard = ({ title, value, icon: Icon, description }: { title: string, value: string, icon: React.ElementType, description: string }) => (
-    <Card className="no-print">
+    <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -62,17 +63,12 @@ export function ReportsClient() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("overall");
-  const [isPreview, setIsPreview] = useState(false);
-  const [currentDate, setCurrentDate] = useState("");
+  const router = useRouter();
 
-  useEffect(() => {
-    setCurrentDate(new Date().toLocaleDateString());
-  }, []);
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
   const { 
-    grandTotalSales,
     totalCollectibles,
     totalUnpaid,
     cashOnHand,
@@ -159,7 +155,7 @@ export function ReportsClient() {
       });
 
 
-    return { grandTotalSales, totalCollectibles, totalUnpaid, totalExpenses, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
+    return { totalCollectibles, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders };
   }, [jobOrders, expenses, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -170,24 +166,24 @@ export function ReportsClient() {
     setSortConfig({ key, direction });
   }
 
-  const handlePrint = () => {
-    window.print();
+  const handlePrintPreview = (data: JobOrder[], title: string) => {
+    localStorage.setItem('reportData', JSON.stringify({ data, title }));
+    router.push('/reports/print');
   }
 
   const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
      <TableHead>
-        <Button variant="ghost" onClick={() => requestSort(sortKey)} className="no-print">
+        <Button variant="ghost" onClick={() => requestSort(sortKey)}>
             {title}
             <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-        <span className="print-only font-bold text-gray-700 p-1 h-auto">{title}</span>
     </TableHead>
   )
   
   const renderJobOrderTable = (title: string, data: JobOrder[]) => {
     return (
-        <Card className="print-area">
-            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
+        <Card>
+            <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
                 <div>
                     <CardTitle>{title}</CardTitle>
                     <CardDescription>A detailed list of all job orders and their payment status.</CardDescription>
@@ -204,18 +200,13 @@ export function ReportsClient() {
                             />
                         </div>
                      )}
-                     <Button onClick={() => setIsPreview(true)} variant="outline" disabled={data.length === 0}>
+                     <Button onClick={() => handlePrintPreview(data, title)} variant="outline" disabled={data.length === 0}>
                         <FileDown className="mr-2 h-4 w-4" />
                         Print / Save Report
                     </Button>
                  </div>
             </CardHeader>
 
-            <div className="print-only text-center mb-4 hidden">
-              <h1 className="text-2xl font-bold">{title} Report</h1>
-              <p className="text-sm text-gray-500">As of {currentDate}</p>
-            </div>
-            
             <CardContent className="pt-6">
                 <Table>
                     <TableHeader>
@@ -300,34 +291,6 @@ export function ReportsClient() {
     return renderJobOrderTable(title, data);
   }
 
-  if (isPreview) {
-    return (
-        <div className="bg-gray-100 p-4 sm:p-6 lg:p-8 min-h-screen">
-            <div className="max-w-4xl mx-auto space-y-4 no-print">
-                <div className="flex justify-between items-center text-gray-800">
-                    <div>
-                        <h1 className="text-2xl font-bold">Print Preview</h1>
-                        <p className="text-gray-500">Review the report before printing.</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Button onClick={() => setIsPreview(false)} variant="outline">
-                            <ArrowLeft className="mr-2 h-4 w-4"/>
-                            Back to Reports
-                        </Button>
-                        <Button onClick={handlePrint} variant="default">
-                            <Printer className="mr-2 h-4 w-4"/>
-                            Print Now
-                        </Button>
-                    </div>
-                </div>
-            </div>
-             <div className="report-print-area bg-white shadow-lg mx-auto mt-4 p-6">
-                {renderActiveTabContent()}
-             </div>
-        </div>
-    )
-  }
-
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -338,7 +301,7 @@ export function ReportsClient() {
         </div>
         
         <Tabs defaultValue="overall" onValueChange={setActiveTab}>
-            <div className="flex justify-between items-center no-print">
+            <div className="flex justify-between items-center">
                 <TabsList>
                     <TabsTrigger value="overall">Overall</TabsTrigger>
                     <TabsTrigger value="today">Today</TabsTrigger>

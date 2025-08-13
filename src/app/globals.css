@@ -123,16 +123,6 @@
     color: #000 !important;
   }
   
-  .report-print-area {
-      display: block !important;
-      background-color: #fff !important;
-      color: #000 !important;
-  }
-
-  .report-print-area .print-only {
-    display: block !important;
-  }
-  
   .report-print-area, .report-print-area * {
     background-color: #fff !important;
     color: #000 !important;
@@ -157,6 +147,10 @@
   }
 }
 
+.report-print-area, .print-area {
+  background-color: #fff !important;
+  color: #000 !important;
+}
 
 @page {
   size: auto;
