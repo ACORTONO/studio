@@ -333,7 +333,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               <CardTitle>Job Order Details</CardTitle>
               <CardDescription>Set the dates for this job order.</CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <CardContent className="grid md:grid-cols-3 gap-6">
                <FormField
                 control={form.control}
                 name="status"
