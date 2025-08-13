@@ -5,12 +5,6 @@ export interface Payment {
   date: string;
   amount: number;
   notes?: string;
-  paymentMethod?: 'Cash' | 'Cheque' | 'E-Wallet' | 'Bank Transfer';
-  bankName?: string;
-  chequeNumber?: string;
-  chequeDate?: string; 
-  eWalletReference?: string;
-  bankTransferReference?: string;
 }
 
 export interface JobOrderItem {
@@ -33,11 +27,10 @@ export interface JobOrder {
   items: JobOrderItem[];
   totalAmount: number;
   paidAmount: number;
-  payments: Payment[];
-  discount?: number;
-  discountType?: 'amount' | 'percent';
   status: 'Pending' | 'Downpayment' | 'Completed' | 'Cancelled';
   notes?: string;
+  discount?: number;
+  discountType?: 'amount' | 'percent';
 }
 
 export interface ExpenseItem {

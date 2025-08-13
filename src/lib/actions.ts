@@ -7,19 +7,6 @@ import { generateInvoiceNumber } from "@/ai/flows/generate-invoice-number";
 import type { JobOrder, Payment, Invoice } from "@/lib/types";
 import { z } from "zod";
 
-const paymentSchema = z.object({
-    id: z.string().optional(),
-    date: z.date(),
-    amount: z.coerce.number().min(0, "Amount must be non-negative."),
-    notes: z.string().optional(),
-    paymentMethod: z.enum(["Cash", "Cheque", "E-Wallet", "Bank Transfer"]).default("Cash"),
-    bankName: z.string().optional(),
-    chequeNumber: z.string().optional(),
-    chequeDate: z.date().optional(),
-    eWalletReference: z.string().optional(),
-    bankTransferReference: z.string().optional(),
-});
-
 const jobOrderItemSchema = z.object({
   id: z.string().optional(),
   description: z.string().min(1, "Description is required."),
@@ -37,9 +24,9 @@ const jobOrderSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
   status: z.enum(["Pending", "Downpayment", "Completed", "Cancelled"]),
+  paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  payments: z.array(paymentSchema).optional(),
   items: z.array(jobOrderItemSchema).min(1, "At least one item is required."),
 });
 
@@ -71,16 +58,6 @@ export async function createJobOrderAction(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
-    
-    const payments = validatedData.payments?.map(p => ({
-        ...p,
-        id: p.id || crypto.randomUUID(),
-        date: p.date.toISOString(),
-        chequeDate: p.chequeDate?.toISOString(),
-    })) || [];
-    
-    const paidAmount = payments.reduce((acc, p) => acc + p.amount, 0);
-
 
     const newJobOrder: JobOrder = {
       id: crypto.randomUUID(),
@@ -92,10 +69,9 @@ export async function createJobOrderAction(
       dueDate: validatedData.dueDate.toISOString(),
       notes: validatedData.notes,
       status: validatedData.status,
+      paidAmount: validatedData.paidAmount || 0,
       discount: validatedData.discount,
       discountType: validatedData.discountType,
-      paidAmount: paidAmount,
-      payments: payments,
       items: validatedData.items.map((item) => ({
         ...item,
         id: item.id || crypto.randomUUID(),
@@ -126,15 +102,6 @@ export async function updateJobOrderAction(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
-        
-        const payments = validatedData.payments?.map(p => ({
-            ...p,
-            id: p.id || crypto.randomUUID(),
-            date: p.date.toISOString(),
-            chequeDate: p.chequeDate?.toISOString(),
-        })) || [];
-    
-        const paidAmount = payments.reduce((acc, p) => acc + p.amount, 0);
 
         const updatedJobOrder: JobOrder = {
             id: validatedData.id,
@@ -146,10 +113,9 @@ export async function updateJobOrderAction(
             dueDate: validatedData.dueDate.toISOString(),
             notes: validatedData.notes,
             status: validatedData.status,
+            paidAmount: validatedData.paidAmount || 0,
             discount: validatedData.discount,
             discountType: validatedData.discountType,
-            paidAmount: paidAmount,
-            payments: payments,
             items: validatedData.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),

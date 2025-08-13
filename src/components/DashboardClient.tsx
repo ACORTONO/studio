@@ -20,7 +20,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
@@ -44,9 +43,8 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogClose,
-  DialogFooter,
-  DialogTrigger
+  DialogTrigger,
+  DialogClose
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -65,7 +63,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Expense, ExpenseCategory, JobOrder, JobOrderItem, Payment } from "@/lib/types";
+import { Expense, ExpenseCategory, JobOrder, JobOrderItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Textarea } from "./ui/textarea";
@@ -84,11 +82,6 @@ const expenseSchema = z.object({
     description: z.string().min(1, 'Main description is required'),
     category: z.enum(['General', 'Cash Advance', 'Salary', 'Fixed Expense']),
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
-});
-
-const paymentSchema = z.object({
-    amount: z.coerce.number().min(0.01, "Amount must be positive."),
-    notes: z.string().optional()
 });
 
 type SortableJobOrderKeys = keyof JobOrder | 'items' | 'balance';
@@ -157,15 +150,8 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
 
 const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id: string) => void }) => {
     const { updateJobOrder } = useJobOrders();
-    const { toast } = useToast();
     const [isOpen, setIsOpen] = useState(false);
-    const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
     const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
-
-    const paymentForm = useForm<z.infer<typeof paymentSchema>>({
-        resolver: zodResolver(paymentSchema),
-        defaultValues: { amount: 0, notes: "" }
-    });
     
     const subtotal = jobOrder.totalAmount;
     const discountValue = jobOrder.discount || 0;
@@ -175,49 +161,6 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
     const paidAmount = jobOrder.paidAmount || 0;
     const balance = subtotal - discountAmount - paidAmount;
 
-    const handleAddPayment = (values: z.infer<typeof paymentSchema>) => {
-        const newPayment: Payment = {
-            id: crypto.randomUUID(),
-            date: new Date().toISOString(),
-            amount: values.amount,
-            notes: values.notes
-        };
-
-        const existingPayments = jobOrder.payments || [];
-        const updatedPayments = [...existingPayments, newPayment];
-        const newPaidAmount = updatedPayments.reduce((sum, p) => sum + p.amount, 0);
-        
-        let remainingPayment = values.amount;
-        const updatedItems = jobOrder.items.map(item => {
-            if (item.status === 'Paid') return item;
-            
-            const itemTotal = item.quantity * item.amount;
-            // This is a simplification. A real system might need more complex logic
-            // for partial payments on items. Here we just mark as Paid if covered.
-            if (remainingPayment > 0) {
-                 if (item.status === 'Unpaid' && remainingPayment >= itemTotal) {
-                    remainingPayment -= itemTotal;
-                    return {...item, status: 'Paid' as const};
-                 } else if (item.status === 'Unpaid' || item.status === 'Downpayment') {
-                    return {...item, status: 'Downpayment' as const};
-                 }
-            }
-            return item;
-        });
-
-        const updatedJobOrder: JobOrder = {
-            ...jobOrder,
-            items: updatedItems,
-            payments: updatedPayments,
-            paidAmount: newPaidAmount,
-        };
-        
-        updateJobOrder(updatedJobOrder);
-        toast({ title: "Success", description: "Payment added successfully." });
-        paymentForm.reset();
-        setIsPaymentDialogOpen(false);
-    }
-    
     const derivedStatus = useMemo(() => {
         if (jobOrder.status === 'Cancelled') {
             return 'Cancelled';
@@ -306,106 +249,28 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
             {isOpen && (
                 <TableRow>
                     <TableCell colSpan={11} className="p-0">
-                        <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/50">
-                           <div>
-                                <h4 className="font-semibold mb-2 ml-4">Job Order Items:</h4>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Description</TableHead>
-                                            <TableHead className="text-center">Qty</TableHead>
-                                            <TableHead className="text-right">Price</TableHead>
-                                            <TableHead className="text-right">Total</TableHead>
+                        <div className="p-4 bg-muted/50">
+                            <h4 className="font-semibold mb-2 ml-4">Job Order Items:</h4>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead className="text-center">Qty</TableHead>
+                                        <TableHead className="text-right">Price</TableHead>
+                                        <TableHead className="text-right">Total</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {jobOrder.items.map(item => (
+                                        <TableRow key={item.id}>
+                                            <TableCell>{item.description}</TableCell>
+                                            <TableCell className="text-center">{item.quantity}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
                                         </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {jobOrder.items.map(item => (
-                                            <TableRow key={item.id}>
-                                                <TableCell>
-                                                    {item.description}
-                                                    {item.remarks && <p className="text-xs text-muted-foreground">{item.remarks}</p>}
-                                                </TableCell>
-                                                <TableCell className="text-center">{item.quantity}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
-                                            </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                           </div>
-                           <div>
-                               <div className="flex justify-between items-center mb-2 ml-4">
-                                    <h4 className="font-semibold">Payment History:</h4>
-                                     <Dialog open={isPaymentDialogOpen} onOpenChange={setIsPaymentDialogOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button size="sm" disabled={balance <= 0}>
-                                                <PlusCircle className="mr-2 h-4 w-4"/> Add Payment
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent>
-                                            <form onSubmit={paymentForm.handleSubmit(handleAddPayment)}>
-                                                <DialogHeader>
-                                                    <DialogTitle>Add Payment for {jobOrder.jobOrderNumber}</DialogTitle>
-                                                    <DialogDescription>
-                                                        Record a new payment. The current balance is <span className="font-bold">{formatCurrency(balance)}</span>.
-                                                    </DialogDescription>
-                                                </DialogHeader>
-                                                <div className="grid gap-4 py-4">
-                                                    <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label htmlFor="amount" className="text-right">Amount</Label>
-                                                        <Input id="amount" type="number" {...paymentForm.register('amount')} className="col-span-3" placeholder="0.00" />
-                                                        {paymentForm.formState.errors.amount && <p className="text-red-500 text-xs col-span-4 text-right">{paymentForm.formState.errors.amount.message}</p>}
-                                                    </div>
-                                                     <div className="grid grid-cols-4 items-center gap-4">
-                                                        <Label htmlFor="notes" className="text-right">Notes</Label>
-                                                        <Textarea id="notes" {...paymentForm.register('notes')} className="col-span-3" placeholder="Optional notes for the payment"/>
-                                                    </div>
-                                                </div>
-                                                <DialogFooter>
-                                                    <DialogClose asChild>
-                                                        <Button type="button" variant="secondary">Cancel</Button>
-                                                    </DialogClose>
-                                                    <Button type="submit">Save Payment</Button>
-                                                </DialogFooter>
-                                            </form>
-                                        </DialogContent>
-                                    </Dialog>
-                               </div>
-                                <Table>
-                                    <TableHeader>
-                                        <TableRow>
-                                            <TableHead>Date</TableHead>
-                                            <TableHead>Notes</TableHead>
-                                            <TableHead className="text-right">Amount</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {jobOrder.payments && jobOrder.payments.length > 0 ? (
-                                             jobOrder.payments.map(payment => (
-                                                <TableRow key={payment.id}>
-                                                    <TableCell>{new Date(payment.date).toLocaleDateString()}</TableCell>
-                                                    <TableCell>{payment.notes}</TableCell>
-                                                    <TableCell className="text-right">{formatCurrency(payment.amount)}</TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : (
-                                            <TableRow>
-                                                <TableCell colSpan={3} className="text-center h-24">No payments recorded.</TableCell>
-                                            </TableRow>
-                                        )}
-                                    </TableBody>
-                                    <TableFooter>
-                                        <TableRow>
-                                            <TableCell colSpan={2} className="text-right font-bold">Total Paid</TableCell>
-                                            <TableCell className="text-right font-bold">{formatCurrency(jobOrder.paidAmount)}</TableCell>
-                                        </TableRow>
-                                        <TableRow>
-                                            <TableCell colSpan={2} className="text-right font-bold">Balance Due</TableCell>
-                                            <TableCell className="text-right font-bold text-destructive">{formatCurrency(balance)}</TableCell>
-                                        </TableRow>
-                                    </TableFooter>
-                                </Table>
-                           </div>
+                                    ))}
+                                </TableBody>
+                            </Table>
                         </div>
                     </TableCell>
                 </TableRow>

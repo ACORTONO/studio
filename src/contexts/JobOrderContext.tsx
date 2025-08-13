@@ -3,7 +3,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import type { JobOrder, Expense, SalaryPayment, ExpenseCategory, Payment } from "@/lib/types";
+import type { JobOrder, Expense, SalaryPayment, ExpenseCategory } from "@/lib/types";
 
 // Mock data for initial state, used only if localStorage is empty
 const mockJobOrders: JobOrder[] = [
@@ -17,14 +17,9 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i1", description: "Logo Design", quantity: 1, amount: 500, remarks: "Initial concept", status: 'Paid' }],
     totalAmount: 500,
-    payments: [{id: 'p1', date: new Date().toISOString(), amount: 500, notes: 'Full payment'}],
+    paidAmount: 500,
     discount: 50,
     discountType: 'amount',
-    paidAmount: 500,
-    paymentMethod: 'Cheque',
-    bankName: 'BPI',
-    chequeNumber: '123456',
-    chequeDate: new Date().toISOString(),
     status: 'Completed',
     notes: "Client wants a modern, minimalist logo. Prefers blue and silver."
   },
@@ -38,11 +33,9 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i2", description: "Website Development", quantity: 1, amount: 2500, remarks: "5 pages", status: 'Downpayment' }, { id: 'i3', description: 'Hosting (1 year)', quantity: 1, amount: 150, remarks: '', status: 'Unpaid' }],
     totalAmount: 2650,
-    payments: [{id: 'p2', date: new Date().toISOString(), amount: 1000, notes: 'Downpayment'}],
+    paidAmount: 1000,
     discount: 0,
     discountType: 'amount',
-    paidAmount: 1000,
-    paymentMethod: 'Cash',
     status: 'Downpayment',
     notes: ""
   },
@@ -56,11 +49,9 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: "i4", description: "Business Cards", quantity: 200, amount: 50, remarks: "Matte finish", status: 'Unpaid' }],
     totalAmount: 50,
-    payments: [],
+    paidAmount: 0,
     discount: 0,
     discountType: 'amount',
-    paidAmount: 0,
-    paymentMethod: 'Cash',
     status: 'Pending',
     notes: "Awaiting payment before printing."
   },
@@ -74,12 +65,9 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i5', description: 'Social Media Campaign', quantity: 1, amount: 1200, remarks: '1 month management', status: 'Paid' }],
     totalAmount: 1200,
-    payments: [{id: 'p3', date: new Date().toISOString(), amount: 1200, notes: 'Paid via GCash'}],
+    paidAmount: 1200,
     discount: 100,
     discountType: 'amount',
-    paidAmount: 1200,
-    paymentMethod: 'E-Wallet',
-    eWalletReference: 'GCash Ref: 987654321',
     status: 'Completed',
     notes: 'Campaign for new product launch'
   },
@@ -93,12 +81,9 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i6', description: 'Video Production', quantity: 1, amount: 5000, remarks: '3-minute corporate video', status: 'Downpayment' }],
     totalAmount: 5000,
-    payments: [{id: 'p4', date: new Date().toISOString(), amount: 2500, notes: 'Bank Transfer DP'}],
+    paidAmount: 2500,
     discount: 10,
     discountType: 'percent',
-    paidAmount: 2500,
-    paymentMethod: 'Bank Transfer',
-    bankTransferReference: 'BDO Ref: ABC12345',
     status: 'Downpayment',
     notes: 'First half paid upfront.'
   },
@@ -112,11 +97,9 @@ const mockJobOrders: JobOrder[] = [
     dueDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
     items: [{ id: 'i7', description: 'Network Security Audit', quantity: 1, amount: 3500, remarks: 'Full infrastructure scan', status: 'Unpaid' }],
     totalAmount: 3500,
-    payments: [],
+    paidAmount: 0,
     discount: 0,
     discountType: 'amount',
-    paidAmount: 0,
-    paymentMethod: 'Cash',
     status: 'Pending',
     notes: 'Requires on-site visit.'
   },
