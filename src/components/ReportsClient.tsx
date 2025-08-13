@@ -27,7 +27,7 @@ import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-type SortableJobOrderKeys = keyof JobOrder;
+type SortableJobOrderKeys = keyof JobOrder | 'balance';
 
 export const getStatusBadge = (status: JobOrder['status']) => {
     switch (status) {
@@ -101,6 +101,16 @@ export function ReportsClient() {
 
     if (sortConfig !== null) {
         filtered.sort((a, b) => {
+            if (sortConfig.key === 'balance') {
+                 const aDiscountValue = a.discount || 0;
+                 const aDiscountAmount = a.discountType === 'percent' ? a.totalAmount * (aDiscountValue / 100) : aDiscountValue;
+                 const aBalance = a.totalAmount - (a.paidAmount || 0) - aDiscountAmount;
+                 const bDiscountValue = b.discount || 0;
+                 const bDiscountAmount = b.discountType === 'percent' ? b.totalAmount * (bDiscountValue / 100) : bDiscountValue;
+                 const bBalance = b.totalAmount - (b.paidAmount || 0) - bDiscountAmount;
+                 return sortConfig.direction === 'ascending' ? aBalance - bBalance : bBalance - aBalance;
+            }
+
             const aValue = a[sortConfig.key];
             const bValue = b[sortConfig.key];
 
@@ -215,7 +225,7 @@ export function ReportsClient() {
                         <SortableHeader title="Client Name" sortKey="clientName" />
                         <SortableHeader title="Total Amount" sortKey="totalAmount" />
                         <SortableHeader title="Paid" sortKey="paidAmount" />
-                        <TableHead className="text-center">Balance</TableHead>
+                        <SortableHeader title="Balance" sortKey="balance" />
                         <SortableHeader title="Status" sortKey="status" />
                     </TableRow>
                     </TableHeader>
@@ -318,5 +328,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
