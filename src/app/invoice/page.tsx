@@ -3,7 +3,7 @@
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { useInvoices } from "@/contexts/InvoiceContext";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useState } from "react";
 import { Search, Trash2 } from "lucide-react";
@@ -46,22 +46,35 @@ export default function InvoicePage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-headline font-bold mb-6">New Invoice</h1>
-                <InvoiceForm />
+             <div className="flex items-center justify-between">
+                <h1 className="text-3xl font-headline font-bold">Invoices</h1>
+                 <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search by client or invoice #"
+                        className="pl-10 w-full sm:w-64"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>New Invoice</CardTitle>
+                    <CardDescription>Create a new invoice for a client.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <InvoiceForm />
+                </CardContent>
+            </Card>
+
             <Card>
                 <CardHeader>
                     <CardTitle>Existing Invoices</CardTitle>
-                    <div className="relative mt-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Search by client or invoice #"
-                            className="pl-10 w-full sm:w-64"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
+                     <CardDescription>
+                        A list of all your existing invoices.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
