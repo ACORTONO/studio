@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
@@ -26,10 +27,35 @@ import { format, parseISO, startOfWeek, endOfWeek, startOfToday, endOfToday, sta
 import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 
 type SortableJobOrderKeys = keyof JobOrder | 'balance';
 
-export const getStatusBadge = (status: JobOrder['status']) => {
+export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['items'] = []) => {
+    const itemStatusCounts = items.reduce((acc, item) => {
+        acc[item.status] = (acc[item.status] || 0) + 1;
+        return acc;
+    }, {} as Record<JobOrder['items'][0]['status'], number>);
+
+    const statusSummary = Object.entries(itemStatusCounts)
+        .map(([st, count]) => `${count} ${st.toLowerCase()}`)
+        .join(', ');
+
+    if (items.some(i => i.status === 'Cheque')) {
+         return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Cheque</Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                       <p>{statusSummary || 'Awaiting cheque clearance'}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }
+
     switch (status) {
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
@@ -261,7 +287,7 @@ export function ReportsClient() {
                                 <TableCell className="text-center">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                                 <TableCell className="text-center font-semibold">{formatCurrency(balance)}</TableCell>
                                 <TableCell className="text-center">
-                                    {getStatusBadge(jobOrder.status)}
+                                    {getStatusBadge(jobOrder.status, jobOrder.items)}
                                 </TableCell>
                             </TableRow>
                         );

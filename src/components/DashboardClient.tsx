@@ -112,6 +112,20 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
         .map(([st, count]) => `${count} ${st.toLowerCase()}`)
         .join(', ');
 
+    if (items.some(i => i.status === 'Cheque')) {
+         return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Cheque</Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                       <p>{statusSummary || 'Awaiting cheque clearance'}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        )
+    }
 
     switch (status) {
         case 'Completed':
@@ -832,5 +846,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
