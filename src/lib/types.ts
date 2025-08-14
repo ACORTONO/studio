@@ -74,7 +74,7 @@ export interface Invoice {
   items: InvoiceItem[];
   totalAmount: number;
   status: 'Unpaid' | 'Paid';
-  notes?: string;
+  termsAndConditions?: string;
   discount?: number;
   discountType?: 'amount' | 'percent';
   tax?: number;
@@ -101,4 +101,3 @@ export interface CompanyProfile {
     
 
     
-

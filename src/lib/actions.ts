@@ -193,7 +193,7 @@ const invoiceSchemaBase = z.object({
   tinNumber: z.string().optional(),
   date: z.date({ required_error: "An invoice date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
-  notes: z.string().optional(),
+  termsAndConditions: z.string().optional(),
   status: z.enum(["Unpaid", "Paid"]),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required."),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional().default(0),
@@ -248,7 +248,7 @@ export async function createInvoiceAction(
       tinNumber: validatedData.tinNumber,
       date: validatedData.date.toISOString(),
       dueDate: validatedData.dueDate.toISOString(),
-      notes: validatedData.notes,
+      termsAndConditions: validatedData.termsAndConditions,
       status: validatedData.status,
       items: validatedData.items.map((item) => ({
         ...item,
@@ -300,7 +300,7 @@ export async function updateInvoiceAction(
             tinNumber: validatedData.tinNumber,
             date: validatedData.date.toISOString(),
             dueDate: validatedData.dueDate.toISOString(),
-            notes: validatedData.notes,
+            termsAndConditions: validatedData.termsAndConditions,
             status: validatedData.status,
             items: validatedData.items.map((item) => ({
                 ...item,

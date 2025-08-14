@@ -152,10 +152,10 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
               </section>
 
                <section className="flex justify-between mb-8">
-                {invoice.notes && (
+                {invoice.termsAndConditions && (
                   <div className="w-1/2">
-                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Notes</h3>
-                      <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md text-sm">{invoice.notes}</p>
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Terms & Conditions</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md text-sm">{invoice.termsAndConditions}</p>
                   </div>
                 )}
                 <div className="w-full max-w-xs space-y-2 ml-auto">

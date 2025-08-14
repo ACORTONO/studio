@@ -57,7 +57,7 @@ const formSchema = z.object({
   tinNumber: z.string().optional(),
   date: z.date({ required_error: "An invoice date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
-  notes: z.string().optional(),
+  termsAndConditions: z.string().optional(),
   status: z.enum(["Unpaid", "Paid"]),
   items: z
     .array(
@@ -96,7 +96,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: initialData ? {
         ...initialData,
-        notes: initialData.notes || '',
+        termsAndConditions: initialData.termsAndConditions || '',
         tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
         dueDate: new Date(initialData.dueDate),
@@ -106,7 +106,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       tinNumber: "",
       date: new Date(), 
       dueDate: new Date(),
-      notes: "",
+      termsAndConditions: "",
       status: "Unpaid",
       items: [{ description: "", quantity: 1, amount: 0 }],
       discount: 0,
@@ -120,7 +120,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     if (initialData) {
        form.reset({
         ...initialData,
-        notes: initialData.notes || '',
+        termsAndConditions: initialData.termsAndConditions || '',
         tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
         dueDate: new Date(initialData.dueDate),
@@ -181,7 +181,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             clientName: "",
             address: "",
             tinNumber: "",
-            notes: "",
+            termsAndConditions: "",
             status: "Unpaid",
             items: [{ description: "", quantity: 1, amount: 0 }],
             date: new Date(),
@@ -461,12 +461,12 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             <div>
                <FormField
                 control={form.control}
-                name="notes"
+                name="termsAndConditions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notes</FormLabel>
+                    <FormLabel>Terms & Conditions</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Add any notes for the client" {...field} value={field.value || ''} />
+                      <Textarea placeholder="Add any terms or conditions for the client" {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
