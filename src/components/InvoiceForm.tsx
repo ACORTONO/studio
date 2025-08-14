@@ -366,7 +366,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border-collapse border border-slate-400">
                       <thead className="text-muted-foreground uppercase text-sm">
                           <tr>
-                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0 border border-slate-300">Description</th>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-center font-semibold sm:pl-0 border border-slate-300">Description</th>
                               <th scope="col" className="px-3 py-3.5 text-center font-semibold border border-slate-300">Quantity</th>
                               <th scope="col" className="px-3 py-3.5 text-center font-semibold border border-slate-300">Unit Price</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold border border-slate-300">Amount</th>
@@ -376,7 +376,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                           {fields.map((field, index) => (
                               <tr key={field.id}>
-                                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-0 border border-slate-300">
+                                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-0 border border-slate-300 text-center">
                                       <FormField
                                           control={form.control}
                                           name={`items.${index}.description`}
