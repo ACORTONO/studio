@@ -40,11 +40,13 @@ import { useInvoices } from "@/contexts/InvoiceContext";
 import { createInvoiceAction, updateInvoiceAction } from "@/lib/actions";
 import { Invoice } from "@/lib/types";
 import { format } from "date-fns";
-import React, { useEffect, use } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -64,6 +66,10 @@ const formSchema = z.object({
       })
     )
     .min(1, "At least one item is required."),
+  discount: z.coerce.number().min(0, "Discount must be non-negative.").optional().default(0),
+  discountType: z.enum(['amount', 'percent']).default('amount'),
+  tax: z.coerce.number().min(0, "Tax must be non-negative.").optional().default(0),
+  taxType: z.enum(['amount', 'percent']).default('amount'),
 });
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
@@ -97,6 +103,10 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       notes: "",
       status: "Unpaid",
       items: [{ description: "", quantity: 1, amount: 0 }],
+      discount: 0,
+      discountType: 'amount',
+      tax: 0,
+      taxType: 'amount'
     },
   });
 
@@ -116,11 +126,28 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
   });
 
   const watchItems = form.watch("items");
+  const watchDiscountValue = form.watch("discount") || 0;
+  const watchDiscountType = form.watch("discountType");
+  const watchTaxValue = form.watch("tax") || 0;
+  const watchTaxType = form.watch("taxType");
   
   const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
     0
   );
+
+  const calculatedDiscount = watchDiscountType === 'percent'
+    ? subTotal * (watchDiscountValue / 100)
+    : watchDiscountValue;
+
+  const taxableAmount = subTotal - calculatedDiscount;
+  
+  const calculatedTax = watchTaxType === 'percent'
+    ? taxableAmount * (watchTaxValue / 100)
+    : watchTaxValue;
+  
+  const totalAmount = taxableAmount + calculatedTax;
+
 
   const onSubmit = async (data: InvoiceFormValues) => {
     setIsSubmitting(true);
@@ -151,6 +178,10 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             items: [{ description: "", quantity: 1, amount: 0 }],
             date: new Date(),
             dueDate: new Date(),
+            discount: 0,
+            discountType: 'amount',
+            tax: 0,
+            taxType: 'amount'
         });
       }
     } else {
@@ -442,17 +473,80 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span className="font-medium">{formatCurrency(subTotal)}</span>
                     </div>
-                    <div className="flex justify-between">
-                        <FormLabel className="text-muted-foreground">Discount</FormLabel>
-                        <span className="font-medium text-primary cursor-pointer">Add</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <FormLabel className="text-muted-foreground">Tax</FormLabel>
-                        <span className="font-medium text-primary cursor-pointer">Add</span>
-                    </div>
+                     <FormField
+                        control={form.control}
+                        name="discount"
+                        render={({ field }) => (
+                           <FormItem>
+                             <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Discount</FormLabel>
+                                <div className="flex items-center gap-2">
+                                   <FormField
+                                      control={form.control}
+                                      name="discountType"
+                                      render={({ field: switchField }) => (
+                                          <div className="flex items-center space-x-2">
+                                              <Switch
+                                                  id="discount-type"
+                                                  checked={switchField.value === 'percent'}
+                                                  onCheckedChange={(checked) => {
+                                                      switchField.onChange(checked ? 'percent' : 'amount');
+                                                  }}
+                                              />
+                                              <Label htmlFor="discount-type" className="text-xs">
+                                                  {watchDiscountType === 'amount' ? '₱' : '%'}
+                                              </Label>
+                                          </div>
+                                      )}
+                                  />
+                                  <FormControl>
+                                      <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
+                                  </FormControl>
+                                </div>
+                            </div>
+                             <FormMessage className="text-right" />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="tax"
+                        render={({ field }) => (
+                           <FormItem>
+                             <div className="flex justify-between items-center">
+                                <FormLabel className="text-muted-foreground">Tax</FormLabel>
+                                <div className="flex items-center gap-2">
+                                   <FormField
+                                      control={form.control}
+                                      name="taxType"
+                                      render={({ field: switchField }) => (
+                                          <div className="flex items-center space-x-2">
+                                              <Switch
+                                                  id="tax-type"
+                                                  checked={switchField.value === 'percent'}
+                                                  onCheckedChange={(checked) => {
+                                                      switchField.onChange(checked ? 'percent' : 'amount');
+                                                  }}
+                                              />
+                                              <Label htmlFor="tax-type" className="text-xs">
+                                                  {watchTaxType === 'amount' ? '₱' : '%'}
+                                              </Label>
+                                          </div>
+                                      )}
+                                  />
+                                  <FormControl>
+                                      <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
+                                  </FormControl>
+                                </div>
+                            </div>
+                             <FormMessage className="text-right" />
+                            </FormItem>
+                        )}
+                    />
+
                     <div className="flex justify-between border-t pt-4 mt-4 border-border font-bold text-lg">
                         <span className="">Total</span>
-                        <span className="text-primary">{formatCurrency(subTotal)}</span>
+                        <span className="text-primary">{formatCurrency(totalAmount)}</span>
                     </div>
                 </div>
             </div>

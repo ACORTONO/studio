@@ -57,7 +57,17 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
   
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
   
-  const subtotal = invoice.totalAmount;
+  const subtotal = invoice.items.reduce((acc, item) => acc + (item.quantity * item.amount), 0);
+  const discountValue = invoice.discount || 0;
+  const discountAmount = invoice.discountType === 'percent'
+    ? subtotal * (discountValue / 100)
+    : discountValue;
+  const taxableAmount = subtotal - discountAmount;
+  const taxValue = invoice.tax || 0;
+  const taxAmount = invoice.taxType === 'percent'
+    ? taxableAmount * (taxValue / 100)
+    : taxValue;
+
 
   return (
     <div className='p-4 sm:p-6 lg:p-8 min-h-screen bg-gray-100'>
@@ -151,14 +161,20 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                         <span className="font-semibold text-gray-600">Subtotal:</span>
                         <span>{formatCurrency(subtotal)}</span>
                     </div>
+                    {discountValue > 0 && (
+                        <div className="flex justify-between">
+                            <span className="font-semibold text-gray-600">Discount {invoice.discountType === 'percent' ? `(${invoice.discount}%)` : ''}:</span>
+                            <span>- {formatCurrency(discountAmount)}</span>
+                        </div>
+                    )}
                      <div className="flex justify-between">
-                        <span className="font-semibold text-gray-600">Taxes (0%):</span>
-                        <span>{formatCurrency(0)}</span>
+                        <span className="font-semibold text-gray-600">Tax {invoice.taxType === 'percent' ? `(${invoice.tax}%)` : ''}:</span>
+                        <span>{formatCurrency(taxAmount)}</span>
                     </div>
                     <Separator className="my-2"/>
                      <div className="flex justify-between font-bold text-lg text-primary">
                         <span>Total Due:</span>
-                        <span>{formatCurrency(subtotal)}</span>
+                        <span>{formatCurrency(invoice.totalAmount)}</span>
                     </div>
                 </div>
                </section>

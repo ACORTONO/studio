@@ -196,6 +196,10 @@ const invoiceSchemaBase = z.object({
   notes: z.string().optional(),
   status: z.enum(["Unpaid", "Paid"]),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required."),
+  discount: z.coerce.number().min(0, "Discount must be non-negative.").optional().default(0),
+  discountType: z.enum(['amount', 'percent']).default('amount'),
+  tax: z.coerce.number().min(0, "Tax must be non-negative.").optional().default(0),
+  taxType: z.enum(['amount', 'percent']).default('amount'),
 });
 
 const invoiceSchema = invoiceSchemaBase;
@@ -221,12 +225,20 @@ export async function createInvoiceAction(
       throw new Error("Failed to generate invoice number.");
     }
 
-    const totalAmount = validation.data.items.reduce(
+    const validatedData = validation.data;
+    
+    const subtotal = validatedData.items.reduce(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
 
-    const validatedData = validation.data;
+    const discountValue = validatedData.discount || 0;
+    const discountAmount = validatedData.discountType === 'percent' ? subtotal * (discountValue / 100) : discountValue;
+    
+    const taxValue = validatedData.tax || 0;
+    const taxAmount = validatedData.taxType === 'percent' ? (subtotal - discountAmount) * (taxValue / 100) : taxValue;
+
+    const totalAmount = subtotal - discountAmount + taxAmount;
 
     const newInvoice: Invoice = {
       id: crypto.randomUUID(),
@@ -242,6 +254,10 @@ export async function createInvoiceAction(
         ...item,
         id: item.id || crypto.randomUUID(),
       })),
+      discount: validatedData.discount,
+      discountType: validatedData.discountType,
+      tax: validatedData.tax,
+      taxType: validatedData.taxType,
       totalAmount,
     };
 
@@ -261,26 +277,39 @@ export async function updateInvoiceAction(
     }
 
     try {
-        const existingInvoice = validation.data;
-        const totalAmount = existingInvoice.items.reduce(
+        const validatedData = validation.data;
+        
+        const subtotal = validatedData.items.reduce(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
 
+        const discountValue = validatedData.discount || 0;
+        const discountAmount = validatedData.discountType === 'percent' ? subtotal * (discountValue / 100) : discountValue;
+
+        const taxValue = validatedData.tax || 0;
+        const taxAmount = validatedData.taxType === 'percent' ? (subtotal - discountAmount) * (taxValue / 100) : taxValue;
+
+        const totalAmount = subtotal - discountAmount + taxAmount;
+
         const updatedInvoice: Invoice = {
-            id: existingInvoice.id,
-            invoiceNumber: existingInvoice.invoiceNumber,
-            clientName: existingInvoice.clientName,
-            address: existingInvoice.address,
-            tinNumber: existingInvoice.tinNumber,
-            date: existingInvoice.date.toISOString(),
-            dueDate: existingInvoice.dueDate.toISOString(),
-            notes: existingInvoice.notes,
-            status: existingInvoice.status,
-            items: existingInvoice.items.map((item) => ({
+            id: validatedData.id,
+            invoiceNumber: validatedData.invoiceNumber,
+            clientName: validatedData.clientName,
+            address: validatedData.address,
+            tinNumber: validatedData.tinNumber,
+            date: validatedData.date.toISOString(),
+            dueDate: validatedData.dueDate.toISOString(),
+            notes: validatedData.notes,
+            status: validatedData.status,
+            items: validatedData.items.map((item) => ({
                 ...item,
                 id: item.id || crypto.randomUUID(),
             })),
+            discount: validatedData.discount,
+            discountType: validatedData.discountType,
+            tax: validatedData.tax,
+            taxType: validatedData.taxType,
             totalAmount,
         };
         

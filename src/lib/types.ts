@@ -75,6 +75,10 @@ export interface Invoice {
   totalAmount: number;
   status: 'Unpaid' | 'Paid';
   notes?: string;
+  discount?: number;
+  discountType?: 'amount' | 'percent';
+  tax?: number;
+  taxType?: 'amount' | 'percent';
 }
 
 export interface SalaryPayment {

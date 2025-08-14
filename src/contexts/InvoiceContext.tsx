@@ -20,7 +20,11 @@ const mockInvoices: Invoice[] = [
     ],
     totalAmount: 1650,
     status: 'Unpaid',
-    notes: "Initial project phase billing."
+    notes: "Initial project phase billing.",
+    discount: 0,
+    discountType: 'amount',
+    tax: 0,
+    taxType: 'percent',
   },
   {
     id: "inv-2",
@@ -35,7 +39,11 @@ const mockInvoices: Invoice[] = [
     ],
     totalAmount: 2000,
     status: 'Paid',
-    notes: "Payment received via bank transfer."
+    notes: "Payment received via bank transfer.",
+    discount: 10,
+    discountType: 'percent',
+    tax: 12,
+    taxType: 'percent',
   },
 ];
 
