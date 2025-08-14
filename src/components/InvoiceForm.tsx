@@ -405,26 +405,44 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
               </Button>
           </div>
           
-          <div className="mt-6 flex justify-end">
-              <div className="w-full max-w-sm space-y-4">
-                  <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span className="font-medium">{formatCurrency(subTotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                      <FormLabel className="text-muted-foreground">Discount</FormLabel>
-                      <span className="font-medium text-primary cursor-pointer">Add</span>
-                  </div>
-                   <div className="flex justify-between">
-                      <FormLabel className="text-muted-foreground">Tax</FormLabel>
-                      <span className="font-medium text-primary cursor-pointer">Add</span>
-                  </div>
-                  <div className="flex justify-between border-t pt-4 mt-4 border-border font-bold text-lg">
-                      <span className="">Total</span>
-                      <span className="text-primary">{formatCurrency(subTotal)}</span>
-                  </div>
-              </div>
+          <div className="grid grid-cols-2 gap-8">
+            <div>
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Notes</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Add any notes for the client" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="mt-6 flex justify-end">
+                <div className="w-full max-w-sm space-y-4">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span className="font-medium">{formatCurrency(subTotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <FormLabel className="text-muted-foreground">Discount</FormLabel>
+                        <span className="font-medium text-primary cursor-pointer">Add</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <FormLabel className="text-muted-foreground">Tax</FormLabel>
+                        <span className="font-medium text-primary cursor-pointer">Add</span>
+                    </div>
+                    <div className="flex justify-between border-t pt-4 mt-4 border-border font-bold text-lg">
+                        <span className="">Total</span>
+                        <span className="text-primary">{formatCurrency(subTotal)}</span>
+                    </div>
+                </div>
+            </div>
           </div>
+
 
           <div className="flex justify-end pt-8">
             <Button type="submit" size="lg" disabled={isSubmitting}>

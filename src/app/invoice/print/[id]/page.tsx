@@ -138,8 +138,14 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                   </Table>
               </section>
 
-               <section className="flex justify-end mb-8">
-                <div className="w-full max-w-xs space-y-2">
+               <section className="flex justify-between mb-8">
+                {invoice.notes && (
+                  <div className="w-1/2">
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Notes</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md text-sm">{invoice.notes}</p>
+                  </div>
+                )}
+                <div className="w-full max-w-xs space-y-2 ml-auto">
                     <div className="flex justify-between">
                         <span className="font-semibold text-gray-600">Subtotal:</span>
                         <span>{formatCurrency(subtotal)}</span>
@@ -155,14 +161,6 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                     </div>
                 </div>
                </section>
-
-
-               {invoice.notes && (
-                  <section className="mb-8">
-                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Notes</h3>
-                      <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md">{invoice.notes}</p>
-                  </section>
-               )}
              
               <footer className="mt-12 pt-4 border-t border-gray-200 text-gray-500 text-center text-sm">
                   <p>Thank you for your business! If you have any questions, please contact us at sales@adslab.com</p>
