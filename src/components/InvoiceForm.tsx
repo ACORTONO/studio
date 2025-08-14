@@ -365,9 +365,9 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                   <table className="min-w-full">
                       <thead className="text-muted-foreground uppercase text-sm">
                           <tr>
-                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0">Item</th>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0">Description</th>
                               <th scope="col" className="px-3 py-3.5 text-center font-semibold">Quantity</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Rate</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Price</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold">Amount</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0"></th>
                           </tr>
@@ -458,7 +458,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
           
           <div className="grid grid-cols-2 gap-8">
             <div>
-              <FormField
+               <FormField
                 control={form.control}
                 name="notes"
                 render={({ field }) => (

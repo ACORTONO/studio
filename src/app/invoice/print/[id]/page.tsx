@@ -130,7 +130,7 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                   <Table>
                       <TableHeader>
                           <TableRow className="bg-gray-100">
-                              <TableHead className="w-3/5 font-bold text-gray-700 p-2 h-auto">Item Description</TableHead>
+                              <TableHead className="w-3/5 font-bold text-gray-700 p-2 h-auto">Description</TableHead>
                               <TableHead className="text-center font-bold text-gray-700 p-2 h-auto">Quantity</TableHead>
                               <TableHead className="text-right font-bold text-gray-700 p-2 h-auto">Unit Price</TableHead>
                               <TableHead className="text-right font-bold text-gray-700 p-2 h-auto">Total</TableHead>
