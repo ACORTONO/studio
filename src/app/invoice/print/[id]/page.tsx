@@ -194,13 +194,15 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
              
               <footer className="mt-12 pt-8 text-gray-500 text-sm">
                   <div className="grid grid-cols-2 gap-12">
-                     <div>
+                     <div className="text-center">
                         <Separator className="bg-gray-400 mb-2"/>
-                        <p className="text-center font-semibold">Authorized Signature</p>
+                        <p className="font-semibold">{profile.name}</p>
+                        <p>Authorized Signature</p>
                      </div>
-                      <div>
+                      <div className="text-center">
                         <Separator className="bg-gray-400 mb-2"/>
-                        <p className="text-center font-semibold">Client Signature</p>
+                        <p className="font-semibold">{invoice.clientName}</p>
+                        <p>Client Signature</p>
                       </div>
                   </div>
                   <p className="text-center mt-8">Thank you for your business! If you have any questions, please contact us at {profile.email}</p>
