@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle, FileDown } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -69,6 +69,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collap
 import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { useRouter } from 'next/navigation';
 
 
 const expenseItemSchema = z.object({
@@ -298,6 +299,7 @@ export function DashboardClient() {
   const [jobOrderSortConfig, setJobOrderSortConfig] = React.useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [expenseSortConfig, setExpenseSortConfig] = React.useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
   const { toast } = useToast();
+  const router = useRouter();
 
 
   const expenseForm = useForm<z.infer<typeof expenseSchema>>({
@@ -496,6 +498,22 @@ export function DashboardClient() {
   const handleDeleteJobOrder = (jobOrderId: string) => {
     deleteJobOrder(jobOrderId);
     toast({ title: "Success", description: "Job order deleted successfully." });
+  }
+
+  const handlePrintPreview = () => {
+    const dataToPrint = {
+        jobOrders: filteredJobOrders,
+        summary: {
+            totalSales,
+            totalExpenses,
+            netProfit,
+            totalCustomers,
+            totalUnpaid
+        },
+        timeFilter,
+    };
+    localStorage.setItem('dashboardPrintData', JSON.stringify(dataToPrint));
+    router.push('/dashboard/print');
   }
 
   const watchExpenseItems = expenseForm.watch("items");
@@ -830,6 +848,10 @@ export function DashboardClient() {
     <div className="space-y-4">
         <div className="flex items-center justify-between">
             <h1 className="text-3xl font-headline font-bold">Dashboard</h1>
+             <Button onClick={handlePrintPreview} variant="outline" disabled={filteredJobOrders.length === 0}>
+                <FileDown className="mr-2 h-4 w-4" />
+                Print / Save Report
+            </Button>
         </div>
 
       <Tabs defaultValue="today" onValueChange={setTimeFilter} className="space-y-4">
