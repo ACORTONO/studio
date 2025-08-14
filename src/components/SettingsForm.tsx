@@ -18,9 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useCompanyProfile } from "@/contexts/CompanyProfileContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
-import { Save } from "lucide-react";
+import { Save, Upload } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
-import { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+import Image from "next/image";
 
 const formSchema = z.object({
   name: z.string().min(1, "Company name is required."),
@@ -37,6 +38,7 @@ type SettingsFormValues = z.infer<typeof formSchema>;
 export function SettingsForm() {
   const { toast } = useToast();
   const { profile, updateProfile, isDataLoaded } = useCompanyProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(formSchema),
@@ -70,6 +72,17 @@ export function SettingsForm() {
       description: "Company profile updated successfully.",
     });
   };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            form.setValue('logoUrl', reader.result as string);
+        };
+        reader.readAsDataURL(file);
+    }
+  }
 
   if (!isDataLoaded) {
     return (
@@ -123,10 +136,36 @@ export function SettingsForm() {
                     name="logoUrl"
                     render={({ field }) => (
                         <FormItem>
-                        <FormLabel>Logo URL</FormLabel>
-                        <FormControl>
-                            <Input placeholder="https://your-logo.com/logo.png" {...field} value={field.value || ''} />
-                        </FormControl>
+                            <FormLabel>Company Logo</FormLabel>
+                            <div className="flex items-center gap-4">
+                                <Image 
+                                    src={field.value || "https://placehold.co/100x100.png"} 
+                                    alt="Logo Preview" 
+                                    width={100} 
+                                    height={100} 
+                                    className="w-24 h-24 rounded-md border object-cover"
+                                />
+                                <div className="flex-1 space-y-2">
+                                     <FormControl>
+                                        <Input 
+                                            placeholder="Enter image URL or upload a file" 
+                                            {...field} 
+                                            value={field.value || ''}
+                                         />
+                                    </FormControl>
+                                    <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}>
+                                        <Upload className="mr-2 h-4 w-4" />
+                                        Upload Logo
+                                    </Button>
+                                    <Input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        className="hidden" 
+                                        accept="image/*"
+                                        onChange={handleLogoUpload}
+                                    />
+                                </div>
+                            </div>
                          <FormMessage />
                         </FormItem>
                     )}
