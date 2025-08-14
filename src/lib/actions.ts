@@ -62,10 +62,18 @@ export async function createJobOrderAction(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
+
+    const discountValue = validatedData.discount || 0;
+    const discountAmount = validatedData.discountType === 'percent'
+        ? totalAmount * (discountValue / 100)
+        : discountValue;
+    const balance = totalAmount - (validatedData.paidAmount || 0) - discountAmount;
     
     const itemStatuses = validatedData.items.map(item => item.status);
     let derivedStatus: JobOrder['status'] = 'Pending';
-    if (itemStatuses.every(s => s === 'Paid')) {
+    const isFullyPaid = balance <= 0 && validatedData.paidAmount > 0;
+
+    if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
         derivedStatus = 'Completed';
     } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (validatedData.paidAmount || 0) > 0) {
         derivedStatus = 'Downpayment';
@@ -120,10 +128,18 @@ export async function updateJobOrderAction(
             (acc, item) => acc + item.quantity * item.amount,
             0
         );
+
+        const discountValue = validatedData.discount || 0;
+        const discountAmount = validatedData.discountType === 'percent'
+            ? totalAmount * (discountValue / 100)
+            : discountValue;
+        const balance = totalAmount - (validatedData.paidAmount || 0) - discountAmount;
     
         const itemStatuses = validatedData.items.map(item => item.status);
         let derivedStatus: JobOrder['status'] = 'Pending';
-        if (itemStatuses.every(s => s === 'Paid')) {
+        const isFullyPaid = balance <= 0 && validatedData.paidAmount > 0;
+
+        if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
             derivedStatus = 'Completed';
         } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (validatedData.paidAmount || 0) > 0) {
             derivedStatus = 'Downpayment';
@@ -268,5 +284,3 @@ export async function updateInvoiceAction(
         return { success: false, error: "An unexpected error occurred." };
     }
 }
-
-    

@@ -179,9 +179,11 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
     React.useEffect(() => {
         const itemStatuses = jobOrder.items.map(item => item.status);
         let derivedStatus: JobOrder['status'] = 'Pending';
+        const isFullyPaid = balance <= 0 && jobOrder.paidAmount > 0;
+        
         if (jobOrder.status === 'Cancelled') {
             derivedStatus = 'Cancelled';
-        } else if (itemStatuses.every(s => s === 'Paid')) {
+        } else if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
             derivedStatus = 'Completed';
         } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (jobOrder.paidAmount || 0) > 0) {
             derivedStatus = 'Downpayment';
@@ -190,7 +192,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         if (jobOrder.status !== derivedStatus) {
             updateJobOrder({ ...jobOrder, status: derivedStatus });
         }
-    }, [jobOrder, updateJobOrder]);
+    }, [jobOrder, updateJobOrder, balance]);
 
 
     return (
