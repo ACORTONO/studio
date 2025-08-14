@@ -3,13 +3,12 @@
 
 import { JobOrderForm } from "@/components/JobOrderForm";
 import { useJobOrders } from "@/contexts/JobOrderContext";
-import { useParams } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, use } from "react";
 import { JobOrder } from "@/lib/types";
 
-export default function EditJobOrderPage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function EditJobOrderPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const { getJobOrderById } = useJobOrders();
     const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);

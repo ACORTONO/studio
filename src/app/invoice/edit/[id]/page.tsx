@@ -3,13 +3,12 @@
 
 import { InvoiceForm } from "@/components/InvoiceForm";
 import { useInvoices } from "@/contexts/InvoiceContext";
-import { useParams } from 'next/navigation';
 import { Skeleton } from "@/components/ui/skeleton";
-import { useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState, use } from "react";
 import { Invoice } from "@/lib/types";
 
-export default function EditInvoicePage({ params }: { params: { id: string } }) {
-    const { id } = params;
+export default function EditInvoicePage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params);
     const { getInvoiceById } = useInvoices();
     const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);

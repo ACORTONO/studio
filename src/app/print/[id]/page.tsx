@@ -1,8 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useLayoutEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useLayoutEffect, useState, use } from 'react';
 import { useJobOrders } from '@/contexts/JobOrderContext';
 import { JobOrder } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
@@ -13,8 +12,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function PrintPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function PrintPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const { jobOrders, getJobOrderById } = useJobOrders();
   const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);
