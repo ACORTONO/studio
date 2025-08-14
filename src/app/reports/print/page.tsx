@@ -5,22 +5,35 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { JobOrder } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getStatusBadge } from '@/components/ReportsClient';
 import { Printer, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
+interface ReportSummary {
+    totalSales: number;
+    totalCollectibles: number;
+    totalExpenses: number;
+    netProfit: number;
+    cashOnHand: number;
+}
+
 export default function PrintReportPage() {
     const router = useRouter();
     const [reportData, setReportData] = useState<{data: JobOrder[], title: string} | null>(null);
+    const [summaryData, setSummaryData] = useState<ReportSummary | null>(null);
     const [currentDate, setCurrentDate] = useState("");
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        const storedData = localStorage.getItem('reportData');
-        if (storedData) {
-            setReportData(JSON.parse(storedData));
+        const storedReportData = localStorage.getItem('reportData');
+        const storedSummaryData = localStorage.getItem('reportSummary');
+        if (storedReportData) {
+            setReportData(JSON.parse(storedReportData));
+        }
+        if (storedSummaryData) {
+            setSummaryData(JSON.parse(storedSummaryData));
         }
         setCurrentDate(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
         setIsLoading(false);
@@ -134,7 +147,7 @@ export default function PrintReportPage() {
                                     <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                                     <TableCell className="text-center">
-                                        {getStatusBadge(jobOrder.status)}
+                                        {getStatusBadge(jobOrder.status, jobOrder.items)}
                                     </TableCell>
                                 </TableRow>
                             );
@@ -148,6 +161,30 @@ export default function PrintReportPage() {
                             </TableRow>
                         )}
                         </TableBody>
+                         {summaryData && (
+                            <TableFooter>
+                                <TableRow className="font-bold">
+                                    <TableCell colSpan={7} className="text-right">Total Sales:</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(summaryData.totalSales)}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-right">Total Collectibles (Unpaid):</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(summaryData.totalCollectibles)}</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-right">Total Expenses:</TableCell>
+                                    <TableCell className="text-right text-red-600">({formatCurrency(summaryData.totalExpenses)})</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-right">Net Profit:</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(summaryData.netProfit)}</TableCell>
+                                </TableRow>
+                                <TableRow className="font-bold text-lg">
+                                    <TableCell colSpan={7} className="text-right">Cash On Hand:</TableCell>
+                                    <TableCell className="text-right text-green-600">{formatCurrency(summaryData.cashOnHand)}</TableCell>
+                                </TableRow>
+                            </TableFooter>
+                        )}
                     </Table>
                 </div>
              </div>

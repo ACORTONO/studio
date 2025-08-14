@@ -32,6 +32,7 @@ import { cn } from "@/lib/utils";
 type SortableJobOrderKeys = keyof JobOrder | 'balance';
 
 export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['items'] = []) => {
+    
     const itemStatusCounts = items.reduce((acc, item) => {
         acc[item.status] = (acc[item.status] || 0) + 1;
         return acc;
@@ -126,10 +127,11 @@ export function ReportsClient() {
     monthlyJobOrders,
     yearlyJobOrders,
     totalExpenses,
+    netProfit,
    } = useMemo(() => {
     const now = new Date();
     const grandTotalSales = jobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
-    const totalCollectibles = jobOrders.reduce((sum, jobOrder) => sum + (jobOrder.paidAmount || 0), 0);
+    const totalPaid = jobOrders.reduce((sum, jobOrder) => sum + (jobOrder.paidAmount || 0), 0);
     
     const totalDiscountAmount = jobOrders.reduce((sum, jobOrder) => {
         const discountValue = jobOrder.discount || 0;
@@ -139,9 +141,10 @@ export function ReportsClient() {
         return sum + discountAmount;
     }, 0);
     
-    const totalUnpaid = grandTotalSales - totalCollectibles - totalDiscountAmount;
+    const totalUnpaid = grandTotalSales - totalPaid - totalDiscountAmount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-    const cashOnHand = totalCollectibles - totalExpenses;
+    const cashOnHand = totalPaid - totalExpenses;
+    const netProfit = totalPaid - totalExpenses;
     
     let filtered = [...jobOrders].filter(jobOrder => 
       jobOrder.clientName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -213,7 +216,7 @@ export function ReportsClient() {
       });
 
 
-    return { totalCollectibles, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders, totalExpenses };
+    return { totalCollectibles: totalPaid, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders, totalExpenses, netProfit };
   }, [jobOrders, expenses, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -226,6 +229,25 @@ export function ReportsClient() {
 
   const handlePrintPreview = (data: JobOrder[], title: string) => {
     localStorage.setItem('reportData', JSON.stringify({ data, title }));
+    
+    const reportTotalSales = data.reduce((sum, jo) => sum + jo.totalAmount, 0);
+    const reportTotalPaid = data.reduce((sum, jo) => sum + (jo.paidAmount || 0), 0);
+    const reportDiscount = data.reduce((sum, jo) => {
+         const discountValue = jo.discount || 0;
+         const discountAmount = jo.discountType === 'percent' ? jo.totalAmount * (discountValue / 100) : discountValue;
+         return sum + discountAmount;
+    }, 0);
+    const reportTotalUnpaid = reportTotalSales - reportTotalPaid - reportDiscount;
+
+    const summary = {
+        totalSales: reportTotalSales,
+        totalCollectibles: reportTotalUnpaid,
+        totalExpenses,
+        netProfit,
+        cashOnHand,
+    };
+    localStorage.setItem('reportSummary', JSON.stringify(summary));
+
     router.push('/reports/print');
   }
 
@@ -362,7 +384,7 @@ export function ReportsClient() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 no-print">
              <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders" className="bg-green-600 border-green-500"/>
              <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description="Total operational costs" className="bg-red-600 border-red-500" />
-             <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600 border-blue-500"/>
+             <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600 border-blue-500"/>
              <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance" className="bg-yellow-500 border-yellow-400"/>
              <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="ACTUAL CASH" className="bg-purple-600 border-purple-500"/>
         </div>
@@ -385,5 +407,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
