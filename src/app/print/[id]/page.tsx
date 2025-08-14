@@ -171,6 +171,16 @@ export default function PrintPage() {
                   </Table>
               </section>
 
+              {jobOrder.paymentMethod === 'Cheque' && (
+                    <section className="mt-2">
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Payment Details</h3>
+                      <p className="text-gray-700">Method: Cheque</p>
+                      <p className="text-gray-700">Bank: {jobOrder.chequeBankName}</p>
+                      <p className="text-gray-700">Cheque #: {jobOrder.chequeNumber}</p>
+                      {jobOrder.chequeDate && <p className="text-gray-700">Date: {new Date(jobOrder.chequeDate).toLocaleDateString()}</p>}
+                    </section>
+              )}
+
               {jobOrder.notes && (
                   <section className="mt-2">
                       <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Notes</h3>
