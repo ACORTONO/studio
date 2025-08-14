@@ -79,6 +79,8 @@ export interface Invoice {
   discountType?: 'amount' | 'percent';
   tax?: number;
   taxType?: 'amount' | 'percent';
+  paymentMethod?: 'Cash' | 'Bank Transfer' | 'E-Wallet' | 'Cheque';
+  paymentDetails?: string;
 }
 
 export interface SalaryPayment {

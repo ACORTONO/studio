@@ -25,6 +25,8 @@ const mockInvoices: Invoice[] = [
     discountType: 'amount',
     tax: 0,
     taxType: 'percent',
+    paymentMethod: 'Bank Transfer',
+    paymentDetails: 'BDO\nAccount Name: ADSLAB\nAccount No: 1234567890'
   },
   {
     id: "inv-2",

@@ -200,6 +200,8 @@ const invoiceSchemaBase = z.object({
   discountType: z.enum(['amount', 'percent']).default('amount'),
   tax: z.coerce.number().min(0, "Tax must be non-negative.").optional().default(0),
   taxType: z.enum(['amount', 'percent']).default('amount'),
+  paymentMethod: z.enum(['Cash', 'Bank Transfer', 'E-Wallet', 'Cheque']).optional(),
+  paymentDetails: z.string().optional(),
 });
 
 const invoiceSchema = invoiceSchemaBase;
@@ -259,6 +261,8 @@ export async function createInvoiceAction(
       tax: validatedData.tax,
       taxType: validatedData.taxType,
       totalAmount,
+      paymentMethod: validatedData.paymentMethod,
+      paymentDetails: validatedData.paymentDetails,
     };
 
     return { success: true, data: newInvoice };
@@ -311,6 +315,8 @@ export async function updateInvoiceAction(
             tax: validatedData.tax,
             taxType: validatedData.taxType,
             totalAmount,
+            paymentMethod: validatedData.paymentMethod,
+            paymentDetails: validatedData.paymentDetails,
         };
         
         return { success: true, data: updatedInvoice };

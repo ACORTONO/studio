@@ -73,6 +73,8 @@ const formSchema = z.object({
   discountType: z.enum(['amount', 'percent']).default('amount'),
   tax: z.coerce.number().min(0, "Tax must be non-negative.").optional().default(0),
   taxType: z.enum(['amount', 'percent']).default('amount'),
+  paymentMethod: z.enum(['Cash', 'Bank Transfer', 'E-Wallet', 'Cheque']).optional(),
+  paymentDetails: z.string().optional(),
 });
 
 type InvoiceFormValues = z.infer<typeof formSchema>;
@@ -97,6 +99,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     defaultValues: initialData ? {
         ...initialData,
         termsAndConditions: initialData.termsAndConditions || '',
+        paymentDetails: initialData.paymentDetails || '',
         tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
         dueDate: new Date(initialData.dueDate),
@@ -107,12 +110,14 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       date: new Date(), 
       dueDate: new Date(),
       termsAndConditions: "",
+      paymentDetails: "",
       status: "Unpaid",
       items: [{ description: "", quantity: 1, amount: 0 }],
       discount: 0,
       discountType: 'amount',
       tax: 0,
-      taxType: 'amount'
+      taxType: 'amount',
+      paymentMethod: 'Bank Transfer'
     },
   });
 
@@ -121,6 +126,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
        form.reset({
         ...initialData,
         termsAndConditions: initialData.termsAndConditions || '',
+        paymentDetails: initialData.paymentDetails || '',
         tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
         dueDate: new Date(initialData.dueDate),
@@ -182,6 +188,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             address: "",
             tinNumber: "",
             termsAndConditions: "",
+            paymentDetails: "",
             status: "Unpaid",
             items: [{ description: "", quantity: 1, amount: 0 }],
             date: new Date(),
@@ -189,7 +196,8 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             discount: 0,
             discountType: 'amount',
             tax: 0,
-            taxType: 'amount'
+            taxType: 'amount',
+            paymentMethod: 'Bank Transfer'
         });
       }
     } else {
@@ -470,6 +478,42 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                   </FormItem>
                 )}
               />
+                <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                        <FormItem className="mt-4">
+                            <FormLabel>Payment Method</FormLabel>
+                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a payment method" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    <SelectItem value="Cash">Cash</SelectItem>
+                                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                                    <SelectItem value="E-Wallet">E-Wallet (GCash, Maya)</SelectItem>
+                                    <SelectItem value="Cheque">Cheque</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+                 <FormField
+                    control={form.control}
+                    name="paymentDetails"
+                    render={({ field }) => (
+                    <FormItem className="mt-4">
+                        <FormLabel>Payment Details</FormLabel>
+                        <FormControl>
+                        <Textarea placeholder="e.g., Bank: BDO, Account No: 123-456-789" {...field} value={field.value || ''} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
                <FormField
                   control={form.control}
                   name="status"

@@ -152,12 +152,23 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
               </section>
 
                <section className="flex justify-between mb-8">
-                {invoice.termsAndConditions && (
-                  <div className="w-1/2">
-                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Terms & Conditions</h3>
-                      <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md text-sm">{invoice.termsAndConditions}</p>
-                  </div>
-                )}
+                 <div className="w-1/2 space-y-4">
+                    {invoice.termsAndConditions && (
+                        <div>
+                            <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Terms & Conditions</h3>
+                            <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md text-sm">{invoice.termsAndConditions}</p>
+                        </div>
+                    )}
+                     {invoice.paymentMethod && (
+                        <div>
+                            <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Payment Method</h3>
+                            <div className="p-3 bg-gray-50 rounded-md">
+                                <p className="font-semibold">{invoice.paymentMethod}</p>
+                                {invoice.paymentDetails && <p className="text-gray-700 whitespace-pre-wrap text-sm">{invoice.paymentDetails}</p>}
+                            </div>
+                        </div>
+                     )}
+                 </div>
                 <div className="w-full max-w-xs space-y-2 ml-auto">
                     <div className="flex justify-between">
                         <span className="font-semibold text-gray-600">Subtotal:</span>
@@ -181,8 +192,18 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                 </div>
                </section>
              
-              <footer className="mt-12 pt-4 border-t border-gray-200 text-gray-500 text-center text-sm">
-                  <p>Thank you for your business! If you have any questions, please contact us at {profile.email}</p>
+              <footer className="mt-12 pt-8 text-gray-500 text-sm">
+                  <div className="grid grid-cols-2 gap-12">
+                     <div>
+                        <Separator className="bg-gray-400 mb-2"/>
+                        <p className="text-center font-semibold">Authorized Signature</p>
+                     </div>
+                      <div>
+                        <Separator className="bg-gray-400 mb-2"/>
+                        <p className="text-center font-semibold">Client Signature</p>
+                      </div>
+                  </div>
+                  <p className="text-center mt-8">Thank you for your business! If you have any questions, please contact us at {profile.email}</p>
               </footer>
           </div>
       </div>
