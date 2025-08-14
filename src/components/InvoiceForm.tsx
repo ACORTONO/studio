@@ -10,6 +10,7 @@ import {
   Loader2,
   Save,
   CalendarIcon,
+  Printer,
 } from "lucide-react";
 import {
   Form,
@@ -158,7 +159,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        result = await updateInvoiceAction({ ...data, id: initialData.id, invoiceNumber: initialData.invoiceNumber });
+        result = await updateInvoiceAction({ ...data, id: initialData.id, invoiceNumber: initialData.invoiceNumber, status: data.status, });
     } else {
         const existingInvoiceNumbers = invoices.map((inv) => inv.invoiceNumber);
         result = await createInvoiceAction(data, existingInvoiceNumbers);
@@ -345,7 +346,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                         render={({ field }) => (
                             <FormItem className="mt-1">
                                 <FormControl>
-                                    <Input placeholder="TIN No." {...field} />
+                                    <Input placeholder="TIN No." {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -464,7 +465,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Add any notes for the client" {...field} />
+                      <Textarea placeholder="Add any notes for the client" {...field} value={field.value || ''} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -597,5 +598,3 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     </>
   );
 }
-
-    
