@@ -349,7 +349,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
           <Card>
             <CardHeader>
-              <CardTitle>Job Order Details</CardTitle>
+              <CardTitle>Job Receive and Deadlines</CardTitle>
               <CardDescription>Set the dates for this job order.</CardDescription>
             </CardHeader>
             <CardContent className="grid md:grid-cols-3 gap-6">
@@ -829,4 +829,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
     
+
 
