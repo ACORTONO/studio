@@ -63,7 +63,7 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Cheque</Badge>
+                            <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                            <p>{statusSummary || 'Partially paid'}</p>

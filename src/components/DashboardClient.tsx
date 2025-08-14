@@ -134,7 +134,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Cheque</Badge>
+                            <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                            <p>{statusSummary || 'Partially paid'}</p>
@@ -184,7 +184,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
             derivedStatus = 'Cancelled';
         } else if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
             derivedStatus = 'Completed';
-        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (jobOrder.paidAmount || 0) > 0) {
+        } else if (itemStatuses.some(s => s === 'Downpayment' || s === 'Cheque') || ((jobOrder.paidAmount || 0) > 0 && (jobOrder.paidAmount || 0) < jobOrder.totalAmount)) {
             derivedStatus = 'Downpayment';
         }
 
