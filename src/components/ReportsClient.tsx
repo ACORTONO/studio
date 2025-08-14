@@ -27,6 +27,7 @@ import { JobOrder } from "@/lib/types";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type SortableJobOrderKeys = keyof JobOrder | 'balance';
 
@@ -92,14 +93,14 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
 }
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
-    <Card className={className}>
+    <Card className={cn("text-white", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+        <CardTitle className="text-sm font-medium text-white">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-white/80" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold">{value}</div>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <div className="text-2xl font-bold text-white">{value}</div>
+        <p className="text-xs text-white/80">{description}</p>
       </CardContent>
     </Card>
 );
@@ -359,11 +360,11 @@ export function ReportsClient() {
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 no-print">
-             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders" className="bg-green-600/20 border-green-600 text-black"/>
-             <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description="Total operational costs" className="bg-red-600/20 border-red-600 text-black" />
-             <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600/20 border-blue-600 text-black"/>
-             <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance" className="bg-yellow-600/20 border-yellow-600 text-black"/>
-             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="ACTUAL CASH" className="bg-purple-600/20 border-purple-600 text-black"/>
+             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders" className="bg-green-600 border-green-500"/>
+             <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description="Total operational costs" className="bg-red-600 border-red-500" />
+             <StatCard title="Net Profit" value={formatCurrency(totalCollectibles)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600 border-blue-500"/>
+             <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance" className="bg-yellow-500 border-yellow-400"/>
+             <StatCard title="Cash On Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="ACTUAL CASH" className="bg-purple-600 border-purple-500"/>
         </div>
         
         <div className="printable-area">

@@ -90,12 +90,12 @@ type SortableExpenseKeys = keyof Expense;
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
     <Card className={cn("", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-black">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-black" />
+        <CardTitle className="text-sm font-medium text-white">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-white/80" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-black">{value}</div>
-        <p className="text-xs text-black">{description}</p>
+        <div className="text-2xl font-bold text-white">{value}</div>
+        <p className="text-xs text-white/80">{description}</p>
       </CardContent>
     </Card>
 );
@@ -540,35 +540,35 @@ export function DashboardClient() {
             value={formatCurrency(totalSales)} 
             icon={TrendingUp} 
             description="Total revenue from all orders"
-            className="bg-green-600/20 border-green-600"
+            className="bg-green-600 border-green-500"
         />
         <StatCard 
             title="Total Expenses" 
             value={formatCurrency(totalExpenses)} 
             icon={TrendingDown} 
             description="Total operational costs"
-            className="bg-red-600/20 border-red-600"
+            className="bg-red-600 border-red-500"
         />
         <StatCard 
             title="Collectibles" 
             value={formatCurrency(totalUnpaid)} 
             icon={AlertCircle} 
             description="Total outstanding balance"
-            className="bg-yellow-600/20 border-yellow-600"
+            className="bg-yellow-500 border-yellow-400"
         />
         <StatCard 
             title="Net Profit" 
             value={formatCurrency(netProfit)} 
             icon={DollarSign} 
             description={`Total paid minus expenses`}
-            className="bg-blue-600/20 border-blue-600"
+            className="bg-blue-600 border-blue-500"
         />
          <StatCard 
             title="Total Customers" 
             value={totalCustomers.toString()} 
             icon={Users} 
             description={`Unique clients for the period`}
-            className="bg-purple-600/20 border-purple-600"
+            className="bg-purple-600 border-purple-500"
         />
       </div>
       <Tabs defaultValue="job-orders" className="space-y-4">
