@@ -13,9 +13,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function PrintInvoicePage() {
-  const params = useParams();
-  const id = params.id;
+export default function PrintInvoicePage({ params }: { params: { id: string } }) {
+  const { id } = params;
   const { invoices, getInvoiceById } = useInvoices();
   const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);

@@ -8,9 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLayoutEffect, useState } from "react";
 import { JobOrder } from "@/lib/types";
 
-export default function EditJobOrderPage() {
-    const params = useParams();
-    const id = params.id;
+export default function EditJobOrderPage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { getJobOrderById } = useJobOrders();
     const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);

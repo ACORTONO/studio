@@ -8,9 +8,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLayoutEffect, useState } from "react";
 import { Invoice } from "@/lib/types";
 
-export default function EditInvoicePage() {
-    const params = useParams();
-    const id = params.id;
+export default function EditInvoicePage({ params }: { params: { id: string } }) {
+    const { id } = params;
     const { getInvoiceById } = useInvoices();
     const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
     const [isLoading, setIsLoading] = useState(true);
