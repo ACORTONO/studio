@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -59,7 +60,7 @@ import { createInvoiceAction, updateInvoiceAction } from "@/lib/actions";
 import { Invoice } from "@/lib/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import React, { useEffect } from "react";
+import React, { useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
@@ -140,7 +141,8 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        result = await updateInvoiceAction({ ...data, id: initialData.id, invoiceNumber: initialData.invoiceNumber });
+        const { id } = use(initialData as any);
+        result = await updateInvoiceAction({ ...data, id: id, invoiceNumber: initialData.invoiceNumber });
     } else {
         const existingInvoiceNumbers = invoices.map((inv) => inv.invoiceNumber);
         result = await createInvoiceAction(data, existingInvoiceNumbers);
@@ -176,13 +178,6 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     }
     setIsSubmitting(false);
   };
-  
-  const handlePrint = () => {
-    if (lastSavedInvoice) {
-        window.open(`/invoice/print/${lastSavedInvoice.id}`, '_blank');
-    }
-    handleDialogClose();
-  }
   
   const handleDialogClose = () => {
     setIsSuccessDialogOpen(false);
@@ -428,7 +423,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}
-              {isEditMode ? 'Update & Print Preview' : 'Save & Print Preview'}
+              {isEditMode ? 'Update Invoice' : 'Save Invoice'}
             </Button>
           </div>
         </form>
@@ -439,16 +434,12 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                 <DialogTitle>Success!</DialogTitle>
                 <DialogDescription>
                     The invoice has been {isEditMode ? 'updated' : 'created'} successfully.
-                    Do you want to print it now?
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-end gap-2">
-                 <Button type="button" variant="secondary" onClick={handleDialogClose}>
-                    No
-                 </Button>
-                <Button onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4"/>
-                    Yes, Print
+                <Button onClick={handleDialogClose}>
+                    <Save className="mr-2 h-4 w-4"/>
+                    Save
                 </Button>
             </DialogFooter>
         </DialogContent>

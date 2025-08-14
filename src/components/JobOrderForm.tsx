@@ -61,7 +61,7 @@ import { createJobOrderAction, updateJobOrderAction } from "@/lib/actions";
 import { JobOrder } from "@/lib/types";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Switch } from "./ui/switch";
@@ -225,8 +225,9 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        const existingOrder = getJobOrderById(initialData.id);
-        result = await updateJobOrderAction({ ...data, id: initialData.id, jobOrderNumber: existingOrder?.jobOrderNumber || "" });
+        const { id } = use(initialData as any);
+        const existingOrder = getJobOrderById(id);
+        result = await updateJobOrderAction({ ...data, id: id, jobOrderNumber: existingOrder?.jobOrderNumber || "" });
     } else {
         const existingJobOrderNumbers = jobOrders.map((jo) => jo.jobOrderNumber);
         result = await createJobOrderAction(data, existingJobOrderNumbers);
@@ -265,13 +266,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     }
     setIsSubmitting(false);
   };
-  
-  const handlePrint = () => {
-    if (lastSavedOrder) {
-        window.open(`/print/${lastSavedOrder.id}`, '_blank');
-    }
-    handleDialogClose();
-  }
   
   const handleDialogClose = () => {
     setIsSuccessDialogOpen(false);
@@ -793,7 +787,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     ) : (
                         <Save className="mr-2 h-4 w-4" />
                     )}
-                    {isEditMode ? 'Update & Print Preview' : 'Save & Print Preview'}
+                    {isEditMode ? 'Update Job Order' : 'Save Job Order'}
                 </Button>
             </div>
         </form>
@@ -804,16 +798,12 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 <DialogTitle>Success!</DialogTitle>
                 <DialogDescription>
                     The job order has been {isEditMode ? 'updated' : 'created'} successfully.
-                    Do you want to print it now?
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-end gap-2">
-                 <Button type="button" variant="secondary" onClick={handleDialogClose}>
-                    No
-                 </Button>
-                <Button onClick={handlePrint}>
-                    <Printer className="mr-2 h-4 w-4"/>
-                    Yes, Print
+                <Button onClick={handleDialogClose}>
+                    <Save className="mr-2 h-4 w-4"/>
+                    Save
                 </Button>
             </DialogFooter>
         </DialogContent>
@@ -821,20 +811,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
-
-
-
-    
-
-    
-
-    
-
-
-
-
-    
-
-    
-
-    
