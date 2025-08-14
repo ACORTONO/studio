@@ -60,7 +60,7 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'Downpayment':
-            return <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>;
+            return <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>;
         case 'Pending':
             return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
         case 'Cancelled':
