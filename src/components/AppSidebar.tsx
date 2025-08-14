@@ -11,9 +11,11 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { useCompanyProfile } from "@/contexts/CompanyProfileContext";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { profile } = useCompanyProfile();
 
   const menuItems = [
     {
@@ -52,7 +54,7 @@ export function AppSidebar() {
     <>
       <div className="p-4">
         <Link href="/">
-            <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
+            <Image src={profile.logoUrl || "https://placehold.co/150x150.png"} alt="Company Logo" width={150} height={150} className="w-36 h-auto"/>
         </Link>
       </div>
       <div className="flex flex-col flex-1 overflow-auto">

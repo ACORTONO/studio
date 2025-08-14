@@ -11,10 +11,12 @@ import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCompanyProfile } from '@/contexts/CompanyProfileContext';
 
 export default function PrintPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { jobOrders, getJobOrderById } = useJobOrders();
+  const { profile } = useCompanyProfile();
   const [jobOrder, setJobOrder] = useState<JobOrder | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);
   
@@ -75,7 +77,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                 <h1 className="text-2xl font-bold">Print Preview</h1>
                 <p className="text-gray-500">Review the job order before printing (4x6 inches).</p>
             </div>
-            <Button onClick={handlePrint} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handlePrint} variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Printer className="mr-2 h-4 w-4"/>
                 Print Now
             </Button>
@@ -100,7 +102,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                       <p className="text-gray-500">{jobOrder.jobOrderNumber}</p>
                   </div>
                   <div className="text-right">
-                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={60} height={60} className="w-12 h-auto ml-auto mb-1"/>
+                      <Image src={profile.logoUrl || "https://placehold.co/60x60.png"} alt="Company Logo" width={60} height={60} className="w-12 h-auto ml-auto mb-1"/>
                   </div>
               </header>
               
@@ -163,7 +165,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                            )}
                           <TableRow className="font-bold bg-gray-50">
                               <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Total</TableCell>
-                              <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(amountDue)}</TableCell>
+                              <TableCell className="text-right text-primary p-1 h-auto">{formatCurrency(amountDue)}</TableCell>
                           </TableRow>
                       </TableFooter>
                   </Table>

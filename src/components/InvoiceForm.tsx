@@ -48,6 +48,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "./ui/calendar";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
+import { useCompanyProfile } from "@/contexts/CompanyProfileContext";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -83,6 +84,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
   const { toast } = useToast();
   const router = useRouter();
   const { addInvoice, updateInvoice, invoices } = useInvoices();
+  const { profile } = useCompanyProfile();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [lastSavedInvoice, setLastSavedInvoice] = React.useState<Invoice | null>(null);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = React.useState(false);
@@ -217,16 +219,14 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
           <div className="bg-gray-800 text-white p-6 rounded-t-lg -m-8 mb-0">
               <div className="flex justify-between items-center">
                   <div className="flex items-center gap-4">
-                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={50} height={50} className="w-12 h-12 rounded-full bg-white p-1"/>
+                      <Image src={profile.logoUrl || "https://placehold.co/50x50.png"} alt="Company Logo" width={50} height={50} className="w-12 h-12 rounded-full bg-white p-1"/>
                       <div>
-                          <h2 className="text-2xl font-bold">ADSLAB ADVERTISING SERVICES</h2>
-                          <p className="text-sm text-gray-300">sales@adslab.com</p>
+                          <h2 className="text-2xl font-bold">{profile.name}</h2>
+                          <p className="text-sm text-gray-300">{profile.email}</p>
                       </div>
                   </div>
                   <div className="text-right">
-                      <p>123 Printing Press Lane</p>
-                      <p>Imus, Cavite, 4103</p>
-                      <p>Philippines</p>
+                      <p className="whitespace-pre-wrap">{profile.address}</p>
                   </div>
               </div>
           </div>
@@ -590,7 +590,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                 </Button>
                 <Button onClick={handleDialogClose}>
                     <Save className="mr-2 h-4 w-4"/>
-                    Save
+                    Close
                 </Button>
             </DialogFooter>
         </DialogContent>

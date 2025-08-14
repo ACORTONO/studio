@@ -89,6 +89,16 @@ export interface SalaryPayment {
     notes?: string;
 }
 
+export interface CompanyProfile {
+    name: string;
+    logoUrl: string;
+    address: string;
+    email: string;
+    contactNumber: string;
+    tinNumber?: string;
+    facebookPage?: string;
+}
     
 
     
+

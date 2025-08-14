@@ -11,10 +11,12 @@ import Image from 'next/image';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Printer } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useCompanyProfile } from '@/contexts/CompanyProfileContext';
 
 export default function PrintInvoicePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { invoices, getInvoiceById } = useInvoices();
+  const { profile } = useCompanyProfile();
   const [invoice, setInvoice] = useState<Invoice | undefined>(undefined);
   const [printerAvailable, setPrinterAvailable] = useState<boolean>(true);
   
@@ -77,7 +79,7 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                 <h1 className="text-2xl font-bold">Print Preview</h1>
                 <p className="text-gray-500">Review the invoice before printing.</p>
             </div>
-            <Button onClick={handlePrint} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
+            <Button onClick={handlePrint} variant="default" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                 <Printer className="mr-2 h-4 w-4"/>
                 Print Now
             </Button>
@@ -98,11 +100,11 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
           <div className="p-2 font-sans bg-white leading-normal print-content">
               <header className="flex justify-between items-start mb-8 pb-4 border-b">
                   <div className="flex items-center gap-4">
-                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={80} height={80} className="w-20 h-auto"/>
+                      <Image src={profile.logoUrl || "https://placehold.co/80x80.png"} alt="Company Logo" width={80} height={80} className="w-20 h-auto"/>
                       <div>
-                        <h1 className="text-2xl font-bold text-gray-900">ADSLAB ADVERTISING SERVICES</h1>
-                        <p className="text-gray-500">123 Printing Press Lane, Imus, Cavite, 4103</p>
-                        <p className="text-gray-500">sales@adslab.com</p>
+                        <h1 className="text-2xl font-bold text-gray-900">{profile.name}</h1>
+                        <p className="text-gray-500 whitespace-pre-wrap">{profile.address}</p>
+                        <p className="text-gray-500">{profile.email}</p>
                       </div>
                   </div>
                   <div className="text-right">
@@ -180,7 +182,7 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                </section>
              
               <footer className="mt-12 pt-4 border-t border-gray-200 text-gray-500 text-center text-sm">
-                  <p>Thank you for your business! If you have any questions, please contact us at sales@adslab.com</p>
+                  <p>Thank you for your business! If you have any questions, please contact us at {profile.email}</p>
               </footer>
           </div>
       </div>

@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar';
 import { JobOrderProvider } from '@/contexts/JobOrderContext';
 import { InvoiceProvider } from '@/contexts/InvoiceContext';
+import { CompanyProfileProvider } from '@/contexts/CompanyProfileContext';
 import { usePathname } from 'next/navigation';
 import React, { useEffect } from 'react';
 
@@ -46,6 +47,7 @@ const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
                 <meta name="theme-color" content="#000000" />
             </head>
             <body className="font-body antialiased">
+              <CompanyProfileProvider>
                 <JobOrderProvider>
                 <InvoiceProvider>
                     <SidebarProvider>
@@ -61,6 +63,7 @@ const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
                     </SidebarProvider>
                 </InvoiceProvider>
                 </JobOrderProvider>
+              </CompanyProfileProvider>
             </body>
         </>
     )
