@@ -85,6 +85,10 @@
     background-color: #fff !important;
     color: #000 !important;
   }
+  
+  body.print-preview-page {
+    background-color: #fff !important;
+  }
 
   .no-print {
     display: none !important;

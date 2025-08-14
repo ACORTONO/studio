@@ -252,7 +252,7 @@ export function ReportsClient() {
   }
 
   const SortableHeader = ({ title, sortKey }: { title: string, sortKey: SortableJobOrderKeys }) => (
-    <TableHead className="text-center">
+    <TableHead className="text-center p-2">
       <Button variant="ghost" onClick={() => requestSort(sortKey)} className="justify-center w-full">
         {title}
         <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -288,7 +288,7 @@ export function ReportsClient() {
             </CardHeader>
 
             <CardContent className="pt-6">
-                <Table>
+                <Table className="text-xs">
                     <TableHeader>
                     <TableRow>
                         <SortableHeader title="Start Date" sortKey="startDate" />
@@ -310,27 +310,26 @@ export function ReportsClient() {
                          const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
                         return (
                             <TableRow key={jobOrder.id}>
-                                <TableCell className="text-center">
+                                <TableCell className="text-center p-2">
                                     {new Date(jobOrder.startDate).toLocaleDateString()}
                                 </TableCell>
-                                <TableCell className="text-center">
+                                <TableCell className="text-center p-2">
                                     <Badge variant="outline">{jobOrder.jobOrderNumber}</Badge>
                                 </TableCell>
-                                <TableCell className="text-center">
+                                <TableCell className="text-center p-2">
                                     <span className="font-medium">{jobOrder.clientName}</span>
                                 </TableCell>
-                                <TableCell>
-                                    <ul className="list-disc list-inside text-xs">
-                                        {jobOrder.items.slice(0, 2).map(item => (
+                                <TableCell className="p-2">
+                                    <ul className="list-disc list-inside text-xs whitespace-normal">
+                                        {jobOrder.items.map(item => (
                                             <li key={item.id} className="truncate">{item.description}</li>
                                         ))}
-                                        {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
                                     </ul>
                                 </TableCell>
-                                <TableCell className="text-center">{formatCurrency(jobOrder.totalAmount)}</TableCell>
-                                <TableCell className="text-center">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
-                                <TableCell className="text-center font-semibold">{formatCurrency(balance)}</TableCell>
-                                <TableCell className="text-center">
+                                <TableCell className="text-center p-2">{formatCurrency(jobOrder.totalAmount)}</TableCell>
+                                <TableCell className="text-center p-2">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
+                                <TableCell className="text-center font-semibold p-2">{formatCurrency(balance)}</TableCell>
+                                <TableCell className="text-center p-2">
                                     {getStatusBadge(jobOrder.status, jobOrder.items)}
                                 </TableCell>
                             </TableRow>
