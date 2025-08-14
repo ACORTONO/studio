@@ -34,7 +34,7 @@ import { useInvoices } from "@/contexts/InvoiceContext";
 import { createInvoiceAction, updateInvoiceAction } from "@/lib/actions";
 import { Invoice } from "@/lib/types";
 import { format } from "date-fns";
-import React, { useEffect } from "react";
+import React, { useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -201,7 +201,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Client Name" {...field} className="text-left"/>
+                            <Input placeholder="Client Name" {...field} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -213,7 +213,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                         render={({ field }) => (
                             <FormItem className="mt-1">
                                 <FormControl>
-                                    <Textarea placeholder="Client Address" {...field} className="text-left resize-none" />
+                                    <Textarea placeholder="Client Address" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
