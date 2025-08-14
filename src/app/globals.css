@@ -18,6 +18,7 @@
     --muted-foreground: 210 40% 70%;
     --accent: 210 35% 28%;
     --accent-foreground: 210 40% 98%;
+    --accent-teal: 160 60% 45%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 210 35% 28%;
@@ -196,3 +197,5 @@ input[type=number]::-webkit-outer-spin-button {
 input[type=number] {
   -moz-appearance: textfield;
 }
+
+    

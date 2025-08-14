@@ -574,7 +574,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                          <h4 className="font-semibold">Payment Details</h4>
                          <div className="flex gap-2">
                              <Button type="button" size="sm" variant="outline" onClick={() => markAllAs('Downpayment')}>Mark All as Downpayment</Button>
-                             <Button type="button" size="sm" variant="outline" onClick={() => markAllAs('Paid')}>Mark All as Paid</Button>
+                             <Button type="button" size="sm" variant="outline" className="bg-accent-teal hover:bg-accent-teal/90 text-white" onClick={() => markAllAs('Paid')}>Mark All as Paid</Button>
                          </div>
                     </div>
                     <FormField
@@ -831,3 +831,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
 
+
+
+    
