@@ -8,8 +8,10 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { getStatusBadge } from '@/components/ReportsClient';
-import { Printer, ArrowLeft } from 'lucide-react';
+import { Printer, ArrowLeft, TrendingUp, TrendingDown, DollarSign, Banknote, AlertCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 
 interface ReportSummary {
     totalSales: number;
@@ -18,6 +20,19 @@ interface ReportSummary {
     netProfit: number;
     cashOnHand: number;
 }
+
+const SummaryCard = ({ title, value, icon: Icon, className }: { title: string, value: string, icon: React.ElementType, className?: string }) => (
+    <Card className={cn("border-black/20", className)}>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3">
+        <CardTitle className="text-xs font-medium">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent className="p-3 pt-0">
+        <div className="text-lg font-bold">{value}</div>
+      </CardContent>
+    </Card>
+);
+
 
 export default function PrintReportPage() {
     const router = useRouter();
@@ -96,12 +111,26 @@ export default function PrintReportPage() {
                 </div>
              </div>
              <div className="report-print-area bg-white p-6">
-                <header>
+                <header className="mb-6">
                     <div className="text-center">
                         <h1 className="text-2xl font-bold">{reportTitle}</h1>
                         <p className="text-sm text-muted-foreground">As of {currentDate}</p>
                     </div>
                 </header>
+
+                {summaryData && (
+                    <section className="mb-6">
+                         <h2 className="text-lg font-semibold mb-2 text-center">Summary</h2>
+                         <div className="grid grid-cols-5 gap-2">
+                             <SummaryCard title="Total Sales" value={formatCurrency(summaryData.totalSales)} icon={TrendingUp} className="bg-green-100" />
+                             <SummaryCard title="Expenses" value={formatCurrency(summaryData.totalExpenses)} icon={TrendingDown} className="bg-red-100" />
+                             <SummaryCard title="Collectibles" value={formatCurrency(summaryData.totalCollectibles)} icon={AlertCircle} className="bg-yellow-100"/>
+                             <SummaryCard title="Net Profit" value={formatCurrency(summaryData.netProfit)} icon={Banknote} className="bg-blue-100"/>
+                             <SummaryCard title="Cash On Hand" value={formatCurrency(summaryData.cashOnHand)} icon={DollarSign} className="bg-purple-100"/>
+                         </div>
+                    </section>
+                )}
+
                 <div className="mt-6">
                     <Table>
                         <TableHeader>
@@ -161,30 +190,6 @@ export default function PrintReportPage() {
                             </TableRow>
                         )}
                         </TableBody>
-                         {summaryData && (
-                            <TableFooter>
-                                <TableRow className="font-bold">
-                                    <TableCell colSpan={7} className="text-right">Total Sales:</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(summaryData.totalSales)}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-right">Total Collectibles (Unpaid):</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(summaryData.totalCollectibles)}</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-right">Total Expenses:</TableCell>
-                                    <TableCell className="text-right text-red-600">({formatCurrency(summaryData.totalExpenses)})</TableCell>
-                                </TableRow>
-                                <TableRow>
-                                    <TableCell colSpan={7} className="text-right">Net Profit:</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(summaryData.netProfit)}</TableCell>
-                                </TableRow>
-                                <TableRow className="font-bold text-lg">
-                                    <TableCell colSpan={7} className="text-right">Cash On Hand:</TableCell>
-                                    <TableCell className="text-right text-green-600">{formatCurrency(summaryData.cashOnHand)}</TableCell>
-                                </TableRow>
-                            </TableFooter>
-                        )}
                     </Table>
                 </div>
              </div>
