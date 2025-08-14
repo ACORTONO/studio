@@ -335,7 +335,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                         render={({ field }) => (
                             <FormItem className="mt-1">
                                 <FormControl>
-                                    <Textarea placeholder="Client Address" {...field} />
+                                    <Textarea placeholder="Client Address" {...field} value={field.value || ''} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -363,20 +363,20 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             <div className="flow-root">
               <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                  <table className="min-w-full">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border-collapse border border-slate-400">
                       <thead className="text-muted-foreground uppercase text-sm">
                           <tr>
-                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0">Description</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Quantity</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Unit Price</th>
-                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold">Amount</th>
-                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0"></th>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0 border border-slate-300">Description</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold border border-slate-300">Quantity</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold border border-slate-300">Unit Price</th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold border border-slate-300">Amount</th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 border border-slate-300"></th>
                           </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                           {fields.map((field, index) => (
                               <tr key={field.id}>
-                                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-0">
+                                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-0 border border-slate-300">
                                       <FormField
                                           control={form.control}
                                           name={`items.${index}.description`}
@@ -390,7 +390,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           )}
                                       />
                                   </td>
-                                  <td className="px-3 py-4 text-center">
+                                  <td className="px-3 py-4 text-center border border-slate-300">
                                        <FormField
                                           control={form.control}
                                           name={`items.${index}.quantity`}
@@ -404,7 +404,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           )}
                                       />
                                   </td>
-                                  <td className="px-3 py-4 text-center">
+                                  <td className="px-3 py-4 text-center border border-slate-300">
                                       <FormField
                                           control={form.control}
                                           name={`items.${index}.amount`}
@@ -418,10 +418,10 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           )}
                                       />
                                   </td>
-                                  <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0">
+                                  <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0 border border-slate-300">
                                       {formatCurrency((watchItems[index]?.quantity || 0) * (watchItems[index]?.amount || 0))}
                                   </td>
-                                   <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0">
+                                   <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0 border border-slate-300">
                                       <Button
                                         type="button"
                                         variant="ghost"
