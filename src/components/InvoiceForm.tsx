@@ -358,18 +358,16 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
 
 
           <div>
-            <h3 className="text-lg font-semibold mb-1">Item Details</h3>
-            <p className="text-sm text-muted-foreground mb-4">Details item with more info</p>
             <div className="flow-root">
               <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                   <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 border-collapse border border-slate-400">
-                      <thead className="text-muted-foreground uppercase text-sm">
+                      <thead className="uppercase text-sm">
                           <tr>
-                              <th scope="col" className="py-3.5 pl-4 pr-3 text-center font-semibold sm:pl-0 border border-slate-300">Description</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold border border-slate-300">Quantity</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold border border-slate-300">Unit Price</th>
-                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold border border-slate-300">Amount</th>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-center font-semibold text-black sm:pl-0 border border-slate-300">Description</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold text-black border border-slate-300">Quantity</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold text-black border border-slate-300">Unit Price</th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-center font-semibold text-black border border-slate-300">Amount</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 border border-slate-300"></th>
                           </tr>
                       </thead>
