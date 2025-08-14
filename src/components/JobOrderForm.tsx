@@ -123,7 +123,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : new Date(),
     } : {
       clientName: "",
       contactMethod: 'Contact No.',
@@ -138,7 +138,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       paymentReference: "",
       chequeBankName: "",
       chequeNumber: "",
-      chequeDate: undefined,
+      chequeDate: new Date(),
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
@@ -179,22 +179,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   }
   
   useEffect(() => {
-      const paidItemsTotal = watchItems
-          .filter(item => item.status === 'Paid')
-          .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
-      
-      const downpaymentItemsTotal = watchItems
-          .filter(item => item.status === 'Downpayment')
-          .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
-
-      const chequeItemsTotal = watchItems
-          .filter(item => item.status === 'Cheque')
-          .reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
-      
-      if (paidItemsTotal > 0 || downpaymentItemsTotal > 0 || chequeItemsTotal > 0) {
-          // The form's paidAmount will be updated from user input, not automatically
-      }
-  }, [watchItems, form]);
+    const allPaid = watchItems.every(item => item.status === 'Paid');
+    if (allPaid) {
+      form.setValue('paidAmount', subTotal);
+    }
+  }, [watchItems, subTotal, form]);
 
 
   useEffect(() => {
@@ -207,7 +196,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : new Date()
       });
     } else {
        form.reset({
@@ -224,7 +213,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         paymentReference: "",
         chequeBankName: "",
         chequeNumber: "",
-        chequeDate: undefined,
+        chequeDate: new Date(),
         items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
       });
     }
@@ -840,3 +829,4 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
 
     
+
