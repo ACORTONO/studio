@@ -46,11 +46,11 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
 
   if (!invoice) {
     return (
-        <div className="p-4 space-y-4 bg-white text-black text-xs">
-            <Skeleton className="h-8 w-1/2 bg-gray-300" />
-            <Skeleton className="h-6 w-1/3 bg-gray-300" />
-            <Skeleton className="h-24 w-full bg-gray-300" />
+        <div className="p-8 space-y-4 bg-white text-black">
+            <Skeleton className="h-12 w-1/2 bg-gray-300" />
+            <Skeleton className="h-8 w-1/3 bg-gray-300" />
             <Skeleton className="h-32 w-full bg-gray-300" />
+            <Skeleton className="h-48 w-full bg-gray-300" />
         </div>
     );
   }
@@ -60,12 +60,12 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
   const subtotal = invoice.totalAmount;
 
   return (
-    <div className='p-4 sm:p-6 lg:p-8 min-h-screen'>
-      <div className="max-w-xl mx-auto space-y-4 no-print">
+    <div className='p-4 sm:p-6 lg:p-8 min-h-screen bg-gray-100'>
+      <div className="max-w-4xl mx-auto space-y-4 no-print">
         <div className="flex justify-between items-center text-gray-800">
             <div>
                 <h1 className="text-2xl font-bold">Print Preview</h1>
-                <p className="text-gray-500">Review the invoice before printing (4x6 inches).</p>
+                <p className="text-gray-500">Review the invoice before printing.</p>
             </div>
             <Button onClick={handlePrint} variant="default" className="bg-blue-600 hover:bg-blue-700 text-white">
                 <Printer className="mr-2 h-4 w-4"/>
@@ -84,69 +84,88 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
         )}
       </div>
 
-      <div className="print-area w-[4in] h-[6in] p-[0.25in] bg-white shadow-lg mx-auto mt-4">
-          <div className="p-2 font-sans text-gray-800 bg-white leading-tight print-content">
-              <header className="flex justify-between items-start mb-2">
-                  <div>
-                      <h1 className="text-base font-headline font-bold text-gray-900">INVOICE</h1>
+      <div className="print-area max-w-4xl p-8 bg-white shadow-lg mx-auto mt-4 text-black">
+          <div className="p-2 font-sans bg-white leading-normal print-content">
+              <header className="flex justify-between items-start mb-8 pb-4 border-b">
+                  <div className="flex items-center gap-4">
+                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={80} height={80} className="w-20 h-auto"/>
+                      <div>
+                        <h1 className="text-2xl font-bold text-gray-900">ADSLAB ADVERTISING SERVICES</h1>
+                        <p className="text-gray-500">123 Printing Press Lane, Imus, Cavite, 4103</p>
+                        <p className="text-gray-500">sales@adslab.com</p>
+                      </div>
+                  </div>
+                  <div className="text-right">
+                      <h2 className="text-3xl font-headline font-bold text-gray-800 uppercase">Invoice</h2>
                       <p className="text-gray-500">{invoice.invoiceNumber}</p>
                   </div>
-                  <div className="text-right">
-                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={60} height={60} className="w-12 h-auto ml-auto mb-1"/>
-                  </div>
               </header>
-              
-              <Separator className="my-2 bg-gray-200" />
 
-              <section className="grid grid-cols-2 gap-2 mb-2">
+              <section className="grid grid-cols-2 gap-8 mb-8">
                   <div>
-                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Bill To</h3>
-                      <p className="font-bold">{invoice.clientName}</p>
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Bill To</h3>
+                      <p className="font-bold text-lg">{invoice.clientName}</p>
+                      <p className="text-gray-700 whitespace-pre-wrap">{invoice.address}</p>
                   </div>
                   <div className="text-right">
-                      <p><span className="font-semibold text-gray-600">Date:</span> {new Date(invoice.date).toLocaleDateString()}</p>
-                      <p><span className="font-semibold text-gray-600">Due:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
+                      <p className="mb-1"><span className="font-semibold text-gray-600">Invoice Date:</span> {new Date(invoice.date).toLocaleDateString()}</p>
+                      <p><span className="font-semibold text-gray-600">Due Date:</span> {new Date(invoice.dueDate).toLocaleDateString()}</p>
                   </div>
               </section>
 
-              <section>
+              <section className="mb-8">
                   <Table>
                       <TableHeader>
                           <TableRow className="bg-gray-100">
-                              <TableHead className="w-3/5 font-bold text-gray-700 p-1 h-auto">Desc</TableHead>
-                              <TableHead className="text-center font-bold text-gray-700 p-1 h-auto">Qty</TableHead>
-                              <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Total</TableHead>
+                              <TableHead className="w-3/5 font-bold text-gray-700 p-2 h-auto">Item Description</TableHead>
+                              <TableHead className="text-center font-bold text-gray-700 p-2 h-auto">Quantity</TableHead>
+                              <TableHead className="text-right font-bold text-gray-700 p-2 h-auto">Unit Price</TableHead>
+                              <TableHead className="text-right font-bold text-gray-700 p-2 h-auto">Total</TableHead>
                           </TableRow>
                       </TableHeader>
                       <TableBody>
                           {invoice.items.map(item => (
-                              <TableRow key={item.id}>
-                                  <TableCell className="p-1 align-top">
+                              <TableRow key={item.id} className="border-b">
+                                  <TableCell className="p-2 align-top">
                                       <p className="font-medium">{item.description}</p>
                                   </TableCell>
-                                  <TableCell className="text-center p-1 align-top">{item.quantity}</TableCell>
-                                  <TableCell className="text-right p-1 align-top">{formatCurrency(item.quantity * item.amount)}</TableCell>
+                                  <TableCell className="text-center p-2 align-top">{item.quantity}</TableCell>
+                                  <TableCell className="text-right p-2 align-top">{formatCurrency(item.amount)}</TableCell>
+                                  <TableCell className="text-right p-2 align-top">{formatCurrency(item.quantity * item.amount)}</TableCell>
                               </TableRow>
                           ))}
                       </TableBody>
-                      <TableFooter>
-                          <TableRow className="font-bold bg-gray-50">
-                              <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Total Due</TableCell>
-                              <TableCell className="text-right text-purple-600 p-1 h-auto">{formatCurrency(subtotal)}</TableCell>
-                          </TableRow>
-                      </TableFooter>
                   </Table>
               </section>
 
+               <section className="flex justify-end mb-8">
+                <div className="w-full max-w-xs space-y-2">
+                    <div className="flex justify-between">
+                        <span className="font-semibold text-gray-600">Subtotal:</span>
+                        <span>{formatCurrency(subtotal)}</span>
+                    </div>
+                     <div className="flex justify-between">
+                        <span className="font-semibold text-gray-600">Taxes (0%):</span>
+                        <span>{formatCurrency(0)}</span>
+                    </div>
+                    <Separator className="my-2"/>
+                     <div className="flex justify-between font-bold text-lg text-primary">
+                        <span>Total Due:</span>
+                        <span>{formatCurrency(subtotal)}</span>
+                    </div>
+                </div>
+               </section>
+
+
                {invoice.notes && (
-                  <section className="mt-2">
-                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-1">Notes</h3>
-                      <p className="text-gray-700 whitespace-pre-wrap">{invoice.notes}</p>
+                  <section className="mb-8">
+                      <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Notes</h3>
+                      <p className="text-gray-700 whitespace-pre-wrap p-3 bg-gray-50 rounded-md">{invoice.notes}</p>
                   </section>
                )}
              
-              <footer className="mt-4 pt-2 border-t border-gray-200 text-gray-500 absolute bottom-4 left-4 right-4">
-                  <p className="text-center">Thank you for your business!</p>
+              <footer className="mt-12 pt-4 border-t border-gray-200 text-gray-500 text-center text-sm">
+                  <p>Thank you for your business! If you have any questions, please contact us at sales@adslab.com</p>
               </footer>
           </div>
       </div>
