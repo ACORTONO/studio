@@ -9,6 +9,7 @@ import {
   Trash2,
   Loader2,
   Save,
+  CalendarIcon,
 } from "lucide-react";
 import {
   Form,
@@ -18,6 +19,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -37,6 +43,8 @@ import { format } from "date-fns";
 import React, { useEffect, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
+import { Calendar } from "./ui/calendar";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -188,9 +196,83 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
               <div>
                   <h3 className="font-semibold text-lg mb-2">Invoice Number</h3>
                   <p className="text-muted-foreground">{initialData?.invoiceNumber || "Will be generated"}</p>
-                  <div className="mt-4">
-                    <p className="text-sm"><span className="font-medium">Issued Date:</span> {format(form.getValues('date'), "dd MMM yyyy")}</p>
-                    <p className="text-sm"><span className="font-medium">Due Date:</span> {format(form.getValues('dueDate'), "dd MMM yyyy")}</p>
+                  <div className="mt-4 space-y-2">
+                    <FormField
+                      control={form.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Invoice Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full justify-start text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="dueDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>Due Date</FormLabel>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <FormControl>
+                                  <Button
+                                    variant={"outline"}
+                                    className={cn(
+                                      "w-full justify-start text-left font-normal",
+                                      !field.value && "text-muted-foreground"
+                                    )}
+                                  >
+                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                    {field.value ? (
+                                      format(field.value, "PPP")
+                                    ) : (
+                                      <span>Pick a date</span>
+                                    )}
+                                  </Button>
+                                </FormControl>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-0" align="start">
+                                <Calendar
+                                  mode="single"
+                                  selected={field.value}
+                                  onSelect={field.onChange}
+                                  initialFocus
+                                />
+                              </PopoverContent>
+                            </Popover>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                   </div>
               </div>
               <div className="text-left">
@@ -233,7 +315,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                       <thead className="text-muted-foreground uppercase text-sm">
                           <tr>
                               <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0">Item</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Order/Type</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Quantity</th>
                               <th scope="col" className="px-3 py-3.5 text-center font-semibold">Rate</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold">Amount</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0"></th>
