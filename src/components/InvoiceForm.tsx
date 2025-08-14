@@ -92,6 +92,8 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: initialData ? {
         ...initialData,
+        notes: initialData.notes || '',
+        tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
         dueDate: new Date(initialData.dueDate),
     } : {
@@ -114,6 +116,8 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     if (initialData) {
        form.reset({
         ...initialData,
+        notes: initialData.notes || '',
+        tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
         dueDate: new Date(initialData.dueDate),
       });
@@ -574,6 +578,15 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-end gap-2">
+                 <Button variant="outline" onClick={() => {
+                    if (lastSavedInvoice) {
+                        window.open(`/invoice/print/${lastSavedInvoice.id}`, '_blank');
+                    }
+                    handleDialogClose();
+                }}>
+                    <Printer className="mr-2 h-4 w-4"/>
+                    Print
+                </Button>
                 <Button onClick={handleDialogClose}>
                     <Save className="mr-2 h-4 w-4"/>
                     Save
@@ -584,3 +597,5 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     </>
   );
 }
+
+    

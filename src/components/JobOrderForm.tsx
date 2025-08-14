@@ -123,7 +123,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : new Date(),
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined,
     } : {
       clientName: "",
       contactMethod: 'Contact No.',
@@ -138,7 +138,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       paymentReference: "",
       chequeBankName: "",
       chequeNumber: "",
-      chequeDate: new Date(),
+      chequeDate: undefined,
       items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
     },
   });
@@ -196,7 +196,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeNumber: initialData.chequeNumber || "",
         startDate: new Date(initialData.startDate),
         dueDate: new Date(initialData.dueDate),
-        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : new Date()
+        chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined
       });
     } else {
        form.reset({
@@ -213,7 +213,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         paymentReference: "",
         chequeBankName: "",
         chequeNumber: "",
-        chequeDate: new Date(),
+        chequeDate: undefined,
         items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
       });
     }
@@ -225,9 +225,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        const id = initialData.id;
-        const existingOrder = getJobOrderById(id);
-        result = await updateJobOrderAction({ ...data, id: id, jobOrderNumber: existingOrder?.jobOrderNumber || "" });
+        result = await updateJobOrderAction({ ...data, id: initialData.id, jobOrderNumber: initialData.jobOrderNumber });
     } else {
         const existingJobOrderNumbers = jobOrders.map((jo) => jo.jobOrderNumber);
         result = await createJobOrderAction(data, existingJobOrderNumbers);
@@ -497,7 +495,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <Input {...field} placeholder="Notes..." />
+                                <Input {...field} placeholder="Notes..." value={field.value || ''} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -801,6 +799,15 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-end gap-2">
+                 <Button variant="outline" onClick={() => {
+                    if (lastSavedOrder) {
+                        window.open(`/print/${lastSavedOrder.id}`, '_blank');
+                    }
+                    handleDialogClose();
+                }}>
+                    <Printer className="mr-2 h-4 w-4"/>
+                    Print
+                </Button>
                 <Button onClick={handleDialogClose}>
                     <Save className="mr-2 h-4 w-4"/>
                     Save
@@ -811,3 +818,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
