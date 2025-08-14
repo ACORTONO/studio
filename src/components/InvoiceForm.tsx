@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -35,7 +34,7 @@ import { useInvoices } from "@/contexts/InvoiceContext";
 import { createInvoiceAction, updateInvoiceAction } from "@/lib/actions";
 import { Invoice } from "@/lib/types";
 import { format } from "date-fns";
-import React, { useEffect, use } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -194,7 +193,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                     <p className="text-sm"><span className="font-medium">Due Date:</span> {format(form.getValues('dueDate'), "dd MMM yyyy")}</p>
                   </div>
               </div>
-              <div className="text-right">
+              <div className="text-left">
                    <h3 className="font-semibold text-lg mb-2">Billed to</h3>
                     <FormField
                       control={form.control}
@@ -202,7 +201,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Input placeholder="Client Name" {...field} className="text-right border-0 focus-visible:ring-0 p-0 h-auto text-base"/>
+                            <Input placeholder="Client Name" {...field} className="text-left"/>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -214,7 +213,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                         render={({ field }) => (
                             <FormItem className="mt-1">
                                 <FormControl>
-                                    <Textarea placeholder="Client Address" {...field} className="text-right border-0 focus-visible:ring-0 p-0 h-auto text-sm text-muted-foreground resize-none" />
+                                    <Textarea placeholder="Client Address" {...field} className="text-left resize-none" />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -250,7 +249,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           render={({ field }) => (
                                               <FormItem>
                                                   <FormControl>
-                                                      <Input {...field} placeholder="Item description" className="border-0 focus-visible:ring-0 p-0"/>
+                                                      <Input {...field} placeholder="Item description" />
                                                   </FormControl>
                                                   <FormMessage />
                                               </FormItem>
@@ -264,7 +263,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           render={({ field }) => (
                                               <FormItem>
                                                   <FormControl>
-                                                      <Input type="number" {...field} className="w-20 text-center border-0 focus-visible:ring-0 p-0"/>
+                                                      <Input type="number" {...field} className="w-20 text-center"/>
                                                   </FormControl>
                                                   <FormMessage />
                                               </FormItem>
@@ -278,7 +277,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           render={({ field }) => (
                                               <FormItem>
                                                   <FormControl>
-                                                      <Input type="number" {...field} className="w-24 text-center border-0 focus-visible:ring-0 p-0"/>
+                                                      <Input type="number" {...field} className="w-24 text-center"/>
                                                   </FormControl>
                                                   <FormMessage />
                                               </FormItem>
