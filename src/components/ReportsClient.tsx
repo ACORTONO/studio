@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
@@ -64,7 +63,7 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>
+                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Cheque</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                            <p>{statusSummary || 'Partially paid'}</p>
@@ -385,3 +384,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    

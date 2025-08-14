@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, from 'react';
@@ -135,7 +134,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                 <TooltipProvider>
                     <Tooltip>
                         <TooltipTrigger asChild>
-                            <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>
+                            <Badge variant="info"><Wallet className="mr-1 h-3 w-3"/> Cheque</Badge>
                         </TooltipTrigger>
                         <TooltipContent>
                            <p>{statusSummary || 'Partially paid'}</p>
@@ -848,3 +847,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    
