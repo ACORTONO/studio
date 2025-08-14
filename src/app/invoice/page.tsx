@@ -59,15 +59,7 @@ export default function InvoicePage() {
                 </div>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>New Invoice</CardTitle>
-                    <CardDescription>Create a new invoice for a client.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <InvoiceForm />
-                </CardContent>
-            </Card>
+            <InvoiceForm />
 
             <Card>
                 <CardHeader>

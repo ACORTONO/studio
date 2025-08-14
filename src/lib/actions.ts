@@ -189,6 +189,7 @@ const invoiceItemSchema = z.object({
 
 const invoiceSchemaBase = z.object({
   clientName: z.string().min(1, "Client name is required."),
+  address: z.string().min(1, "Address is required."),
   date: z.date({ required_error: "An invoice date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
@@ -230,6 +231,7 @@ export async function createInvoiceAction(
       id: crypto.randomUUID(),
       invoiceNumber,
       clientName: validatedData.clientName,
+      address: validatedData.address,
       date: validatedData.date.toISOString(),
       dueDate: validatedData.dueDate.toISOString(),
       notes: validatedData.notes,
@@ -267,6 +269,7 @@ export async function updateInvoiceAction(
             id: existingInvoice.id,
             invoiceNumber: existingInvoice.invoiceNumber,
             clientName: existingInvoice.clientName,
+            address: existingInvoice.address,
             date: existingInvoice.date.toISOString(),
             dueDate: existingInvoice.dueDate.toISOString(),
             notes: existingInvoice.notes,

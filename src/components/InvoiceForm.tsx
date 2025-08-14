@@ -6,12 +6,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import {
-  CalendarIcon,
   PlusCircle,
   Trash2,
   Loader2,
   Save,
-  Printer,
 } from "lucide-react";
 import {
   Form,
@@ -22,22 +20,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -47,25 +29,19 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useInvoices } from "@/contexts/InvoiceContext";
 import { createInvoiceAction, updateInvoiceAction } from "@/lib/actions";
 import { Invoice } from "@/lib/types";
 import { format } from "date-fns";
-import { cn } from "@/lib/utils";
 import React, { useEffect, use } from "react";
 import { useRouter } from "next/navigation";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import Image from "next/image";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
+  address: z.string().min(1, "Address is required."),
   date: z.date({ required_error: "An invoice date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
@@ -106,6 +82,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
         dueDate: new Date(initialData.dueDate),
     } : {
       clientName: "",
+      address: "",
       date: new Date(), 
       dueDate: new Date(),
       notes: "",
@@ -115,14 +92,14 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
   });
 
   useEffect(() => {
-    if (!isEditMode) {
-      form.reset({
-        ...form.getValues(),
-        date: new Date(),
-        dueDate: new Date(),
+    if (initialData) {
+       form.reset({
+        ...initialData,
+        date: new Date(initialData.date),
+        dueDate: new Date(initialData.dueDate),
       });
     }
-  }, [isEditMode, form]);
+  }, [initialData, form]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -141,8 +118,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        const id = initialData.id;
-        result = await updateInvoiceAction({ ...data, id: id, invoiceNumber: initialData.invoiceNumber });
+        result = await updateInvoiceAction({ ...data, id: initialData.id, invoiceNumber: initialData.invoiceNumber });
     } else {
         const existingInvoiceNumbers = invoices.map((inv) => inv.invoiceNumber);
         result = await createInvoiceAction(data, existingInvoiceNumbers);
@@ -157,10 +133,9 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       setLastSavedInvoice(result.data);
       setIsSuccessDialogOpen(true);
       if (!isEditMode) {
-        form.reset();
-         form.reset({
-            ...form.getValues(),
+        form.reset({
             clientName: "",
+            address: "",
             notes: "",
             status: "Unpaid",
             items: [{ description: "", quantity: 1, amount: 0 }],
@@ -191,205 +166,151 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
   return (
     <>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Client Information</CardTitle>
-              <CardDescription>
-                Enter the client's details for the invoice.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="clientName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Client Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Details</CardTitle>
-              <CardDescription>Set the dates for this invoice.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Invoice Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="dueDate"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Due Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full justify-start text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            <CalendarIcon className="mr-2 h-4 w-4" />
-                            {field.value && field.value instanceof Date && !isNaN(field.value.getTime()) ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Invoice Items</CardTitle>
-              <CardDescription>
-                Add the items for this invoice.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-3/5">Description</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {fields.map((field, index) => (
-                    <TableRow key={field.id}>
-                      <TableCell>
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.description`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input {...field} placeholder="e.g., Website Design" />
-                              </FormControl>
-                              <FormMessage />
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 bg-white dark:bg-card p-8 rounded-lg shadow-lg">
+          
+          <div className="bg-gray-800 text-white p-6 rounded-t-lg -m-8 mb-0">
+              <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                      <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={50} height={50} className="w-12 h-12 rounded-full bg-white p-1"/>
+                      <div>
+                          <h2 className="text-2xl font-bold">ADS Digital Printing Services</h2>
+                          <p className="text-sm text-gray-300">sales@adsdigitalprint.com</p>
+                      </div>
+                  </div>
+                  <div className="text-right">
+                      <p>123 Printing Press Lane</p>
+                      <p>Imus, Cavite, 4103</p>
+                      <p>Philippines</p>
+                  </div>
+              </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-8 pt-8">
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Invoice Number</h3>
+                  <p className="text-muted-foreground">{initialData?.invoiceNumber || "Will be generated"}</p>
+                  <div className="mt-4">
+                    <p className="text-sm"><span className="font-medium">Issued Date:</span> {format(form.getValues('date'), "dd MMM yyyy")}</p>
+                    <p className="text-sm"><span className="font-medium">Due Date:</span> {format(form.getValues('dueDate'), "dd MMM yyyy")}</p>
+                  </div>
+              </div>
+              <div className="text-right">
+                   <h3 className="font-semibold text-lg mb-2">Billed to</h3>
+                    <FormField
+                      control={form.control}
+                      name="clientName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input placeholder="Client Name" {...field} className="text-right border-0 focus-visible:ring-0 p-0 h-auto text-base"/>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="address"
+                        render={({ field }) => (
+                            <FormItem className="mt-1">
+                                <FormControl>
+                                    <Textarea placeholder="Client Address" {...field} className="text-right border-0 focus-visible:ring-0 p-0 h-auto text-sm text-muted-foreground resize-none" />
+                                </FormControl>
+                                <FormMessage />
                             </FormItem>
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.quantity`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input type="number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.amount`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input type="number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        {formatCurrency(
-                          (watchItems[index]?.quantity || 0) *
-                            (watchItems[index]?.amount || 0)
                         )}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => remove(index)}
-                          disabled={fields.length <= 1}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              <Button
+                    />
+              </div>
+          </div>
+
+
+          <div>
+            <h3 className="text-lg font-semibold mb-1">Item Details</h3>
+            <p className="text-sm text-muted-foreground mb-4">Details item with more info</p>
+            <div className="flow-root">
+              <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                  <table className="min-w-full">
+                      <thead className="text-muted-foreground uppercase text-sm">
+                          <tr>
+                              <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0">Item</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Order/Type</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Rate</th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold">Amount</th>
+                              <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0"></th>
+                          </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                          {fields.map((field, index) => (
+                              <tr key={field.id}>
+                                  <td className="w-full max-w-0 py-4 pl-4 pr-3 text-sm font-medium sm:w-auto sm:max-w-none sm:pl-0">
+                                      <FormField
+                                          control={form.control}
+                                          name={`items.${index}.description`}
+                                          render={({ field }) => (
+                                              <FormItem>
+                                                  <FormControl>
+                                                      <Input {...field} placeholder="Item description" className="border-0 focus-visible:ring-0 p-0"/>
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                          )}
+                                      />
+                                  </td>
+                                  <td className="px-3 py-4 text-center">
+                                       <FormField
+                                          control={form.control}
+                                          name={`items.${index}.quantity`}
+                                          render={({ field }) => (
+                                              <FormItem>
+                                                  <FormControl>
+                                                      <Input type="number" {...field} className="w-20 text-center border-0 focus-visible:ring-0 p-0"/>
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                          )}
+                                      />
+                                  </td>
+                                  <td className="px-3 py-4 text-center">
+                                      <FormField
+                                          control={form.control}
+                                          name={`items.${index}.amount`}
+                                          render={({ field }) => (
+                                              <FormItem>
+                                                  <FormControl>
+                                                      <Input type="number" {...field} className="w-24 text-center border-0 focus-visible:ring-0 p-0"/>
+                                                  </FormControl>
+                                                  <FormMessage />
+                                              </FormItem>
+                                          )}
+                                      />
+                                  </td>
+                                  <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0">
+                                      {formatCurrency((watchItems[index]?.quantity || 0) * (watchItems[index]?.amount || 0))}
+                                  </td>
+                                   <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => remove(index)}
+                                        disabled={fields.length <= 1}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                  </td>
+                              </tr>
+                          ))}
+                      </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+             <Button
                 type="button"
-                variant="outline"
+                variant="link"
                 size="sm"
-                className="mt-4"
+                className="mt-4 p-0 text-primary"
                 onClick={() =>
                   append({
                     description: "",
@@ -401,22 +322,30 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Item
               </Button>
-            </CardContent>
-            <CardFooter className="flex flex-col items-end space-y-4 bg-muted/50 p-6">
-                <div className="w-full max-w-sm space-y-2">
-                    <div className="flex justify-between">
-                        <span className="text-muted-foreground">Subtotal</span>
-                        <span className="font-medium">{formatCurrency(subTotal)}</span>
-                    </div>
-                    <div className="flex justify-between border-t pt-2 mt-2 border-border">
-                        <span className="text-lg font-bold">Total</span>
-                        <span className="text-lg font-bold text-primary">{formatCurrency(subTotal)}</span>
-                    </div>
-                </div>
-            </CardFooter>
-          </Card>
+          </div>
           
-          <div className="flex justify-end">
+          <div className="mt-6 flex justify-end">
+              <div className="w-full max-w-sm space-y-4">
+                  <div className="flex justify-between">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="font-medium">{formatCurrency(subTotal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                      <FormLabel className="text-muted-foreground">Discount</FormLabel>
+                      <span className="font-medium text-primary cursor-pointer">Add</span>
+                  </div>
+                   <div className="flex justify-between">
+                      <FormLabel className="text-muted-foreground">Tax</FormLabel>
+                      <span className="font-medium text-primary cursor-pointer">Add</span>
+                  </div>
+                  <div className="flex justify-between border-t pt-4 mt-4 border-border font-bold text-lg">
+                      <span className="">Total</span>
+                      <span className="text-primary">{formatCurrency(subTotal)}</span>
+                  </div>
+              </div>
+          </div>
+
+          <div className="flex justify-end pt-8">
             <Button type="submit" size="lg" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

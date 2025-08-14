@@ -67,6 +67,7 @@ export interface Invoice {
   id: string;
   invoiceNumber: string;
   clientName: string;
+  address: string;
   date: string;
   dueDate: string;
   items: InvoiceItem[];
