@@ -173,8 +173,8 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                   <div className="flex items-center gap-4">
                       <Image src="https://storage.googleapis.com/stedi-dev-screenshots/adslab-logo.png" alt="Company Logo" width={50} height={50} className="w-12 h-12 rounded-full bg-white p-1"/>
                       <div>
-                          <h2 className="text-2xl font-bold">ADS Digital Printing Services</h2>
-                          <p className="text-sm text-gray-300">sales@adsdigitalprint.com</p>
+                          <h2 className="text-2xl font-bold">ADSLAB ADVERTISING SERVICES</h2>
+                          <p className="text-sm text-gray-300">sales@adslab.com</p>
                       </div>
                   </div>
                   <div className="text-right">
