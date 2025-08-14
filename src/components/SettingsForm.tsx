@@ -19,6 +19,8 @@ import { useToast } from "@/hooks/use-toast";
 import { useCompanyProfile } from "@/contexts/CompanyProfileContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Save } from "lucide-react";
+import { Skeleton } from "./ui/skeleton";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1, "Company name is required."),
@@ -34,17 +36,32 @@ type SettingsFormValues = z.infer<typeof formSchema>;
 
 export function SettingsForm() {
   const { toast } = useToast();
-  const { profile, updateProfile } = useCompanyProfile();
+  const { profile, updateProfile, isDataLoaded } = useCompanyProfile();
 
   const form = useForm<SettingsFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      ...profile,
-      tinNumber: profile.tinNumber || "",
-      facebookPage: profile.facebookPage || "",
-      logoUrl: profile.logoUrl || "",
+      name: "",
+      logoUrl: "",
+      address: "",
+      email: "",
+      contactNumber: "",
+      tinNumber: "",
+      facebookPage: "",
     },
   });
+
+  useEffect(() => {
+    if (isDataLoaded) {
+      form.reset({
+        ...profile,
+        tinNumber: profile.tinNumber || "",
+        facebookPage: profile.facebookPage || "",
+        logoUrl: profile.logoUrl || "",
+      });
+    }
+  }, [isDataLoaded, profile, form]);
+
 
   const onSubmit = (data: SettingsFormValues) => {
     updateProfile(data);
@@ -53,6 +70,31 @@ export function SettingsForm() {
       description: "Company profile updated successfully.",
     });
   };
+
+  if (!isDataLoaded) {
+    return (
+        <Card>
+            <CardHeader>
+                <Skeleton className="h-8 w-1/4" />
+                <Skeleton className="h-4 w-3/4" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/6" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/6" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-1/6" />
+                    <Skeleton className="h-20 w-full" />
+                </div>
+            </CardContent>
+        </Card>
+    )
+  }
 
   return (
     <Form {...form}>
@@ -83,7 +125,7 @@ export function SettingsForm() {
                         <FormItem>
                         <FormLabel>Logo URL</FormLabel>
                         <FormControl>
-                            <Input placeholder="https://your-logo.com/logo.png" {...field} />
+                            <Input placeholder="https://your-logo.com/logo.png" {...field} value={field.value || ''} />
                         </FormControl>
                          <FormMessage />
                         </FormItem>
@@ -138,7 +180,7 @@ export function SettingsForm() {
                             <FormItem>
                             <FormLabel>TIN Number</FormLabel>
                             <FormControl>
-                                <Input placeholder="123-456-789-000" {...field} />
+                                <Input placeholder="123-456-789-000" {...field} value={field.value || ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>
@@ -151,7 +193,7 @@ export function SettingsForm() {
                             <FormItem>
                             <FormLabel>Facebook Page URL</FormLabel>
                             <FormControl>
-                                <Input placeholder="https://facebook.com/yourcompany" {...field} />
+                                <Input placeholder="https://facebook.com/yourcompany" {...field} value={field.value || ''} />
                             </FormControl>
                             <FormMessage />
                             </FormItem>

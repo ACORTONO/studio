@@ -17,6 +17,7 @@ const defaultProfile: CompanyProfile = {
 interface CompanyProfileContextType {
   profile: CompanyProfile;
   updateProfile: (profile: CompanyProfile) => void;
+  isDataLoaded: boolean;
 }
 
 const CompanyProfileContext = createContext<CompanyProfileContextType | undefined>(undefined);
@@ -31,12 +32,10 @@ export const CompanyProfileProvider = ({ children }: { children: ReactNode }) =>
             const storedProfile = localStorage.getItem('companyProfile');
             if (storedProfile) {
                 setProfile(JSON.parse(storedProfile));
-            } else {
-                setProfile(defaultProfile);
             }
         } catch (error) {
             console.error("Failed to parse company profile from localStorage", error);
-            setProfile(defaultProfile);
+            // Keep default profile if parsing fails
         }
         setIsDataLoaded(true);
     }
@@ -57,7 +56,7 @@ export const CompanyProfileProvider = ({ children }: { children: ReactNode }) =>
   };
 
   return (
-    <CompanyProfileContext.Provider value={{ profile, updateProfile }}>
+    <CompanyProfileContext.Provider value={{ profile, updateProfile, isDataLoaded }}>
       {children}
     </CompanyProfileContext.Provider>
   );
