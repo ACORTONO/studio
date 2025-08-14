@@ -49,6 +49,7 @@ import { Calendar } from "./ui/calendar";
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
   address: z.string().min(1, "Address is required."),
+  tinNumber: z.string().optional(),
   date: z.date({ required_error: "An invoice date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
@@ -90,6 +91,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     } : {
       clientName: "",
       address: "",
+      tinNumber: "",
       date: new Date(), 
       dueDate: new Date(),
       notes: "",
@@ -143,6 +145,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
         form.reset({
             clientName: "",
             address: "",
+            tinNumber: "",
             notes: "",
             status: "Unpaid",
             items: [{ description: "", quantity: 1, amount: 0 }],
@@ -296,6 +299,18 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                             <FormItem className="mt-1">
                                 <FormControl>
                                     <Textarea placeholder="Client Address" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="tinNumber"
+                        render={({ field }) => (
+                            <FormItem className="mt-1">
+                                <FormControl>
+                                    <Input placeholder="TIN No." {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

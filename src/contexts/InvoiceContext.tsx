@@ -11,6 +11,7 @@ const mockInvoices: Invoice[] = [
     invoiceNumber: "INV-2024-0001",
     clientName: "Creative Solutions Inc.",
     address: "123 Innovation Drive, Suite 100, Tech City, USA 12345",
+    tinNumber: "123-456-789-000",
     date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
     dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
     items: [
@@ -26,6 +27,7 @@ const mockInvoices: Invoice[] = [
     invoiceNumber: "INV-2024-0002",
     clientName: "Tech Innovators LLC",
     address: "456 Future Way, Silicon Valley, CA 94043",
+    tinNumber: "987-654-321-000",
     date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
     dueDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
     items: [

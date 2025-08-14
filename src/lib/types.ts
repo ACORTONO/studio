@@ -68,6 +68,7 @@ export interface Invoice {
   invoiceNumber: string;
   clientName: string;
   address: string;
+  tinNumber?: string;
   date: string;
   dueDate: string;
   items: InvoiceItem[];

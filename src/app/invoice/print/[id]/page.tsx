@@ -106,6 +106,7 @@ export default function PrintInvoicePage({ params }: { params: Promise<{ id: str
                       <h3 className="font-semibold text-gray-600 uppercase tracking-wider mb-2">Bill To</h3>
                       <p className="font-bold text-lg">{invoice.clientName}</p>
                       <p className="text-gray-700 whitespace-pre-wrap">{invoice.address}</p>
+                      {invoice.tinNumber && <p className="text-gray-700">TIN: {invoice.tinNumber}</p>}
                   </div>
                   <div className="text-right">
                       <p className="mb-1"><span className="font-semibold text-gray-600">Invoice Date:</span> {new Date(invoice.date).toLocaleDateString()}</p>
