@@ -784,18 +784,17 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         )}
                     />
                 </CardContent>
+                <CardFooter className="flex justify-end">
+                    <Button type="submit" size="lg" disabled={isSubmitting}>
+                        {isSubmitting ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                            <Save className="mr-2 h-4 w-4" />
+                        )}
+                        {isEditMode ? 'Update & Print Preview' : 'Save & Print Preview'}
+                    </Button>
+                </CardFooter>
             </Card>
-
-          <div className="flex justify-end">
-            <Button type="submit" size="lg" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="mr-2 h-4 w-4" />
-              )}
-              {isEditMode ? 'Update & Print Preview' : 'Save & Print Preview'}
-            </Button>
-          </div>
         </form>
       </Form>
       <Dialog open={isSuccessDialogOpen} onOpenChange={handleDialogClose}>
@@ -832,5 +831,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
 
 
 
+
+    
 
     
