@@ -23,6 +23,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
+import { CheckCircle, Hourglass } from "lucide-react";
 
 export default function InvoicePage() {
     const { invoices, deleteInvoice } = useInvoices();
@@ -42,6 +43,17 @@ export default function InvoicePage() {
             title: "Success",
             description: "Invoice deleted successfully.",
         });
+    }
+
+    const getStatusBadge = (status: 'Paid' | 'Unpaid') => {
+        switch (status) {
+            case 'Paid':
+                return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3" /> Paid</Badge>;
+            case 'Unpaid':
+                return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3" /> Unpaid</Badge>;
+            default:
+                return <Badge>{status}</Badge>;
+        }
     }
 
     return (
@@ -93,7 +105,7 @@ export default function InvoicePage() {
                                         <TableCell>{new Date(invoice.dueDate).toLocaleDateString()}</TableCell>
                                         <TableCell>{formatCurrency(invoice.totalAmount)}</TableCell>
                                         <TableCell>
-                                            <Badge variant={invoice.status === 'Paid' ? 'success' : 'warning'}>{invoice.status}</Badge>
+                                            {getStatusBadge(invoice.status)}
                                         </TableCell>
                                         <TableCell className="text-right space-x-2">
                                             <Button asChild variant="ghost" size="icon">

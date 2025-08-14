@@ -49,6 +49,7 @@ import { Calendar } from "./ui/calendar";
 import { Switch } from "./ui/switch";
 import { Label } from "./ui/label";
 import { useCompanyProfile } from "@/contexts/CompanyProfileContext";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 
 const formSchema = z.object({
   clientName: z.string().min(1, "Client name is required."),
@@ -367,7 +368,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                           <tr>
                               <th scope="col" className="py-3.5 pl-4 pr-3 text-left font-semibold sm:pl-0">Description</th>
                               <th scope="col" className="px-3 py-3.5 text-center font-semibold">Quantity</th>
-                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Price</th>
+                              <th scope="col" className="px-3 py-3.5 text-center font-semibold">Unit Price</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0 text-right font-semibold">Amount</th>
                               <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0"></th>
                           </tr>
@@ -471,6 +472,27 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                   </FormItem>
                 )}
               />
+               <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem className="mt-4">
+                      <FormLabel>Payment Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Unpaid">Unpaid</SelectItem>
+                          <SelectItem value="Paid">Paid</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </div>
             <div className="mt-6 flex justify-end">
                 <div className="w-full max-w-sm space-y-4">
