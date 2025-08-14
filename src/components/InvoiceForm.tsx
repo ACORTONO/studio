@@ -98,7 +98,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     resolver: zodResolver(formSchema),
     defaultValues: initialData ? {
         ...initialData,
-        termsAndConditions: initialData.termsAndConditions || '',
+        termsAndConditions: initialData.termsAndConditions || 'Due within seven (7) days from invoice date. Late fee of [amount or percentage] applies after the due date.',
         paymentDetails: initialData.paymentDetails || '',
         tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
@@ -109,7 +109,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       tinNumber: "",
       date: new Date(), 
       dueDate: new Date(),
-      termsAndConditions: "",
+      termsAndConditions: "Due within seven (7) days from invoice date. Late fee of [amount or percentage] applies after the due date.",
       paymentDetails: "",
       status: "Unpaid",
       items: [{ description: "", quantity: 1, amount: 0 }],
@@ -125,7 +125,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     if (initialData) {
        form.reset({
         ...initialData,
-        termsAndConditions: initialData.termsAndConditions || '',
+        termsAndConditions: initialData.termsAndConditions || 'Due within seven (7) days from invoice date. Late fee of [amount or percentage] applies after the due date.',
         paymentDetails: initialData.paymentDetails || '',
         tinNumber: initialData.tinNumber || '',
         date: new Date(initialData.date),
@@ -187,7 +187,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
             clientName: "",
             address: "",
             tinNumber: "",
-            termsAndConditions: "",
+            termsAndConditions: "Due within seven (7) days from invoice date. Late fee of [amount or percentage] applies after the due date.",
             paymentDetails: "",
             status: "Unpaid",
             items: [{ description: "", quantity: 1, amount: 0 }],
@@ -470,7 +470,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                 name="termsAndConditions"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Terms & Conditions</FormLabel>
+                    <FormLabel>Terms &amp; Conditions</FormLabel>
                     <FormControl>
                       <Textarea placeholder="Add any terms or conditions for the client" {...field} value={field.value || ''} />
                     </FormControl>
