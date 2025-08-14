@@ -416,7 +416,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           )}
                                       />
                                   </td>
-                                  <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0 border border-slate-300">
+                                  <td className="py-4 pl-3 pr-4 text-center text-sm sm:pr-0 border border-slate-300">
                                       {formatCurrency((watchItems[index]?.quantity || 0) * (watchItems[index]?.amount || 0))}
                                   </td>
                                    <td className="py-4 pl-3 pr-4 text-right text-sm sm:pr-0 border border-slate-300">
