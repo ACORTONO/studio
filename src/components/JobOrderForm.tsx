@@ -225,7 +225,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        const { id } = use(initialData as any);
+        const id = initialData.id;
         const existingOrder = getJobOrderById(id);
         result = await updateJobOrderAction({ ...data, id: id, jobOrderNumber: existingOrder?.jobOrderNumber || "" });
     } else {

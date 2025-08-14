@@ -141,7 +141,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
     
     let result;
     if (isEditMode && initialData) {
-        const { id } = use(initialData as any);
+        const id = initialData.id;
         result = await updateInvoiceAction({ ...data, id: id, invoiceNumber: initialData.invoiceNumber });
     } else {
         const existingInvoiceNumbers = invoices.map((inv) => inv.invoiceNumber);
