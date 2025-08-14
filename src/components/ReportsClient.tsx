@@ -60,9 +60,31 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
         case 'Completed':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'Downpayment':
-            return <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>;
+             return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge variant="violet"><Wallet className="mr-1 h-3 w-3"/> Downpayment</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>{statusSummary || 'Partially paid'}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
         case 'Pending':
-            return <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>;
+            return (
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Badge variant="warning"><Hourglass className="mr-1 h-3 w-3"/> Pending</Badge>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                           <p>{statusSummary || 'Awaiting work'}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+            )
         case 'Cancelled':
             return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
         default:
