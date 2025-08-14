@@ -395,7 +395,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           render={({ field }) => (
                                               <FormItem>
                                                   <FormControl>
-                                                      <Input type="number" {...field} className="w-20 text-center"/>
+                                                      <Input type="number" {...field} className="w-20 text-center mx-auto"/>
                                                   </FormControl>
                                                   <FormMessage />
                                               </FormItem>
@@ -409,7 +409,7 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
                                           render={({ field }) => (
                                               <FormItem>
                                                   <FormControl>
-                                                      <Input type="number" {...field} className="w-24 text-center"/>
+                                                      <Input type="number" {...field} className="w-24 text-center mx-auto"/>
                                                   </FormControl>
                                                   <FormMessage />
                                               </FormItem>
