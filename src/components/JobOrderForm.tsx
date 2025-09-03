@@ -75,6 +75,7 @@ const formSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
+  status: z.enum(['Pending', 'Downpayment', 'Completed', 'Cancelled']).default('Pending'),
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0, "Discount must be non-negative.").optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
@@ -132,6 +133,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       discount: 0,
       discountType: 'amount',
       paymentMethod: 'Cash',
+      status: 'Pending',
       paymentReference: "",
       chequeBankName: "",
       chequeNumber: "",
@@ -150,6 +152,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const watchPaidAmount = form.watch("paidAmount") || 0;
   const discountType = form.watch('discountType');
   const paymentMethod = form.watch('paymentMethod');
+  const status = form.watch('status');
   
   const subTotal = watchItems.reduce(
     (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
@@ -159,28 +162,15 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const calculatedDiscount = discountType === 'percent'
     ? subTotal * (watchDiscountValue / 100)
     : watchDiscountValue;
-
-  const totalAmount = subTotal - calculatedDiscount - watchPaidAmount;
   
-  const markAllAs = (status: 'Paid' | 'Downpayment' | 'Cheque') => {
-    const newItems = watchItems.map(item => ({ ...item, status: status }));
-    form.setValue('items', newItems);
-
-    if (status === 'Paid') {
-        const currentTotal = newItems.reduce(
-            (acc, item) => acc + (item.quantity || 0) * (item.amount || 0),
-            0
-        );
-        form.setValue('paidAmount', currentTotal);
-    }
-  }
+  const totalAmountWithDiscount = subTotal - calculatedDiscount;
+  const totalAmount = totalAmountWithDiscount - watchPaidAmount;
   
   useEffect(() => {
-    const allPaid = watchItems.every(item => item.status === 'Paid');
-    if (allPaid) {
-      form.setValue('paidAmount', subTotal);
+    if (status === 'Completed') {
+      form.setValue('paidAmount', totalAmountWithDiscount);
     }
-  }, [watchItems, subTotal, form]);
+  }, [status, form, totalAmountWithDiscount]);
 
 
   useEffect(() => {
@@ -204,6 +194,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         dueDate: new Date(),
         notes: "",
         paidAmount: 0,
+        status: 'Pending',
         discount: 0,
         discountType: 'amount',
         paymentMethod: 'Cash',
@@ -256,6 +247,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             dueDate: new Date(),
             notes: "",
             paidAmount: 0,
+            status: 'Pending',
             discount: 0,
             discountType: 'amount',
             paymentMethod: 'Cash',
@@ -425,6 +417,29 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         />
                       </PopoverContent>
                     </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Order Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                        <SelectItem value="Downpayment">Downpayment</SelectItem>
+                        <SelectItem value="Completed">Completed</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

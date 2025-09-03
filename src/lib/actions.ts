@@ -22,6 +22,7 @@ const jobOrderSchema = z.object({
   startDate: z.date({ required_error: "A start date is required." }),
   dueDate: z.date({ required_error: "A due date is required." }),
   notes: z.string().optional(),
+  status: z.enum(['Pending', 'Downpayment', 'Completed', 'Cancelled']).default('Pending'),
   paidAmount: z.coerce.number().min(0).optional().default(0),
   discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
@@ -61,24 +62,7 @@ export async function createJobOrderAction(
       (acc, item) => acc + item.quantity * item.amount,
       0
     );
-
-    const discountValue = validatedData.discount || 0;
-    const discountAmount = validatedData.discountType === 'percent'
-        ? totalAmount * (discountValue / 100)
-        : discountValue;
-    const balance = totalAmount - (validatedData.paidAmount || 0) - discountAmount;
     
-    const itemStatuses = validatedData.items.map(item => item.status);
-    let derivedStatus: JobOrder['status'] = 'Pending';
-    const isFullyPaid = balance <= 0 && validatedData.paidAmount > 0;
-
-    if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
-        derivedStatus = 'Completed';
-    } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (validatedData.paidAmount || 0) > 0) {
-        derivedStatus = 'Downpayment';
-    }
-
-
     const newJobOrder: JobOrder = {
       id: crypto.randomUUID(),
       jobOrderNumber,
@@ -88,7 +72,7 @@ export async function createJobOrderAction(
       startDate: validatedData.startDate.toISOString(),
       dueDate: validatedData.dueDate.toISOString(),
       notes: validatedData.notes,
-      status: derivedStatus,
+      status: validatedData.status,
       paidAmount: validatedData.paidAmount || 0,
       discount: validatedData.discount,
       discountType: validatedData.discountType,
@@ -128,23 +112,6 @@ export async function updateJobOrderAction(
             0
         );
 
-        const discountValue = validatedData.discount || 0;
-        const discountAmount = validatedData.discountType === 'percent'
-            ? totalAmount * (discountValue / 100)
-            : discountValue;
-        const balance = totalAmount - (validatedData.paidAmount || 0) - discountAmount;
-    
-        const itemStatuses = validatedData.items.map(item => item.status);
-        let derivedStatus: JobOrder['status'] = 'Pending';
-        const isFullyPaid = balance <= 0 && validatedData.paidAmount > 0;
-
-        if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
-            derivedStatus = 'Completed';
-        } else if (itemStatuses.some(s => s === 'Paid' || s === 'Downpayment' || s === 'Cheque') || (validatedData.paidAmount || 0) > 0) {
-            derivedStatus = 'Downpayment';
-        }
-
-
         const updatedJobOrder: JobOrder = {
             id: validatedData.id,
             jobOrderNumber: validatedData.jobOrderNumber,
@@ -154,7 +121,7 @@ export async function updateJobOrderAction(
             startDate: validatedData.startDate.toISOString(),
             dueDate: validatedData.dueDate.toISOString(),
             notes: validatedData.notes,
-            status: derivedStatus,
+            status: validatedData.status,
             paidAmount: validatedData.paidAmount || 0,
             discount: validatedData.discount,
             discountType: validatedData.discountType,

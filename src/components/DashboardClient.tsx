@@ -23,7 +23,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle, FileDown } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle, FileDown, Banknote } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -177,22 +177,24 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
     const balance = subtotal - discountAmount - paidAmount;
 
     React.useEffect(() => {
-        const itemStatuses = jobOrder.items.map(item => item.status);
-        let derivedStatus: JobOrder['status'] = 'Pending';
-        const isFullyPaid = balance <= 0 && jobOrder.paidAmount > 0;
-        
-        if (jobOrder.status === 'Cancelled') {
-            derivedStatus = 'Cancelled';
-        } else if (isFullyPaid || itemStatuses.every(s => s === 'Paid')) {
-            derivedStatus = 'Completed';
-        } else if (itemStatuses.some(s => s === 'Downpayment' || s === 'Cheque') || ((jobOrder.paidAmount || 0) > 0 && (jobOrder.paidAmount || 0) < jobOrder.totalAmount)) {
-            derivedStatus = 'Downpayment';
-        }
+        let derivedStatus: JobOrder['status'] = jobOrder.status; // Default to current status
 
+        if (jobOrder.status !== 'Cancelled') {
+            const isFullyPaid = balance <= 0 && paidAmount > 0;
+
+            if (isFullyPaid) {
+                derivedStatus = 'Completed';
+            } else if (paidAmount > 0) {
+                derivedStatus = 'Downpayment';
+            } else {
+                derivedStatus = 'Pending';
+            }
+        }
+        
         if (jobOrder.status !== derivedStatus) {
             updateJobOrder({ ...jobOrder, status: derivedStatus });
         }
-    }, [jobOrder, updateJobOrder, balance]);
+    }, [jobOrder, updateJobOrder, balance, paidAmount]);
 
 
     return (
@@ -575,8 +577,8 @@ export function DashboardClient() {
         />
         <StatCard 
             title="Cash on Hand" 
-            value={formatCurrency(cashOnHand)} 
-            icon={DollarSign} 
+            value={formatCurrency(netProfit)} 
+            icon={Banknote} 
             description={`Total paid received`}
             className="bg-blue-600 border-blue-500"
         />
@@ -868,6 +870,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    
-    
