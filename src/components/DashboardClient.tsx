@@ -2,7 +2,7 @@
 
 "use client";
 
-import React, from 'react';
+import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { useJobOrders } from "@/contexts/JobOrderContext";
 import {
@@ -24,7 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle, FileDown, Banknote } from "lucide-react";
+import { Printer, PlusCircle, TrendingUp, TrendingDown, DollarSign, Pencil, Trash2, Search, ArrowUpDown, Users, ChevronDown, Activity, Hourglass, CheckCircle, CircleX, Wallet, AlertCircle, FileDown, Banknote, Calendar as CalendarIcon } from "lucide-react";
 import {
   startOfToday,
   startOfWeek,
@@ -36,6 +36,7 @@ import {
   endOfYear,
   isWithinInterval,
   parseISO,
+  format,
 } from "date-fns";
 import {
   Dialog,
@@ -71,6 +72,9 @@ import { Textarea } from "./ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./ui/tooltip";
 import { useRouter } from 'next/navigation';
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
+import { Calendar } from './ui/calendar';
+import { DateRange } from 'react-day-picker';
 
 
 const expenseItemSchema = z.object({
@@ -103,6 +107,11 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
 );
 
 const getDerivedStatus = (jobOrder: JobOrder): JobOrder['status'] => {
+    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
+
+    if (balance <= 0 && jobOrder.paidAmount > 0) {
+        return 'Completed';
+    }
     if (jobOrder.items.every(item => item.status === 'Paid')) {
         return 'Completed';
     }
@@ -115,14 +124,7 @@ const getDerivedStatus = (jobOrder: JobOrder): JobOrder['status'] => {
     if (jobOrder.items.every(item => item.status === 'Unpaid') && jobOrder.paidAmount === 0) {
         return 'Pending';
     }
-    // Fallback based on paid amount vs total amount
-    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
-    if (balance <= 0 && jobOrder.paidAmount > 0) {
-        return 'Completed';
-    }
-    if (jobOrder.paidAmount > 0) {
-        return 'Downpayment';
-    }
+    
     return 'Pending';
 };
 
@@ -299,6 +301,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
 export function DashboardClient() {
   const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder } = useJobOrders();
   const [timeFilter, setTimeFilter] = React.useState("today");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
   const [jobOrderSearchQuery, setJobOrderSearchQuery] = React.useState("");
@@ -325,7 +328,7 @@ export function DashboardClient() {
 
   const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid, cashOnHand } = React.useMemo(() => {
     const now = new Date();
-    let interval: Interval | null = null;
+    let interval: Interval | undefined;
 
     switch (timeFilter) {
       case "weekly":
@@ -336,6 +339,11 @@ export function DashboardClient() {
         break;
       case "yearly":
         interval = { start: startOfYear(now), end: endOfYear(now) };
+        break;
+      case "custom":
+        if (dateRange?.from) {
+          interval = { start: dateRange.from, end: dateRange.to || dateRange.from };
+        }
         break;
       case "today":
       default:
@@ -461,7 +469,7 @@ export function DashboardClient() {
       totalUnpaid,
       cashOnHand: totalPaid,
     };
-  }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
+  }, [jobOrders, expenses, timeFilter, dateRange, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
   const requestJobOrderSort = (key: SortableJobOrderKeys) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -870,16 +878,58 @@ export function DashboardClient() {
         </div>
 
       <Tabs defaultValue="today" onValueChange={setTimeFilter} className="space-y-4">
-        <TabsList>
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="weekly">This Week</TabsTrigger>
-            <TabsTrigger value="monthly">This Month</TabsTrigger>
-            <TabsTrigger value="yearly">This Year</TabsTrigger>
-        </TabsList>
+        <div className="flex items-center gap-4">
+            <TabsList>
+                <TabsTrigger value="today">Today</TabsTrigger>
+                <TabsTrigger value="weekly">This Week</TabsTrigger>
+                <TabsTrigger value="monthly">This Month</TabsTrigger>
+                <TabsTrigger value="yearly">This Year</TabsTrigger>
+                <TabsTrigger value="custom">Custom</TabsTrigger>
+            </TabsList>
+            {timeFilter === 'custom' && (
+                <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                            "w-[300px] justify-start text-left font-normal",
+                            !dateRange && "text-muted-foreground"
+                        )}
+                        >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dateRange?.from ? (
+                            dateRange.to ? (
+                            <>
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
+                            </>
+                            ) : (
+                            format(dateRange.from, "LLL dd, y")
+                            )
+                        ) : (
+                            <span>Pick a date range</span>
+                        )}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={dateRange?.from}
+                        selected={dateRange}
+                        onSelect={setDateRange}
+                        numberOfMonths={2}
+                        />
+                    </PopoverContent>
+                </Popover>
+            )}
+        </div>
         <TabsContent value="today">{renderContent()}</TabsContent>
         <TabsContent value="weekly">{renderContent()}</TabsContent>
         <TabsContent value="monthly">{renderContent()}</TabsContent>
         <TabsContent value="yearly">{renderContent()}</TabsContent>
+        <TabsContent value="custom">{renderContent()}</TabsContent>
       </Tabs>
     </div>
   );
