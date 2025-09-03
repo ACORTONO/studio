@@ -314,7 +314,7 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid } = React.useMemo(() => {
+  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid, cashOnHand } = React.useMemo(() => {
     const now = new Date();
     let interval: Interval | null = null;
 
@@ -442,7 +442,8 @@ export function DashboardClient() {
       totalExpenses,
       netProfit: totalPaid - totalExpenses,
       totalCustomers: uniqueClients.size,
-      totalUnpaid
+      totalUnpaid,
+      cashOnHand: totalPaid,
     };
   }, [jobOrders, expenses, timeFilter, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
 
@@ -574,9 +575,9 @@ export function DashboardClient() {
         />
         <StatCard 
             title="Cash on Hand" 
-            value={formatCurrency(netProfit)} 
+            value={formatCurrency(cashOnHand)} 
             icon={DollarSign} 
-            description={`Total paid minus expenses`}
+            description={`Total paid received`}
             className="bg-blue-600 border-blue-500"
         />
          <StatCard 
@@ -868,4 +869,5 @@ export function DashboardClient() {
   );
 }
 
+    
     
