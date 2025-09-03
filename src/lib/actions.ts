@@ -12,7 +12,6 @@ const jobOrderItemSchema = z.object({
   description: z.string().min(1, "Description is required."),
   quantity: z.coerce.number().min(0.01, "Quantity must be greater than 0."),
   amount: z.coerce.number().min(0, "Amount is required."),
-  remarks: z.string().optional(),
   status: z.enum(['Unpaid', 'Paid', 'Downpayment', 'Cheque']).default('Unpaid'),
 });
 

@@ -124,8 +124,7 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                   <Table>
                       <TableHeader>
                           <TableRow className="bg-gray-100">
-                              <TableHead className="w-2/5 font-bold text-gray-700 p-1 h-auto">Description</TableHead>
-                              <TableHead className="w-2/5 font-bold text-gray-700 p-1 h-auto">Remarks</TableHead>
+                              <TableHead className="w-3/5 font-bold text-gray-700 p-1 h-auto">Description</TableHead>
                               <TableHead className="text-center font-bold text-gray-700 p-1 h-auto">Qty</TableHead>
                               <TableHead className="text-right font-bold text-gray-700 p-1 h-auto">Total</TableHead>
                           </TableRow>
@@ -136,9 +135,6 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                                   <TableCell className="p-1 align-top">
                                       <p className="font-medium">{item.description}</p>
                                   </TableCell>
-                                  <TableCell className="p-1 align-top">
-                                    {item.remarks && <p className="text-gray-500">{item.remarks}</p>}
-                                  </TableCell>
                                   <TableCell className="text-center p-1 align-top">{item.quantity}</TableCell>
                                   <TableCell className="text-right p-1 align-top">{formatCurrency(item.quantity * item.amount)}</TableCell>
                               </TableRow>
@@ -146,12 +142,12 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                       </TableBody>
                       <TableFooter>
                           <TableRow>
-                              <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Subtotal</TableCell>
+                              <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Subtotal</TableCell>
                               <TableCell className="text-right text-gray-800 p-1 h-auto">{formatCurrency(subtotal)}</TableCell>
                           </TableRow>
                           {discountValue > 0 && (
                               <TableRow>
-                                  <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">
+                                  <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">
                                       Discount {jobOrder.discountType === 'percent' ? `(${jobOrder.discount}%)` : ''}
                                   </TableCell>
                                   <TableCell className="text-right text-gray-800 p-1 h-auto">- {formatCurrency(discountAmount)}</TableCell>
@@ -159,12 +155,12 @@ export default function PrintPage({ params }: { params: Promise<{ id: string }> 
                           )}
                            {paidAmount > 0 && (
                               <TableRow>
-                                  <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Paid</TableCell>
+                                  <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Paid</TableCell>
                                   <TableCell className="text-right text-gray-800 p-1 h-auto">- {formatCurrency(paidAmount)}</TableCell>
                               </TableRow>
                            )}
                           <TableRow className="font-bold bg-gray-50">
-                              <TableCell colSpan={3} className="text-right text-gray-800 p-1 h-auto">Total</TableCell>
+                              <TableCell colSpan={2} className="text-right text-gray-800 p-1 h-auto">Total</TableCell>
                               <TableCell className="text-right text-primary p-1 h-auto">{formatCurrency(amountDue)}</TableCell>
                           </TableRow>
                       </TableFooter>

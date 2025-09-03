@@ -266,7 +266,6 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                                         <TableHead className="text-center">Qty</TableHead>
                                         <TableHead className="text-right">Price</TableHead>
                                         <TableHead className="text-right">Total</TableHead>
-                                        <TableHead className="text-right">Remarks</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -276,7 +275,6 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                                             <TableCell className="text-center">{item.quantity}</TableCell>
                                             <TableCell className="text-right">{formatCurrency(item.amount)}</TableCell>
                                             <TableCell className="text-right">{formatCurrency(item.quantity * item.amount)}</TableCell>
-                                            <TableCell className="text-right">{item.remarks}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -869,5 +867,3 @@ export function DashboardClient() {
     </div>
   );
 }
-
-    

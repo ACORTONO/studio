@@ -90,7 +90,6 @@ const formSchema = z.object({
         description: z.string().min(1, "Description is required."),
         quantity: z.coerce.number().min(0.01, "Quantity must be > 0."),
         amount: z.coerce.number().min(0, "Amount must be >= 0."),
-        remarks: z.string().optional(),
         status: z.enum(['Unpaid', 'Paid', 'Downpayment', 'Cheque']).default('Unpaid'),
       })
     )
@@ -139,7 +138,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       chequeBankName: "",
       chequeNumber: "",
       chequeDate: undefined,
-      items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
+      items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
     },
   });
 
@@ -214,7 +213,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         chequeBankName: "",
         chequeNumber: "",
         chequeDate: undefined,
-        items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
+        items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
       });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -251,7 +250,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
             discount: 0,
             discountType: 'amount',
             paymentMethod: 'Cash',
-            items: [{ description: "", quantity: 1, amount: 0, remarks: "", status: "Unpaid" }],
+            items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
         });
       }
     } else {
@@ -435,11 +434,10 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[30%]">Description</TableHead>
-                    <TableHead className="w-[10%]">Quantity</TableHead>
+                    <TableHead className="w-[40%]">Description</TableHead>
+                    <TableHead className="w-[15%]">Quantity</TableHead>
                     <TableHead className="w-[15%]">Amount</TableHead>
-                    <TableHead className="w-[20%]">Remarks</TableHead>
-                    <TableHead className="w-[15%]">Status</TableHead>
+                    <TableHead className="w-[20%]">Status</TableHead>
                     <TableHead className="w-[50px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -482,20 +480,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                             <FormItem>
                               <FormControl>
                                 <Input type="number" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <FormField
-                          control={form.control}
-                          name={`items.${index}.remarks`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input {...field} placeholder="Notes..." value={field.value || ''} />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
@@ -551,7 +535,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                     description: "",
                     quantity: 1,
                     amount: 0,
-                    remarks: "",
                     status: "Unpaid",
                   })
                 }
@@ -564,10 +547,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                 <div className="w-full md:w-1/2 space-y-4">
                     <div className="flex justify-between items-center">
                          <h4 className="font-semibold">Payment Details</h4>
-                         <div className="flex gap-2">
-                             <Button type="button" size="sm" variant="outline" onClick={() => markAllAs('Downpayment')}>Mark All as Downpayment</Button>
-                             <Button type="button" size="sm" variant="outline" className="bg-accent-teal hover:bg-accent-teal/90 text-white" onClick={() => markAllAs('Paid')}>Mark All as Paid</Button>
-                         </div>
                     </div>
                     <FormField
                       control={form.control}
@@ -818,5 +797,3 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
-
-    
