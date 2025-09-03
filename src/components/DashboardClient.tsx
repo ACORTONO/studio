@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, from 'react';
@@ -85,7 +86,7 @@ const expenseSchema = z.object({
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
 });
 
-type SortableJobOrderKeys = keyof JobOrder | 'balance';
+type SortableJobOrderKeys = keyof JobOrder | 'balance' | 'status';
 type SortableExpenseKeys = keyof Expense;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
@@ -100,6 +101,31 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
       </CardContent>
     </Card>
 );
+
+const getDerivedStatus = (jobOrder: JobOrder): JobOrder['status'] => {
+    if (jobOrder.items.every(item => item.status === 'Paid')) {
+        return 'Completed';
+    }
+    if (jobOrder.items.some(item => item.status === 'Cheque')) {
+        return 'Pending'; 
+    }
+    if (jobOrder.items.some(item => item.status === 'Downpayment') || jobOrder.paidAmount > 0) {
+        return 'Downpayment';
+    }
+    if (jobOrder.items.every(item => item.status === 'Unpaid') && jobOrder.paidAmount === 0) {
+        return 'Pending';
+    }
+    // Fallback based on paid amount vs total amount
+    const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
+    if (balance <= 0 && jobOrder.paidAmount > 0) {
+        return 'Completed';
+    }
+    if (jobOrder.paidAmount > 0) {
+        return 'Downpayment';
+    }
+    return 'Pending';
+};
+
 
 const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) => {
     
@@ -175,27 +201,8 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
         : discountValue;
     const paidAmount = jobOrder.paidAmount || 0;
     const balance = subtotal - discountAmount - paidAmount;
-
-    React.useEffect(() => {
-        let derivedStatus: JobOrder['status'] = jobOrder.status; // Default to current status
-
-        if (jobOrder.status !== 'Cancelled') {
-            const isFullyPaid = balance <= 0 && paidAmount > 0;
-
-            if (isFullyPaid) {
-                derivedStatus = 'Completed';
-            } else if (paidAmount > 0) {
-                derivedStatus = 'Downpayment';
-            } else {
-                derivedStatus = 'Pending';
-            }
-        }
-        
-        if (jobOrder.status !== derivedStatus) {
-            updateJobOrder({ ...jobOrder, status: derivedStatus });
-        }
-    }, [jobOrder, updateJobOrder, balance, paidAmount]);
-
+    
+    const derivedStatus = getDerivedStatus(jobOrder);
 
     return (
         <React.Fragment>
@@ -223,7 +230,7 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
                 <TableCell>{formatCurrency(jobOrder.totalAmount)}</TableCell>
                 <TableCell>{formatCurrency(jobOrder.paidAmount)}</TableCell>
                 <TableCell>{formatCurrency(balance)}</TableCell>
-                <TableCell>{getStatusBadge(jobOrder.status, jobOrder.items)}</TableCell>
+                <TableCell>{getStatusBadge(derivedStatus, jobOrder.items)}</TableCell>
                 <TableCell className="text-right space-x-2">
                     <Button asChild variant="ghost" size="icon">
                         <Link href={`/edit/${jobOrder.id}`}>
@@ -361,6 +368,13 @@ export function DashboardClient() {
                 const bValue = bSubtotal - bDiscountAmount - bPaidAmount;
 
                 const comparison = aValue - bValue;
+                return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
+            }
+
+            if (jobOrderSortConfig.key === 'status') {
+                const aStatus = getDerivedStatus(a);
+                const bStatus = getDerivedStatus(b);
+                const comparison = aStatus.localeCompare(bStatus);
                 return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
             }
 
@@ -577,7 +591,7 @@ export function DashboardClient() {
         />
         <StatCard 
             title="Cash on Hand" 
-            value={formatCurrency(netProfit)} 
+            value={formatCurrency(cashOnHand)} 
             icon={Banknote} 
             description={`Total paid received`}
             className="bg-blue-600 border-blue-500"
