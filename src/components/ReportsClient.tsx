@@ -144,7 +144,7 @@ export function ReportsClient() {
     
     const totalUnpaid = grandTotalSales - totalPaid - totalDiscountAmount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-    const cashOnHand = totalPaid - totalExpenses;
+    const cashOnHand = totalPaid;
     const netProfit = totalPaid - totalExpenses;
     
     let filtered = [...jobOrders].filter(jobOrder => 
@@ -199,7 +199,7 @@ export function ReportsClient() {
           const jobOrderDate = parseISO(jobOrder.startDate);
           return jobOrderDate >= todayStart && jobOrderDate <= todayEnd;
       });
-      const todaySalesValue = todayJobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
+      const todaySalesValue = todayJobOrders.reduce((sum, jobOrder) => sum + (jobOrder.paidAmount || 0), 0);
 
       const weeklyJobOrders = jobOrders.filter(jobOrder => {
         const jobOrderDate = parseISO(jobOrder.startDate);
@@ -382,11 +382,11 @@ export function ReportsClient() {
   return (
     <div className="space-y-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5 no-print">
-             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total revenue from today's job orders" className="bg-green-600 border-green-500"/>
+             <StatCard title="Today's Sales" value={formatCurrency(todaySales)} icon={TrendingUp} description="Total paid amount from today's job orders" className="bg-green-600 border-green-500"/>
              <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description="Total operational costs" className="bg-red-600 border-red-500" />
-             <StatCard title="Cash on Hand" value={formatCurrency(totalPaid)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600 border-blue-500"/>
+             <StatCard title="Total Paid" value={formatCurrency(totalPaid)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600 border-blue-500"/>
              <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance" className="bg-yellow-500 border-yellow-400"/>
-             <StatCard title="Net Profit" value={formatCurrency(netProfit)} icon={DollarSign} description="Cash on Hand - Expenses" className="bg-purple-600 border-purple-500"/>
+             <StatCard title="Cash on Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Total Paid - Expenses" className="bg-purple-600 border-purple-500"/>
         </div>
         
         <div className="printable-area">
@@ -407,3 +407,5 @@ export function ReportsClient() {
     </div>
   );
 }
+
+    

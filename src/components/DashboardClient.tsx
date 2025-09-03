@@ -573,7 +573,7 @@ export function DashboardClient() {
             className="bg-yellow-500 border-yellow-400"
         />
         <StatCard 
-            title="Net Profit" 
+            title="Cash on Hand" 
             value={formatCurrency(netProfit)} 
             icon={DollarSign} 
             description={`Total paid minus expenses`}
@@ -867,3 +867,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    

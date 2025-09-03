@@ -126,7 +126,7 @@ export default function PrintReportPage() {
                              <SummaryCard title="Expenses" value={formatCurrency(summaryData.totalExpenses)} icon={TrendingDown} className="bg-red-100" />
                              <SummaryCard title="Collectibles" value={formatCurrency(summaryData.totalCollectibles)} icon={AlertCircle} className="bg-yellow-100"/>
                              <SummaryCard title="Net Profit" value={formatCurrency(summaryData.netProfit)} icon={Banknote} className="bg-blue-100"/>
-                             <SummaryCard title="Cash On Hand" value={formatCurrency(summaryData.cashOnHand)} icon={DollarSign} className="bg-purple-100"/>
+                             <SummaryCard title="Cash on Hand" value={formatCurrency(summaryData.cashOnHand)} icon={DollarSign} className="bg-purple-100"/>
                          </div>
                     </section>
                 )}
@@ -196,3 +196,5 @@ export default function PrintReportPage() {
         </div>
     )
 }
+
+    
