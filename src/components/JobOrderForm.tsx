@@ -166,11 +166,11 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   const totalAmountWithDiscount = subTotal - calculatedDiscount;
   const totalAmount = totalAmountWithDiscount - watchPaidAmount;
   
-  useEffect(() => {
-    if (status === 'Completed') {
+   useEffect(() => {
+    if (status === 'Completed' && !isEditMode) {
       form.setValue('paidAmount', totalAmountWithDiscount);
     }
-  }, [status, form, totalAmountWithDiscount]);
+  }, [status, form, totalAmountWithDiscount, isEditMode]);
 
 
   useEffect(() => {
@@ -185,35 +185,16 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
         dueDate: new Date(initialData.dueDate),
         chequeDate: initialData.chequeDate ? new Date(initialData.chequeDate) : undefined
       });
-    } else {
-       form.reset({
-        clientName: "",
-        contactMethod: 'Contact No.',
-        contactDetail: "",
-        startDate: new Date(),
-        dueDate: new Date(),
-        notes: "",
-        paidAmount: 0,
-        status: 'Pending',
-        discount: 0,
-        discountType: 'amount',
-        paymentMethod: 'Cash',
-        paymentReference: "",
-        chequeBankName: "",
-        chequeNumber: "",
-        chequeDate: undefined,
-        items: [{ description: "", quantity: 1, amount: 0, status: "Unpaid" }],
-      });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialData]);
+  }, [initialData, form]);
 
   useEffect(() => {
     if (!isEditMode) {
+      const now = new Date();
       form.reset({
         ...form.getValues(),
-        startDate: new Date(),
-        dueDate: new Date(),
+        startDate: now,
+        dueDate: now,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -741,7 +722,7 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
                         render={({ field }) => (
                            <FormItem>
                              <div className="flex justify-between items-center">
-                                <FormLabel className="text-muted-foreground">Downpayment</FormLabel>
+                                <FormLabel className="text-muted-foreground">Paid Amount</FormLabel>
                                 <FormControl>
                                     <Input type="number" className="w-24 h-8" placeholder="0.00" {...field} />
                                 </FormControl>
@@ -821,3 +802,5 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     </>
   );
 }
+
+    
