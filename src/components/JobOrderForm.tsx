@@ -127,8 +127,6 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
       clientName: "",
       contactMethod: 'Contact No.',
       contactDetail: "",
-      startDate: new Date(),
-      dueDate: new Date(),
       notes: "",
       paidAmount: 0,
       discount: 0,
@@ -218,6 +216,17 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      form.reset({
+        ...form.getValues(),
+        startDate: new Date(),
+        dueDate: new Date(),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode]);
 
   const onSubmit = async (data: JobOrderFormValues) => {
     setIsSubmitting(true);

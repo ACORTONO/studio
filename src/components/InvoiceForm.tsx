@@ -107,8 +107,6 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       clientName: "",
       address: "",
       tinNumber: "",
-      date: new Date(), 
-      dueDate: new Date(),
       termsAndConditions: "Due within seven (7) days from invoice date. Late fee of [amount or percentage] applies after the due date.",
       paymentDetails: "",
       status: "Unpaid",
@@ -133,6 +131,17 @@ export function InvoiceForm({ initialData }: InvoiceFormProps) {
       });
     }
   }, [initialData, form]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      form.reset({
+        ...form.getValues(),
+        date: new Date(),
+        dueDate: new Date(),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode]);
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
