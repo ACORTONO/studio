@@ -3,7 +3,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
-import type { JobOrder, Expense, SalaryPayment, ExpenseCategory } from "@/lib/types";
+import type { JobOrder, Expense, SalaryPayment, ExpenseCategory, PettyCash } from "@/lib/types";
 
 // Mock data for initial state, used only if localStorage is empty
 const mockJobOrders: JobOrder[] = [
@@ -129,9 +129,14 @@ const mockExpenses: Expense[] = [
     { id: 'e4', date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), description: 'Salary for Jane Smith', category: 'Salary', items: [{id: 'ei5', description: 'Salary Payment', amount: 1250}], totalAmount: 1250 },
 ];
 
+const mockPettyCash: PettyCash[] = [
+    { id: 'pc1', date: new Date().toISOString(), description: 'Initial float for the day', amount: 1000 },
+];
+
 interface JobOrderContextType {
   jobOrders: JobOrder[];
   expenses: Expense[];
+  pettyCash: PettyCash[];
   addJobOrder: (order: JobOrder) => void;
   updateJobOrder: (order: JobOrder) => void;
   deleteJobOrder: (id: string) => void;
@@ -139,6 +144,9 @@ interface JobOrderContextType {
   addExpense: (expense: Omit<Expense, 'id' | 'date' | 'totalAmount'>) => void;
   updateExpense: (expense: Omit<Expense, 'date' | 'totalAmount'>) => void;
   deleteExpense: (expenseId: string) => void;
+  addPettyCash: (entry: Omit<PettyCash, 'id' | 'date'>) => void;
+  updatePettyCash: (entry: PettyCash) => void;
+  deletePettyCash: (id: string) => void;
 }
 
 const JobOrderContext = createContext<JobOrderContextType | undefined>(
@@ -148,6 +156,7 @@ const JobOrderContext = createContext<JobOrderContextType | undefined>(
 export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
   const [jobOrders, setJobOrders] = useState<JobOrder[]>([]);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [pettyCash, setPettyCash] = useState<PettyCash[]>([]);
   const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   useEffect(() => {
@@ -155,6 +164,7 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
         try {
             const storedJobOrders = localStorage.getItem('jobOrders');
             const storedExpenses = localStorage.getItem('expenses');
+            const storedPettyCash = localStorage.getItem('pettyCash');
 
             if (storedJobOrders) {
                 setJobOrders(JSON.parse(storedJobOrders));
@@ -167,10 +177,16 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
             } else {
                 setExpenses(mockExpenses);
             }
+            if (storedPettyCash) {
+                setPettyCash(JSON.parse(storedPettyCash));
+            } else {
+                setPettyCash(mockPettyCash);
+            }
         } catch (error) {
             console.error("Failed to parse data from localStorage", error);
             setJobOrders(mockJobOrders);
             setExpenses(mockExpenses);
+            setPettyCash(mockPettyCash);
         }
         setIsDataLoaded(true);
     }
@@ -196,6 +212,17 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [expenses, isDataLoaded]);
 
+  useEffect(() => {
+    if (isDataLoaded && typeof window !== 'undefined') {
+        try {
+            localStorage.setItem('pettyCash', JSON.stringify(pettyCash));
+        } catch (error) {
+            console.error("Failed to save petty cash to localStorage", error);
+        }
+    }
+    }, [pettyCash, isDataLoaded]);
+
+
   const addJobOrder = (order: JobOrder) => {
     setJobOrders((prev) => [...prev, order]);
   };
@@ -218,7 +245,7 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
         ...expense,
         id: crypto.randomUUID(),
         date: new Date().toISOString(),
-        items: expense.items.map(item => ({...item, id: crypto.randomUUID() })),
+        items: expense.items.map(item => ({...item, id: item.id || crypto.randomUUID() })),
         totalAmount
     }
     setExpenses(prev => [...prev, newExpense]);
@@ -243,8 +270,25 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     setExpenses(prev => prev.filter(e => e.id !== expenseId));
   }
 
+  const addPettyCash = (entry: Omit<PettyCash, 'id' | 'date'>) => {
+    const newEntry: PettyCash = {
+      ...entry,
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+    };
+    setPettyCash(prev => [...prev, newEntry]);
+  };
+
+  const updatePettyCash = (updatedEntry: PettyCash) => {
+    setPettyCash(prev => prev.map(pc => pc.id === updatedEntry.id ? { ...updatedEntry, date: pc.date } : pc));
+  };
+
+  const deletePettyCash = (id: string) => {
+    setPettyCash(prev => prev.filter(pc => pc.id !== id));
+  };
+
   return (
-    <JobOrderContext.Provider value={{ jobOrders, expenses, addJobOrder, updateJobOrder, deleteJobOrder, getJobOrderById, addExpense, updateExpense, deleteExpense }}>
+    <JobOrderContext.Provider value={{ jobOrders, expenses, pettyCash, addJobOrder, updateJobOrder, deleteJobOrder, getJobOrderById, addExpense, updateExpense, deleteExpense, addPettyCash, updatePettyCash, deletePettyCash }}>
       {children}
     </JobOrderContext.Provider>
   );

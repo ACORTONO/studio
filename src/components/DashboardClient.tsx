@@ -65,7 +65,7 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Expense, ExpenseCategory, JobOrder, JobOrderItem } from "@/lib/types";
+import { Expense, ExpenseCategory, JobOrder, JobOrderItem, PettyCash } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "./ui/collapsible";
 import { Textarea } from "./ui/textarea";
@@ -90,8 +90,16 @@ const expenseSchema = z.object({
     items: z.array(expenseItemSchema).min(1, 'At least one expense item is required.')
 });
 
+const pettyCashSchema = z.object({
+  id: z.string().optional(),
+  description: z.string().min(1, 'Description is required'),
+  amount: z.coerce.number().min(0.01, 'Amount must be positive'),
+});
+
+
 type SortableJobOrderKeys = keyof JobOrder | 'balance' | 'status';
 type SortableExpenseKeys = keyof Expense;
+type SortablePettyCashKeys = keyof PettyCash;
 
 const StatCard = ({ title, value, icon: Icon, description, className }: { title: string, value: string, icon: React.ElementType, description: string, className?: string }) => (
     <Card className={cn("", className)}>
@@ -299,15 +307,19 @@ const JobOrderRow = ({ jobOrder, onDelete }: { jobOrder: JobOrder, onDelete: (id
 }
 
 export function DashboardClient() {
-  const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder } = useJobOrders();
+  const { jobOrders, expenses, addExpense, updateExpense, deleteExpense, deleteJobOrder, pettyCash, addPettyCash, updatePettyCash, deletePettyCash } = useJobOrders();
   const [timeFilter, setTimeFilter] = React.useState("today");
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>();
   const [isExpenseDialogOpen, setIsExpenseDialogOpen] = React.useState(false);
   const [editingExpense, setEditingExpense] = React.useState<Expense | null>(null);
+  const [isPettyCashDialogOpen, setIsPettyCashDialogOpen] = React.useState(false);
+  const [editingPettyCash, setEditingPettyCash] = React.useState<PettyCash | null>(null);
   const [jobOrderSearchQuery, setJobOrderSearchQuery] = React.useState("");
   const [expenseSearchQuery, setExpenseSearchQuery] = React.useState("");
+  const [pettyCashSearchQuery, setPettyCashSearchQuery] = React.useState("");
   const [jobOrderSortConfig, setJobOrderSortConfig] = React.useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [expenseSortConfig, setExpenseSortConfig] = React.useState<{ key: SortableExpenseKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
+  const [pettyCashSortConfig, setPettyCashSortConfig] = React.useState<{ key: SortablePettyCashKeys; direction: 'ascending' | 'descending' } | null>({ key: 'date', direction: 'descending' });
   const { toast } = useToast();
   const router = useRouter();
 
@@ -321,12 +333,21 @@ export function DashboardClient() {
     }
   });
 
+  const pettyCashForm = useForm<z.infer<typeof pettyCashSchema>>({
+    resolver: zodResolver(pettyCashSchema),
+    defaultValues: {
+      description: '',
+      amount: 0,
+    }
+  });
+
+
   const { fields, append, remove } = useFieldArray({
     control: expenseForm.control,
     name: "items"
   });
 
-  const { filteredJobOrders, filteredExpenses, totalSales, totalExpenses, netProfit, totalCustomers, totalUnpaid, cashOnHand } = React.useMemo(() => {
+  const { filteredJobOrders, filteredExpenses, filteredPettyCash, totalSales, totalExpenses, totalPettyCash, netProfit, totalCustomers, totalUnpaid, cashOnHand } = React.useMemo(() => {
     const now = new Date();
     let interval: Interval | undefined;
 
@@ -446,9 +467,37 @@ export function DashboardClient() {
         });
     }
 
+    const dateFilteredPettyCash = interval
+      ? pettyCash.filter(pc => isWithinInterval(parseISO(pc.date), interval as Interval))
+      : pettyCash;
+
+    let sortedAndFilteredPettyCash = dateFilteredPettyCash.filter(pc =>
+        pc.description.toLowerCase().includes(pettyCashSearchQuery.toLowerCase())
+    );
+
+    if (pettyCashSortConfig !== null) {
+      sortedAndFilteredPettyCash.sort((a, b) => {
+        const aValue = a[pettyCashSortConfig.key];
+        const bValue = b[pettyCashSortConfig.key];
+
+        if (aValue === undefined || bValue === undefined) return 0;
+        let comparison = 0;
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          if (pettyCashSortConfig.key === 'date') {
+            comparison = new Date(aValue).getTime() - new Date(bValue).getTime();
+          } else {
+            comparison = aValue.localeCompare(bValue);
+          }
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue;
+        }
+        return pettyCashSortConfig.direction === 'ascending' ? comparison : -comparison;
+      });
+    }
 
     const totalSales = sortedAndFilteredJobOrders.reduce((sum, jo) => sum + jo.totalAmount, 0);
     const totalExpenses = sortedAndFilteredExpenses.reduce((sum, ex) => sum + ex.totalAmount, 0);
+    const totalPettyCash = sortedAndFilteredPettyCash.reduce((sum, pc) => sum + pc.amount, 0);
     const totalPaid = sortedAndFilteredJobOrders.reduce((sum, jo) => sum + (jo.paidAmount || 0), 0);
     const totalDiscount = sortedAndFilteredJobOrders.reduce((sum, jo) => {
         const discountValue = jo.discount || 0;
@@ -462,14 +511,16 @@ export function DashboardClient() {
     return {
       filteredJobOrders: sortedAndFilteredJobOrders,
       filteredExpenses: sortedAndFilteredExpenses,
+      filteredPettyCash: sortedAndFilteredPettyCash,
       totalSales,
       totalExpenses,
+      totalPettyCash,
       netProfit: totalPaid - totalExpenses,
       totalCustomers: uniqueClients.size,
       totalUnpaid,
-      cashOnHand: totalPaid,
+      cashOnHand: totalPaid + totalPettyCash - totalExpenses,
     };
-  }, [jobOrders, expenses, timeFilter, dateRange, jobOrderSearchQuery, expenseSearchQuery, jobOrderSortConfig, expenseSortConfig]);
+  }, [jobOrders, expenses, pettyCash, timeFilter, dateRange, jobOrderSearchQuery, expenseSearchQuery, pettyCashSearchQuery, jobOrderSortConfig, expenseSortConfig, pettyCashSortConfig]);
 
   const requestJobOrderSort = (key: SortableJobOrderKeys) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -486,6 +537,14 @@ export function DashboardClient() {
     }
     setExpenseSortConfig({ key, direction });
   }
+
+  const requestPettyCashSort = (key: SortablePettyCashKeys) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (pettyCashSortConfig && pettyCashSortConfig.key === key && pettyCashSortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setPettyCashSortConfig({ key, direction });
+  };
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(amount);
 
@@ -517,6 +576,36 @@ export function DashboardClient() {
     deleteExpense(expenseId);
     toast({ title: "Success", description: "Expense deleted successfully." });
   }
+
+  const handlePettyCashSubmit = (values: z.infer<typeof pettyCashSchema>) => {
+    if (editingPettyCash) {
+      updatePettyCash({ ...values, id: editingPettyCash.id });
+      toast({ title: "Success", description: "Petty cash updated successfully." });
+    } else {
+      addPettyCash(values);
+      toast({ title: "Success", description: "Petty cash added successfully." });
+    }
+    pettyCashForm.reset({ description: '', amount: 0 });
+    setIsPettyCashDialogOpen(false);
+    setEditingPettyCash(null);
+  };
+
+  const handleOpenPettyCashDialog = (pettyCashItem?: PettyCash) => {
+    if (pettyCashItem) {
+      setEditingPettyCash(pettyCashItem);
+      pettyCashForm.reset(pettyCashItem);
+    } else {
+      setEditingPettyCash(null);
+      pettyCashForm.reset({ description: '', amount: 0 });
+    }
+    setIsPettyCashDialogOpen(true);
+  };
+
+  const handleDeletePettyCash = (pettyCashId: string) => {
+    deletePettyCash(pettyCashId);
+    toast({ title: "Success", description: "Petty cash entry deleted successfully." });
+  };
+
 
   const handleDeleteJobOrder = (jobOrderId: string) => {
     deleteJobOrder(jobOrderId);
@@ -573,6 +662,16 @@ export function DashboardClient() {
     </TableHead>
   )
 
+  const SortablePettyCashHeader = ({ title, sortKey }: { title: string, sortKey: SortablePettyCashKeys }) => (
+    <TableHead>
+      <Button variant="ghost" onClick={() => requestPettyCashSort(sortKey)}>
+        {title}
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    </TableHead>
+  )
+
+
   const renderContent = () => (
     <div className="space-y-4 mt-4">
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
@@ -616,6 +715,7 @@ export function DashboardClient() {
         <TabsList>
             <TabsTrigger value="job-orders">Job Orders ({filteredJobOrders.length})</TabsTrigger>
             <TabsTrigger value="expenses">Expenses ({filteredExpenses.length})</TabsTrigger>
+            <TabsTrigger value="petty-cash">Petty Cash ({filteredPettyCash.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="job-orders">
           <Card>
@@ -854,6 +954,123 @@ export function DashboardClient() {
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-24 text-center">
                                         No expenses for this period.
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="petty-cash">
+           <Card>
+                <CardHeader>
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+                        <div>
+                            <CardTitle>Petty Cash</CardTitle>
+                            <CardDescription>A list of petty cash entries for the selected period.</CardDescription>
+                        </div>
+                        <div className="flex items-center gap-2">
+                           <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input 
+                                    placeholder="Search petty cash..." 
+                                    className="pl-10 w-full sm:w-64"
+                                    value={pettyCashSearchQuery}
+                                    onChange={(e) => setPettyCashSearchQuery(e.target.value)}
+                                />
+                            </div>
+                            <Dialog open={isPettyCashDialogOpen} onOpenChange={(isOpen) => {
+                                if (!isOpen) {
+                                    setEditingPettyCash(null);
+                                    pettyCashForm.reset();
+                                }
+                                setIsPettyCashDialogOpen(isOpen);
+                            }}>
+                                <DialogTrigger asChild>
+                                    <Button onClick={() => handleOpenPettyCashDialog()}>
+                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Petty Cash
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="sm:max-w-md">
+                                    <form onSubmit={pettyCashForm.handleSubmit(handlePettyCashSubmit)}>
+                                        <DialogHeader>
+                                            <DialogTitle>{editingPettyCash ? 'Edit Petty Cash' : 'Add Petty Cash'}</DialogTitle>
+                                            <DialogDescription>
+                                                {editingPettyCash ? 'Update the details of your petty cash entry.' : 'Record a new petty cash entry.'}
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="description" className="text-right">Description</Label>
+                                                <Input id="description" {...pettyCashForm.register('description')} className="col-span-3" placeholder="e.g., Initial cash float"/>
+                                                {pettyCashForm.formState.errors.description && <p className="text-red-500 text-xs col-span-4 text-right">{pettyCashForm.formState.errors.description.message}</p>}
+                                            </div>
+                                            <div className="grid grid-cols-4 items-center gap-4">
+                                                <Label htmlFor="amount" className="text-right">Amount</Label>
+                                                <Input id="amount" type="number" {...pettyCashForm.register('amount')} className="col-span-3" placeholder="0.00"/>
+                                                {pettyCashForm.formState.errors.amount && <p className="text-red-500 text-xs col-span-4 text-right">{pettyCashForm.formState.errors.amount.message}</p>}
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button type="button" variant="secondary">Cancel</Button>
+                                            </DialogClose>
+                                            <Button type="submit">{editingPettyCash ? 'Update' : 'Save'} Entry</Button>
+                                        </DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <SortablePettyCashHeader title="Date" sortKey="date" />
+                                <SortablePettyCashHeader title="Description" sortKey="description" />
+                                <SortablePettyCashHeader title="Amount" sortKey="amount" />
+                                <TableHead className="text-right">Actions</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {filteredPettyCash.length > 0 ? (
+                                filteredPettyCash.map((pc) => (
+                                    <TableRow key={pc.id}>
+                                        <TableCell>{new Date(pc.date).toLocaleDateString()}</TableCell>
+                                        <TableCell className="font-medium">{pc.description}</TableCell>
+                                        <TableCell>{formatCurrency(pc.amount)}</TableCell>
+                                        <TableCell className="text-right space-x-2">
+                                            <Button variant="ghost" size="icon" onClick={() => handleOpenPettyCashDialog(pc)}>
+                                                <Pencil className="h-4 w-4" />
+                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        This action cannot be undone. This will permanently delete this petty cash entry.
+                                                    </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction onClick={() => handleDeletePettyCash(pc.id)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={4} className="h-24 text-center">
+                                        No petty cash entries for this period.
                                     </TableCell>
                                 </TableRow>
                             )}

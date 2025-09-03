@@ -99,3 +99,10 @@ export interface CompanyProfile {
     tinNumber?: string;
     facebookPage?: string;
 }
+
+export interface PettyCash {
+    id: string;
+    date: string;
+    description: string;
+    amount: number;
+}
