@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useMemo, useState, useRef, useEffect } from "react";
@@ -31,7 +32,7 @@ import { cn } from "@/lib/utils";
 
 type SortableJobOrderKeys = keyof JobOrder | 'balance';
 
-export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['items'] = []) => {
+export const getStatusBadge = (status: JobOrder['items'][0]['status'], items: JobOrder['items'] = []) => {
     
     const itemStatusCounts = items.reduce((acc, item) => {
         acc[item.status] = (acc[item.status] || 0) + 1;
@@ -58,7 +59,7 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
     }
 
     switch (status) {
-        case 'Completed':
+        case 'Paid':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'Downpayment':
              return (
@@ -73,7 +74,7 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
                     </Tooltip>
                 </TooltipProvider>
             )
-        case 'Pending':
+        case 'Unpaid':
             return (
                 <TooltipProvider>
                     <Tooltip>
@@ -86,8 +87,6 @@ export const getStatusBadge = (status: JobOrder['status'], items: JobOrder['item
                     </Tooltip>
                 </TooltipProvider>
             )
-        case 'Cancelled':
-            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
         default:
             return <Badge>{status}</Badge>;
     }
@@ -107,7 +106,7 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
 );
 
 export function ReportsClient() {
-  const { jobOrders, expenses } = useJobOrders();
+  const { jobOrders, expenses, pettyCash } = useJobOrders();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: SortableJobOrderKeys; direction: 'ascending' | 'descending' } | null>({ key: 'startDate', direction: 'descending' });
   const [activeTab, setActiveTab] = useState("today");
@@ -144,7 +143,8 @@ export function ReportsClient() {
     
     const totalUnpaid = grandTotalSales - totalPaid - totalDiscountAmount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-    const cashOnHand = totalPaid - totalExpenses;
+    const totalPettyCash = pettyCash.reduce((sum, pc) => sum + pc.amount, 0);
+    const cashOnHand = totalPaid + totalPettyCash - totalExpenses;
     const netProfit = totalPaid - totalExpenses;
     
     let filtered = [...jobOrders].filter(jobOrder => 
@@ -218,7 +218,7 @@ export function ReportsClient() {
 
 
     return { totalCollectibles: totalPaid, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders, totalExpenses, netProfit, totalPaid };
-  }, [jobOrders, expenses, searchQuery, sortConfig]);
+  }, [jobOrders, expenses, pettyCash, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
     let direction: 'ascending' | 'descending' = 'ascending';
@@ -262,6 +262,18 @@ export function ReportsClient() {
   );
   
   const renderJobOrderTable = (title: string, data: JobOrder[]) => {
+    const getDerivedStatus = (jobOrder: JobOrder): JobOrder['items'][0]['status'] => {
+        const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
+
+        if (balance <= 0 && jobOrder.paidAmount > 0) return 'Paid';
+        if (jobOrder.items.every(item => item.status === 'Paid')) return 'Paid';
+        if (jobOrder.items.some(item => item.status === 'Cheque')) return 'Cheque';
+        if (jobOrder.items.some(item => item.status === 'Downpayment') || jobOrder.paidAmount > 0) return 'Downpayment';
+        if (jobOrder.items.every(item => item.status === 'Unpaid') && jobOrder.paidAmount === 0) return 'Unpaid';
+        
+        return 'Unpaid';
+    };
+
     return (
         <Card>
             <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 no-print">
@@ -299,7 +311,7 @@ export function ReportsClient() {
                         <SortableHeader title="Total Amount" sortKey="totalAmount" />
                         <SortableHeader title="Paid" sortKey="paidAmount" />
                         <SortableHeader title="Balance" sortKey="balance" />
-                        <SortableHeader title="Status" sortKey="status" />
+                        <TableHead>Status</TableHead>
                     </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -331,7 +343,7 @@ export function ReportsClient() {
                                 <TableCell className="text-center p-2">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                                 <TableCell className="text-center font-semibold p-2">{formatCurrency(balance)}</TableCell>
                                 <TableCell className="text-center p-2">
-                                    {getStatusBadge(jobOrder.status, jobOrder.items)}
+                                    {getStatusBadge(getDerivedStatus(jobOrder), jobOrder.items)}
                                 </TableCell>
                             </TableRow>
                         );
@@ -386,7 +398,7 @@ export function ReportsClient() {
              <StatCard title="Total Expenses" value={formatCurrency(totalExpenses)} icon={TrendingDown} description="Total operational costs" className="bg-red-600 border-red-500" />
              <StatCard title="Total Paid" value={formatCurrency(totalPaid)} icon={Banknote} description="Total amount paid by clients" className="bg-blue-600 border-blue-500"/>
              <StatCard title="Collectibles" value={formatCurrency(totalUnpaid)} icon={AlertCircle} description="Total outstanding balance" className="bg-yellow-500 border-yellow-400"/>
-             <StatCard title="Cash on Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Total Paid - Expenses" className="bg-purple-600 border-purple-500"/>
+             <StatCard title="Cash on Hand" value={formatCurrency(cashOnHand)} icon={DollarSign} description="Total Paid + Petty Cash - Expenses" className="bg-purple-600 border-purple-500"/>
         </div>
         
         <div className="printable-area">

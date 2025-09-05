@@ -114,30 +114,30 @@ const StatCard = ({ title, value, icon: Icon, description, className }: { title:
     </Card>
 );
 
-const getDerivedStatus = (jobOrder: JobOrder): JobOrder['status'] => {
+const getDerivedStatus = (jobOrder: JobOrder): JobOrderItem['status'] => {
     const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
 
     if (balance <= 0 && jobOrder.paidAmount > 0) {
-        return 'Completed';
+        return 'Paid';
     }
     if (jobOrder.items.every(item => item.status === 'Paid')) {
-        return 'Completed';
+        return 'Paid';
     }
     if (jobOrder.items.some(item => item.status === 'Cheque')) {
-        return 'Pending'; 
+        return 'Cheque'; 
     }
     if (jobOrder.items.some(item => item.status === 'Downpayment') || jobOrder.paidAmount > 0) {
         return 'Downpayment';
     }
     if (jobOrder.items.every(item => item.status === 'Unpaid') && jobOrder.paidAmount === 0) {
-        return 'Pending';
+        return 'Unpaid';
     }
     
-    return 'Pending';
+    return 'Unpaid';
 };
 
 
-const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) => {
+const getStatusBadge = (status: JobOrderItem['status'], items: JobOrderItem[] = []) => {
     
     const itemStatusCounts = items.reduce((acc, item) => {
         acc[item.status] = (acc[item.status] || 0) + 1;
@@ -164,7 +164,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
     }
 
     switch (status) {
-        case 'Completed':
+        case 'Paid':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'Downpayment':
              return (
@@ -179,7 +179,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                     </Tooltip>
                 </TooltipProvider>
             )
-        case 'Pending':
+        case 'Unpaid':
             return (
                 <TooltipProvider>
                     <Tooltip>
@@ -192,8 +192,6 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                     </Tooltip>
                 </TooltipProvider>
             )
-        case 'Cancelled':
-            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
         default:
             return <Badge>{status}</Badge>;
     }
@@ -511,7 +509,7 @@ export function DashboardClient() {
       netProfit: totalPaid - totalExpenses,
       totalCustomers: uniqueClients.size,
       totalUnpaid,
-      cashOnHand: totalPaid - totalExpenses,
+      cashOnHand: totalPaid + totalPettyCash - totalExpenses,
     };
   }, [jobOrders, expenses, pettyCash, timeFilter, dateRange, jobOrderSearchQuery, expenseSearchQuery, pettyCashSearchQuery, jobOrderSortConfig, expenseSortConfig, pettyCashSortConfig]);
 
@@ -693,7 +691,7 @@ export function DashboardClient() {
             title="Cash on Hand" 
             value={formatCurrency(cashOnHand)} 
             icon={Banknote} 
-            description={`Total paid minus expenses`}
+            description={`Total paid received`}
             className="bg-blue-600 border-blue-500"
         />
          <StatCard 
@@ -742,7 +740,7 @@ export function DashboardClient() {
                       <SortableJobOrderHeader title="Total Amount" sortKey="totalAmount" />
                       <SortableJobOrderHeader title="Paid" sortKey="paidAmount" />
                       <SortableJobOrderHeader title="Balance" sortKey="balance" />
-                      <SortableJobOrderHeader title="Status" sortKey="status" />
+                      <TableHead>Status</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                   </TableHeader>
