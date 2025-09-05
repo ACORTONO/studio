@@ -97,7 +97,7 @@ const pettyCashSchema = z.object({
 });
 
 
-type SortableJobOrderKeys = keyof JobOrder | 'balance' | 'status';
+type SortableJobOrderKeys = keyof JobOrder | 'balance';
 type SortableExpenseKeys = keyof Expense;
 type SortablePettyCashKeys = keyof PettyCash;
 
@@ -400,13 +400,6 @@ export function DashboardClient() {
                 return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
             }
 
-            if (jobOrderSortConfig.key === 'status') {
-                const aStatus = getDerivedStatus(a);
-                const bStatus = getDerivedStatus(b);
-                const comparison = aStatus.localeCompare(bStatus);
-                return jobOrderSortConfig.direction === 'ascending' ? comparison : -comparison;
-            }
-
 
             const aValue = a[jobOrderSortConfig.key as keyof JobOrder];
             const bValue = b[jobOrderSortConfig.key as keyof JobOrder];
@@ -518,7 +511,7 @@ export function DashboardClient() {
       netProfit: totalPaid - totalExpenses,
       totalCustomers: uniqueClients.size,
       totalUnpaid,
-      cashOnHand: totalPaid + totalPettyCash - totalExpenses,
+      cashOnHand: totalPaid - totalExpenses,
     };
   }, [jobOrders, expenses, pettyCash, timeFilter, dateRange, jobOrderSearchQuery, expenseSearchQuery, pettyCashSearchQuery, jobOrderSortConfig, expenseSortConfig, pettyCashSortConfig]);
 
@@ -700,7 +693,7 @@ export function DashboardClient() {
             title="Cash on Hand" 
             value={formatCurrency(cashOnHand)} 
             icon={Banknote} 
-            description={`Total paid received`}
+            description={`Total paid minus expenses`}
             className="bg-blue-600 border-blue-500"
         />
          <StatCard 
@@ -1151,3 +1144,5 @@ export function DashboardClient() {
     </div>
   );
 }
+
+    

@@ -144,7 +144,7 @@ export function ReportsClient() {
     
     const totalUnpaid = grandTotalSales - totalPaid - totalDiscountAmount;
     const totalExpenses = expenses.reduce((sum, expense) => sum + expense.totalAmount, 0);
-    const cashOnHand = totalPaid;
+    const cashOnHand = totalPaid - totalExpenses;
     const netProfit = totalPaid - totalExpenses;
     
     let filtered = [...jobOrders].filter(jobOrder => 
@@ -245,7 +245,7 @@ export function ReportsClient() {
         totalCollectibles: reportTotalUnpaid,
         totalExpenses,
         netProfit,
-        cashOnHand: reportTotalPaid,
+        cashOnHand: reportTotalPaid - totalExpenses,
     };
     localStorage.setItem('reportSummary', JSON.stringify(summary));
 
@@ -408,4 +408,5 @@ export function ReportsClient() {
   );
 }
 
+    
     
