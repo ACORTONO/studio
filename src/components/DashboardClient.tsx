@@ -345,7 +345,7 @@ export function DashboardClient() {
     name: "items"
   });
 
-  const { filteredJobOrders, filteredExpenses, filteredPettyCash, totalSales, totalExpenses, totalPettyCash, netProfit, totalCustomers, totalUnpaid, cashOnHand } = React.useMemo(() => {
+  const { filteredJobOrders, filteredExpenses, filteredPettyCash, totalSales, totalExpenses, totalPettyCash, cashOnHand, totalCustomers, totalUnpaid, totalPaid } = React.useMemo(() => {
     const now = new Date();
     let interval: Interval | undefined;
 
@@ -506,10 +506,10 @@ export function DashboardClient() {
       totalSales,
       totalExpenses,
       totalPettyCash,
-      netProfit: totalPaid - totalExpenses,
+      cashOnHand: totalPaid + totalPettyCash - totalExpenses,
       totalCustomers: uniqueClients.size,
       totalUnpaid,
-      cashOnHand: totalPaid + totalPettyCash - totalExpenses,
+      totalPaid,
     };
   }, [jobOrders, expenses, pettyCash, timeFilter, dateRange, jobOrderSearchQuery, expenseSearchQuery, pettyCashSearchQuery, jobOrderSortConfig, expenseSortConfig, pettyCashSortConfig]);
 
@@ -609,7 +609,9 @@ export function DashboardClient() {
         summary: {
             totalSales,
             totalExpenses,
-            netProfit,
+            totalPaid,
+            totalPettyCash,
+            cashOnHand,
             totalCustomers,
             totalUnpaid
         },

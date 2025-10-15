@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -18,7 +19,9 @@ interface DashboardPrintData {
     summary: {
         totalSales: number;
         totalExpenses: number;
-        netProfit: number;
+        totalPaid: number;
+        totalPettyCash: number;
+        cashOnHand: number;
         totalCustomers: number;
         totalUnpaid: number;
     };
@@ -182,7 +185,7 @@ export default function PrintDashboardPage() {
                              <SummaryCard title="Total Sales" value={formatCurrency(summary.totalSales)} icon={TrendingUp} className="bg-green-100" />
                              <SummaryCard title="Expenses" value={formatCurrency(summary.totalExpenses)} icon={TrendingDown} className="bg-red-100" />
                              <SummaryCard title="Collectibles" value={formatCurrency(summary.totalUnpaid)} icon={AlertCircle} className="bg-yellow-100"/>
-                             <SummaryCard title="Cash on Hand" value={formatCurrency(summary.netProfit)} icon={Banknote} className="bg-blue-100"/>
+                             <SummaryCard title="Cash on Hand" value={formatCurrency(summary.cashOnHand)} icon={Banknote} className="bg-blue-100"/>
                              <SummaryCard title="Customers" value={summary.totalCustomers.toString()} icon={Users} className="bg-purple-100"/>
                          </div>
                     </section>
