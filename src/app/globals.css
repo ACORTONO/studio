@@ -66,6 +66,11 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  th, td {
+    white-space: normal;
+    word-break: break-word;
+  }
 }
 
 .printable-area {
