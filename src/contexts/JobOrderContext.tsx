@@ -130,7 +130,7 @@ const mockExpenses: Expense[] = [
 
 const mockPettyCash: PettyCash[] = [
     { id: 'pc1', date: new Date().toISOString(), description: 'Initial float for the day', amount: 1000 },
-    { id: 'pc2', date: new Date().toISOString(), description: 'Lunch money', amount: 500 },
+    { id: 'pc2', date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), description: 'Lunch money', amount: 500 },
 ];
 
 interface JobOrderContextType {
