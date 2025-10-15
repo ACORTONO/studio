@@ -247,6 +247,7 @@ export function ReportsClient() {
         totalExpenses,
         netProfit,
         cashOnHand: reportTotalPaid + totalPettyCash - totalExpenses,
+        totalPettyCash: totalPettyCash
     };
     localStorage.setItem('reportSummary', JSON.stringify(summary));
 
@@ -420,6 +421,3 @@ export function ReportsClient() {
     </div>
   );
 }
-
-    
-    
