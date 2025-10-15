@@ -168,7 +168,7 @@ export default function PrintReportPage() {
                                     <TableCell>
                                         <ul className="list-disc list-inside text-xs">
                                             {jobOrder.items.slice(0, 2).map(item => (
-                                                <li key={item.id} className="truncate">{item.description}</li>
+                                                <li key={item.id}>{item.description}</li>
                                             ))}
                                             {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
                                         </ul>

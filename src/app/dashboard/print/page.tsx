@@ -28,7 +28,7 @@ interface DashboardPrintData {
     timeFilter: string;
 }
 
-const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) => {
+const getStatusBadge = (status: JobOrderItem['status'], items: JobOrderItem[] = []) => {
     
     const itemStatusCounts = items.reduce((acc, item) => {
         acc[item.status] = (acc[item.status] || 0) + 1;
@@ -55,7 +55,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
     }
 
     switch (status) {
-        case 'Completed':
+        case 'Paid':
             return <Badge variant="success"><CheckCircle className="mr-1 h-3 w-3"/> Completed</Badge>;
         case 'Downpayment':
              return (
@@ -70,7 +70,7 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                     </Tooltip>
                 </TooltipProvider>
             )
-        case 'Pending':
+        case 'Unpaid':
             return (
                 <TooltipProvider>
                     <Tooltip>
@@ -83,8 +83,6 @@ const getStatusBadge = (status: JobOrder['status'], items: JobOrderItem[] = []) 
                     </Tooltip>
                 </TooltipProvider>
             )
-        case 'Cancelled':
-            return <Badge variant="destructive"><CircleX className="mr-1 h-3 w-3"/> Cancelled</Badge>;
         default:
             return <Badge>{status}</Badge>;
     }
@@ -150,6 +148,29 @@ export default function PrintDashboardPage() {
     const reportTitle = `Dashboard Report (${timeFilter.charAt(0).toUpperCase() + timeFilter.slice(1)})`;
 
 
+    const getDerivedStatus = (jobOrder: JobOrder): JobOrderItem['status'] => {
+        const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - (jobOrder.discountType === 'percent' ? jobOrder.totalAmount * ((jobOrder.discount || 0) / 100) : (jobOrder.discount || 0));
+
+        if (balance <= 0 && jobOrder.paidAmount > 0) {
+            return 'Paid';
+        }
+        if (jobOrder.items.every(item => item.status === 'Paid')) {
+            return 'Paid';
+        }
+        if (jobOrder.items.some(item => item.status === 'Cheque')) {
+            return 'Cheque'; 
+        }
+        if (jobOrder.items.some(item => item.status === 'Downpayment') || jobOrder.paidAmount > 0) {
+            return 'Downpayment';
+        }
+        if (jobOrder.items.every(item => item.status === 'Unpaid') && jobOrder.paidAmount === 0) {
+            return 'Unpaid';
+        }
+        
+        return 'Unpaid';
+    };
+
+
     return (
         <div className="min-h-screen bg-gray-100 text-black">
             <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-4 no-print">
@@ -213,6 +234,7 @@ export default function PrintDashboardPage() {
                                 ? jobOrder.totalAmount * (discountValue / 100)
                                 : discountValue;
                             const balance = jobOrder.totalAmount - (jobOrder.paidAmount || 0) - discountAmount;
+                            const derivedStatus = getDerivedStatus(jobOrder);
                             return (
                                 <TableRow key={jobOrder.id}>
                                     <TableCell className="text-left">
@@ -227,7 +249,7 @@ export default function PrintDashboardPage() {
                                     <TableCell>
                                         <ul className="list-disc list-inside text-xs">
                                             {jobOrder.items.slice(0, 2).map(item => (
-                                                <li key={item.id} className="truncate">{item.description}</li>
+                                                <li key={item.id}>{item.description}</li>
                                             ))}
                                             {jobOrder.items.length > 2 && <li className="text-muted-foreground">...and {jobOrder.items.length - 2} more</li>}
                                         </ul>
@@ -236,7 +258,7 @@ export default function PrintDashboardPage() {
                                     <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                                     <TableCell className="text-center">
-                                        {getStatusBadge(jobOrder.status, jobOrder.items)}
+                                        {getStatusBadge(derivedStatus, jobOrder.items)}
                                     </TableCell>
                                 </TableRow>
                             );
@@ -256,5 +278,3 @@ export default function PrintDashboardPage() {
         </div>
     )
 }
-
-    
