@@ -20,8 +20,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 500,
     discount: 50,
     discountType: 'amount',
-    status: 'Completed',
-    notes: "Client wants a modern, minimalist logo. Prefers blue and silver."
+    paymentMethod: 'Cash',
   },
   {
     id: "2",
@@ -36,7 +35,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 1000,
     discount: 0,
     discountType: 'amount',
-    status: 'Downpayment',
+    paymentMethod: 'Cash',
     notes: ""
   },
    {
@@ -52,7 +51,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 0,
     discount: 0,
     discountType: 'amount',
-    status: 'Pending',
+    paymentMethod: 'Cash',
     notes: "Awaiting payment before printing."
   },
   {
@@ -68,7 +67,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 1200,
     discount: 100,
     discountType: 'amount',
-    status: 'Completed',
+    paymentMethod: 'Cash',
     notes: 'Campaign for new product launch'
   },
   {
@@ -84,7 +83,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 2500,
     discount: 10,
     discountType: 'percent',
-    status: 'Downpayment',
+    paymentMethod: 'Cash',
     notes: 'First half paid upfront.'
   },
   {
@@ -100,7 +99,7 @@ const mockJobOrders: JobOrder[] = [
     paidAmount: 0,
     discount: 0,
     discountType: 'amount',
-    status: 'Pending',
+    paymentMethod: 'Cash',
     notes: 'Requires on-site visit.'
   },
 ];
@@ -131,6 +130,7 @@ const mockExpenses: Expense[] = [
 
 const mockPettyCash: PettyCash[] = [
     { id: 'pc1', date: new Date().toISOString(), description: 'Initial float for the day', amount: 1000 },
+    { id: 'pc2', date: new Date().toISOString(), description: 'Lunch money', amount: 500 },
 ];
 
 interface JobOrderContextType {

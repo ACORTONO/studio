@@ -128,6 +128,7 @@ export function ReportsClient() {
     totalExpenses,
     netProfit,
     totalPaid,
+    totalPettyCash,
    } = useMemo(() => {
     const now = new Date();
     const grandTotalSales = jobOrders.reduce((sum, jobOrder) => sum + jobOrder.totalAmount, 0);
@@ -217,7 +218,7 @@ export function ReportsClient() {
       });
 
 
-    return { totalCollectibles: totalPaid, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders, totalExpenses, netProfit, totalPaid };
+    return { totalCollectibles: totalPaid, totalUnpaid, cashOnHand, sortedAndFilteredJobOrders: filtered, todaySales: todaySalesValue, todayJobOrders, weeklyJobOrders, monthlyJobOrders, yearlyJobOrders, totalExpenses, netProfit, totalPaid, totalPettyCash };
   }, [jobOrders, expenses, pettyCash, searchQuery, sortConfig]);
 
   const requestSort = (key: SortableJobOrderKeys) => {
@@ -245,7 +246,7 @@ export function ReportsClient() {
         totalCollectibles: reportTotalUnpaid,
         totalExpenses,
         netProfit,
-        cashOnHand: reportTotalPaid - totalExpenses,
+        cashOnHand: reportTotalPaid + totalPettyCash - totalExpenses,
     };
     localStorage.setItem('reportSummary', JSON.stringify(summary));
 

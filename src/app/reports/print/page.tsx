@@ -3,7 +3,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { JobOrder } from '@/lib/types';
+import { JobOrder, PettyCash } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableFooter } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +19,7 @@ interface ReportSummary {
     totalExpenses: number;
     netProfit: number;
     cashOnHand: number;
+    totalPettyCash?: number;
 }
 
 const SummaryCard = ({ title, value, icon: Icon, className }: { title: string, value: string, icon: React.ElementType, className?: string }) => (
@@ -176,7 +177,7 @@ export default function PrintReportPage() {
                                     <TableCell className="text-right">{formatCurrency(jobOrder.paidAmount || 0)}</TableCell>
                                     <TableCell className="text-right font-semibold">{formatCurrency(balance)}</TableCell>
                                     <TableCell className="text-center">
-                                        {getStatusBadge(jobOrder.status, jobOrder.items)}
+                                        {getStatusBadge(jobOrder.items[0]?.status, jobOrder.items)}
                                     </TableCell>
                                 </TableRow>
                             );
