@@ -165,10 +165,15 @@ export function JobOrderForm({ initialData }: JobOrderFormProps) {
   
    useEffect(() => {
     const allPaid = watchItems.every(item => item.status === 'Paid');
-    if (allPaid && !isEditMode) {
-      form.setValue('paidAmount', totalAmountWithDiscount);
+    const calculatedSubtotal = watchItems.reduce((acc, item) => acc + (item.quantity || 0) * (item.amount || 0), 0);
+    const calculatedDiscount = form.getValues('discountType') === 'percent'
+        ? calculatedSubtotal * ((form.getValues('discount') || 0) / 100)
+        : (form.getValues('discount') || 0);
+
+    if (allPaid) {
+      form.setValue('paidAmount', calculatedSubtotal - calculatedDiscount);
     }
-  }, [watchItems, form, totalAmountWithDiscount, isEditMode]);
+  }, [watchItems, form]);
 
 
   useEffect(() => {

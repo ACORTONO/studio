@@ -9,7 +9,7 @@ import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocki
 
 interface InvoiceContextType {
   invoices: Invoice[];
-  addInvoice: (invoice: Invoice) => void;
+  addInvoice: (invoice: Omit<Invoice, 'id' | 'userId'>) => void;
   updateInvoice: (invoice: Invoice) => void;
   deleteInvoice: (id: string) => void;
   getInvoiceById: (id: string) => Invoice | undefined;
@@ -27,7 +27,7 @@ export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
 
   const addInvoice = (invoice: Omit<Invoice, 'id' | 'userId'>) => {
     if (!user || !invoicesRef) return;
-    const newInvoice = { ...invoice, userId: user.uid };
+    const newInvoice = { ...invoice };
     addDocumentNonBlocking(invoicesRef, newInvoice);
   };
 

@@ -12,7 +12,7 @@ interface JobOrderContextType {
   jobOrders: JobOrder[];
   expenses: Expense[];
   pettyCash: PettyCash[];
-  addJobOrder: (order: JobOrder) => void;
+  addJobOrder: (order: Omit<JobOrder, 'id' | 'userId'>) => void;
   updateJobOrder: (order: JobOrder) => void;
   deleteJobOrder: (id: string) => void;
   getJobOrderById: (id: string) => JobOrder | undefined;
@@ -65,9 +65,8 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
   const addExpense = (expense: Omit<Expense, 'id'|'date'|'totalAmount' | 'userId'>) => {
     if (!user || !expensesRef) return;
     const totalAmount = expense.items.reduce((sum, item) => sum + item.amount, 0);
-    const newExpense: Omit<Expense, 'id'> = {
+    const newExpense: Omit<Expense, 'id' | 'userId'> = {
         ...expense,
-        userId: user.uid,
         date: new Date().toISOString(),
         items: expense.items.map(item => ({...item, id: item.id || crypto.randomUUID() })),
         totalAmount
@@ -136,7 +135,7 @@ export const JobOrderProvider = ({ children }: { children: ReactNode }) => {
     addPettyCash,
     updatePettyCash,
     deletePettyCash,
-  }), [jobOrders, expenses, pettyCash, user]);
+  }), [jobOrders, expenses, pettyCash, user, getJobOrderById]);
 
   return (
     <JobOrderContext.Provider value={value}>
