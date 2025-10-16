@@ -14,6 +14,7 @@ import { InvoiceProvider } from '@/contexts/InvoiceContext';
 import { CompanyProfileProvider } from '@/contexts/CompanyProfileContext';
 import { usePathname } from 'next/navigation';
 import React, { useEffect } from 'react';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();
@@ -46,23 +47,25 @@ const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
                 <meta name="theme-color" content="#000000" />
             </head>
             <body className="font-body antialiased">
-              <CompanyProfileProvider>
-                <JobOrderProvider>
-                <InvoiceProvider>
-                    <SidebarProvider>
-                    <div className="flex min-h-screen">
-                        <Sidebar className='no-print'>
-                        <AppSidebar />
-                        </Sidebar>
-                        <SidebarInset className="flex-1">
-                        <main className="p-4 sm:p-6 lg:p-8 printable-area">{children}</main>
-                        </SidebarInset>
-                    </div>
-                    <Toaster />
-                    </SidebarProvider>
-                </InvoiceProvider>
-                </JobOrderProvider>
-              </CompanyProfileProvider>
+              <FirebaseClientProvider>
+                <CompanyProfileProvider>
+                  <JobOrderProvider>
+                  <InvoiceProvider>
+                      <SidebarProvider>
+                      <div className="flex min-h-screen">
+                          <Sidebar className='no-print'>
+                          <AppSidebar />
+                          </Sidebar>
+                          <SidebarInset className="flex-1">
+                          <main className="p-4 sm:p-6 lg:p-8 printable-area">{children}</main>
+                          </SidebarInset>
+                      </div>
+                      <Toaster />
+                      </SidebarProvider>
+                  </InvoiceProvider>
+                  </JobOrderProvider>
+                </CompanyProfileProvider>
+              </FirebaseClientProvider>
             </body>
         </>
     )

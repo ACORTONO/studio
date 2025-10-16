@@ -1,5 +1,4 @@
 
-
 export interface Payment {
   id: string;
   date: string;
@@ -17,6 +16,7 @@ export interface JobOrderItem {
 
 export interface JobOrder {
   id: string;
+  userId: string;
   jobOrderNumber: string;
   clientName: string;
   contactMethod: 'Contact No.' | 'FB Messenger' | 'Email';
@@ -47,6 +47,7 @@ export type ExpenseCategory = 'General' | 'Cash Advance' | 'Salary' | 'Fixed Exp
 
 export interface Expense {
   id: string;
+  userId: string;
   date: string; // Using string to be serializable
   description: string;
   category: ExpenseCategory;
@@ -64,6 +65,7 @@ export interface InvoiceItem {
 
 export interface Invoice {
   id: string;
+  userId: string;
   invoiceNumber: string;
   clientName: string;
   address: string;
@@ -102,6 +104,7 @@ export interface CompanyProfile {
 
 export interface PettyCash {
     id: string;
+    userId: string;
     date: string;
     description: string;
     amount: number;

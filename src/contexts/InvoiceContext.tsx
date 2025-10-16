@@ -1,54 +1,11 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useCallback, useEffect, useMemo } from "react";
 import type { Invoice } from "@/lib/types";
-
-// Mock data for initial state, used only if localStorage is empty
-const mockInvoices: Invoice[] = [
-  {
-    id: "inv-1",
-    invoiceNumber: "INV-2024-0001",
-    clientName: "Creative Solutions Inc.",
-    address: "123 Innovation Drive, Suite 100, Tech City, USA 12345",
-    tinNumber: "123-456-789-000",
-    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    dueDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    items: [
-      { id: "inv-i1", description: "Web Design Mockup", quantity: 1, amount: 1200 },
-      { id: "inv-i2", description: "Logo Concept sketches", quantity: 3, amount: 150 },
-    ],
-    totalAmount: 1650,
-    status: 'Unpaid',
-    termsAndConditions: "Initial project phase billing.",
-    discount: 0,
-    discountType: 'amount',
-    tax: 0,
-    taxType: 'percent',
-    paymentMethod: 'Bank Transfer',
-    paymentDetails: 'BDO\nAccount Name: ADSLAB\nAccount No: 1234567890'
-  },
-  {
-    id: "inv-2",
-    invoiceNumber: "INV-2024-0002",
-    clientName: "Tech Innovators LLC",
-    address: "456 Future Way, Silicon Valley, CA 94043",
-    tinNumber: "987-654-321-000",
-    date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    dueDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    items: [
-      { id: "inv-i3", description: "Monthly Retainer - SEO Services", quantity: 1, amount: 2000 },
-    ],
-    totalAmount: 2000,
-    status: 'Paid',
-    termsAndConditions: "Payment received via bank transfer.",
-    discount: 10,
-    discountType: 'percent',
-    tax: 12,
-    taxType: 'percent',
-  },
-];
-
+import { useFirestore, useCollection, useUser } from "@/firebase";
+import { collection, doc } from "firebase/firestore";
+import { addDocumentNonBlocking, deleteDocumentNonBlocking, setDocumentNonBlocking } from "@/firebase/non-blocking-updates";
 
 interface InvoiceContextType {
   invoices: Invoice[];
@@ -63,57 +20,46 @@ const InvoiceContext = createContext<InvoiceContextType | undefined>(
 );
 
 export const InvoiceProvider = ({ children }: { children: ReactNode }) => {
-  const [invoices, setInvoices] = useState<Invoice[]>([]);
-  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const invoicesRef = user ? collection(firestore, `users/${user.uid}/invoices`) : null;
+  const { data: invoices, isLoading } = useCollection<Invoice>(invoicesRef);
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-        try {
-            const storedInvoices = localStorage.getItem('invoices');
-
-            if (storedInvoices) {
-                setInvoices(JSON.parse(storedInvoices));
-            } else {
-                setInvoices(mockInvoices);
-            }
-        } catch (error) {
-            console.error("Failed to parse data from localStorage", error);
-            setInvoices(mockInvoices);
-        }
-        setIsDataLoaded(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isDataLoaded && typeof window !== 'undefined') {
-        try {
-            localStorage.setItem('invoices', JSON.stringify(invoices));
-        } catch (error) {
-            console.error("Failed to save invoices to localStorage", error);
-        }
-    }
-  }, [invoices, isDataLoaded]);
-
-  const addInvoice = (invoice: Invoice) => {
-    setInvoices((prev) => [...prev, invoice]);
+  const addInvoice = (invoice: Omit<Invoice, 'id' | 'userId'>) => {
+    if (!user || !invoicesRef) return;
+    const newInvoice = { ...invoice, userId: user.uid };
+    addDocumentNonBlocking(invoicesRef, newInvoice);
   };
 
   const updateInvoice = (updatedInvoice: Invoice) => {
-    setInvoices(prev => prev.map(inv => inv.id === updatedInvoice.id ? updatedInvoice : inv));
+    if (!user) return;
+    const docRef = doc(firestore, `users/${user.uid}/invoices`, updatedInvoice.id);
+    setDocumentNonBlocking(docRef, updatedInvoice, { merge: true });
   };
 
   const deleteInvoice = (id: string) => {
-    setInvoices(prev => prev.filter(inv => inv.id !== id));
+    if (!user) return;
+    const docRef = doc(firestore, `users/${user.uid}/invoices`, id);
+    deleteDocumentNonBlocking(docRef);
   };
   
   const getInvoiceById = useCallback((id: string) => {
-    return invoices.find(inv => inv.id === id);
+    return invoices?.find(inv => inv.id === id);
   }, [invoices]);
 
 
+  const value = useMemo(() => ({
+    invoices: invoices || [],
+    addInvoice,
+    updateInvoice,
+    deleteInvoice,
+    getInvoiceById
+  }), [invoices, getInvoiceById, user]);
+
+
   return (
-    <InvoiceContext.Provider value={{ invoices, addInvoice, updateInvoice, deleteInvoice, getInvoiceById }}>
-      {children}
+    <InvoiceContext.Provider value={value}>
+      {isLoading ? <div>Loading...</div> : children}
     </InvoiceContext.Provider>
   );
 };
