@@ -1,95 +1,95 @@
 /**
- * @fileoverview Firestore Security Rules for Prototyping.
+ * @fileoverview Firestore Security Rules for the application.
  *
  * Core Philosophy:
- * This ruleset prioritizes security by enforcing strict ownership and
- * authenticated access while relaxing data validation to accelerate prototyping.
- * All write operations require a valid user. All data is organized into
- * top-level collections and subcollections.
+ * This ruleset enforces a hierarchical data model with client-owned job orders.
+ * Clients can manage their own data, while expenses are generally accessible.
  *
  * Data Structure:
- * - /clients/{clientId}: Stores client data, where clientId is the document ID.
- * - /clients/{clientId}/jobOrders/{jobOrderId}: Stores job orders associated with clients.
- * - /expenses/{expenseId}: Stores global expense records.
+ * - /clients/{clientId}: Stores client profiles.
+ * - /clients/{clientId}/jobOrders/{jobOrderId}: Stores job orders for each client. Contains denormalized clientId.
+ * - /expenses/{expenseId}: Stores expense records.
  *
  * Key Security Decisions:
- * - All write operations require an authenticated user.
- * - Listing clients and expenses is publicly available for prototyping.
- * - JobOrders are secured via client ownership and clientId denormalization.
- * - No complex data validation is performed during this prototyping phase.
+ * - Clients can only read and write their own client profiles and job orders.
+ * - Expenses are publicly readable, but creation, updates, and deletion are disallowed.
+ * - Listing clients is denied to prevent unauthorized data access.
  *
  * Denormalization for Authorization:
- * - JobOrder documents under /clients/{clientId}/jobOrders/{jobOrderId} include
- *   a `clientId` field, which is used to validate ownership without requiring
- *   additional `get()` calls to the /clients/{clientId} document.
+ * - The `JobOrder` documents contain a denormalized `clientId` field, copied from the parent `Client` document.
+ *   This eliminates the need for `get()` calls to the parent document during security rule evaluation.
+ *
+ * Structural Segregation:
+ * - Clients and their job orders are separated into a hierarchical structure, enhancing security and data management.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /**
-     * @description Allows reading client data.  Clients can be listed by anyone.
+     * @description Protects the clients collection, ensuring only the owner can manage their profile.
      * @path /clients/{clientId}
-     * @allow (get) Authenticated user can read a client document.
-     * @allow (list) Anyone can list clients.
-     * @deny (create) Cannot create a client document without authentication.
-     * @deny (update) Cannot update a client document without authentication and ownership.
-     * @deny (delete) Cannot delete a client document without authentication and ownership.
-     * @principle Public read, owner-only writes.
+     * @allow (create) - User with UID 'user_abc' creates a new client profile with id 'user_abc'.
+     * @allow (get, update, delete) - User with UID 'user_abc' reads/updates/deletes their client profile with id 'user_abc'.
+     * @deny (create) - User with UID 'user_xyz' attempts to create a client profile with id 'user_abc' (mismatched UID).
+     * @deny (get, update, delete) - User with UID 'user_xyz' attempts to read/update/delete client profile with id 'user_abc' (not the owner).
+     * @deny (list) - Any user attempts to list all client profiles (listing is not allowed).
+     * @principle Enforces document ownership for client profiles.
      */
     match /clients/{clientId} {
-      allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn();
+      // Clients can only create their own profile
+      allow create: if isSignedIn() && isOwner(clientId);
+      // Clients can read, update, and delete their own profile
+      allow get, update, delete: if isSignedIn() && isExistingOwner(clientId);
+      // Clients cannot list all profiles
+      allow list: if false;
     }
 
     /**
-     * @description Manages job orders under a specific client. Enforces ownership via clientId.
+     * @description Protects job orders associated with a client, ensuring only the parent client can manage them.
      * @path /clients/{clientId}/jobOrders/{jobOrderId}
-     * @allow (create) Authenticated user can create a job order for a client if the clientId matches.
-     * @allow (get) Authenticated user can read a job order.
-     * @allow (list) Authenticated user can list job orders for a specific client.
-     * @allow (update) Authenticated user can update a job order if they are the owner.
-     * @allow (delete) Authenticated user can delete a job order if they are the owner.
-     * @deny (create) Cannot create a job order with a mismatched clientId.
-     * @deny (update) Cannot update a job order if it doesn't exist.
-     * @deny (delete) Cannot delete a job order if it doesn't exist.
-     * @principle Enforces document ownership for writes and validates relational integrity.
+     * @allow (create) - User with UID 'user_abc' creates a job order under client 'user_abc' with clientId matching 'user_abc'.
+     * @allow (get, update, delete) - User with UID 'user_abc' reads/updates/deletes a job order under client 'user_abc' with clientId matching 'user_abc'.
+     * @deny (create) - User with UID 'user_xyz' attempts to create a job order under client 'user_abc' (not the owner).
+     * @deny (create) - User with UID 'user_abc' attempts to create a job order under client 'user_abc' but sets clientId to 'user_xyz' (clientId mismatch).
+     * @deny (get, update, delete) - User with UID 'user_xyz' attempts to read/update/delete a job order under client 'user_abc' (not the owner).
+     * @deny (list) - Any user other than client 'user_abc' tries to list jobOrders under 'user_abc'.
+     * @principle Enforces client ownership for job orders and validates clientId consistency.
      */
     match /clients/{clientId}/jobOrders/{jobOrderId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && request.resource.data.clientId == clientId;
-      allow update: if isSignedIn() && request.resource.data.clientId == resource.data.clientId;
-      allow delete: if isSignedIn() && request.resource.data.clientId == resource.data.clientId;
+      // Clients can create job orders under their own client ID, IF the clientId field matches the path
+      allow create: if isSignedIn() && isOwner(clientId) && request.resource.data.clientId == clientId;
+      // Clients can read, update, and delete job orders under their own client ID, IF the clientId field matches the path
+      allow get, update, delete: if isSignedIn() && isExistingOwner(clientId) && resource.data.clientId == clientId;
+      // Clients can list job orders under their own client ID
+      allow list: if isSignedIn() && isOwner(clientId);
     }
 
     /**
-     * @description Allows reading and writing expense records. Expenses can be listed by anyone.
+     * @description Protects the expenses collection, allowing public read access but disallowing all write access.
      * @path /expenses/{expenseId}
-     * @allow (get) Authenticated user can read an expense document.
-     * @allow (list) Anyone can list expenses.
-     * @deny (create) Cannot create an expense document without authentication.
-     * @deny (update) Cannot update an expense document without authentication.
-     * @deny (delete) Cannot delete an expense document without authentication.
-     * @principle Public read, owner-only writes.
+     * @allow (get, list) - Any user, including unauthenticated users, can read expense data.
+     * @deny (create, update, delete) - No user can create, update, or delete expense data.
+     * @principle Allows public read access to expenses but restricts write operations.
      */
     match /expenses/{expenseId} {
+      // Allow anyone to read expense data
       allow get, list: if true;
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn();
+      // Prevent anyone from creating, updating, or deleting expense data
+      allow create, update, delete: if false;
     }
-  }
 
-  function isSignedIn() {
-    return request.auth != null;
-  }
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-  function isOwner(userId) {
-    return request.auth.uid == userId;
-  }
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
 
-  function isExistingOwner(userId) {
-    return isOwner(userId) && resource != null;
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
   }
 }
