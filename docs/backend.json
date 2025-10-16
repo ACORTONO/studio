@@ -1,0 +1,178 @@
+{
+  "entities": {
+    "JobOrder": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "JobOrder",
+      "type": "object",
+      "description": "Represents a job order with client and job details.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Job Order entity."
+        },
+        "jobOrderNumber": {
+          "type": "string",
+          "description": "Unique job order number."
+        },
+        "clientId": {
+          "type": "string",
+          "description": "Reference to Client. (Relationship: Client 1:N JobOrder)"
+        },
+        "jobOrderDate": {
+          "type": "string",
+          "description": "Date the job order was created.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the job to be performed."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Quantity of items or services for the job."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount or price per item/service."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount for the job order (calculated field)."
+        },
+        "remarks": {
+          "type": "string",
+          "description": "Additional remarks or notes related to the job order."
+        }
+      },
+      "required": [
+        "id",
+        "clientId",
+        "jobOrderNumber",
+        "jobOrderDate",
+        "description",
+        "quantity",
+        "amount",
+        "totalAmount"
+      ]
+    },
+    "Client": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Client",
+      "type": "object",
+      "description": "Represents a client with contact information.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Client entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the client."
+        },
+        "contactNumber": {
+          "type": "string",
+          "description": "Contact number of the client."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "contactNumber"
+      ]
+    },
+    "Expense": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Expense",
+      "type": "object",
+      "description": "Represents an expense record.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Expense entity."
+        },
+        "date": {
+          "type": "string",
+          "description": "Date the expense was incurred.",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the expense."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the expense."
+        }
+      },
+      "required": [
+        "id",
+        "date",
+        "description",
+        "amount"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/clients/{clientId}",
+        "definition": {
+          "entityName": "Client",
+          "schema": {
+            "$ref": "#/backend/entities/Client"
+          },
+          "description": "Stores client information.  The 'clientId' is used to uniquely identify each client.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "Unique identifier for the client."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clients/{clientId}/jobOrders/{jobOrderId}",
+        "definition": {
+          "entityName": "JobOrder",
+          "schema": {
+            "$ref": "#/backend/entities/JobOrder"
+          },
+          "description": "Stores job orders associated with a specific client. Includes denormalized 'clientId' for authorization independence.",
+          "params": [
+            {
+              "name": "clientId",
+              "description": "Unique identifier for the client."
+            },
+            {
+              "name": "jobOrderId",
+              "description": "Unique identifier for the job order."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/expenses/{expenseId}",
+        "definition": {
+          "entityName": "Expense",
+          "schema": {
+            "$ref": "#/backend/entities/Expense"
+          },
+          "description": "Stores expense records.  The 'expenseId' is used to uniquely identify each expense.",
+          "params": [
+            {
+              "name": "expenseId",
+              "description": "Unique identifier for the expense."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to optimize for authorization independence, scalability, and query performance, while adhering to the principle of 'rules are not filters'.\n\n1.  **Clients Collection:** Stores client information. This collection is straightforward, and access is primarily based on the client's unique ID.\n2.  **JobOrders Collection:** Job orders are stored under the associated client's document. Each job order document denormalizes necessary client information, such as client name and contact number, to ensure authorization independence. This avoids the need for `get()` calls in security rules to validate client ownership or access rights when creating or modifying job orders. Security rules can directly check the `clientId` in the job order against the authenticated user's ID or other relevant access control mechanisms.  This 1:N relationship is represented using subcollections which provide the most efficient querying and scaling structure.\n3.  **Expenses Collection:** Expenses are stored at the root collection level for simplicity and global access. Given the nature of expenses, a potential future enhancement could involve associating expenses with specific clients or job orders for more granular tracking.  For now, the structure assumes a flat expense model.\n\nThis structure ensures that security rules can be written based solely on the data present within each document, enhancing the maintainability and security of the application."
+  }
+}

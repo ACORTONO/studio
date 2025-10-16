@@ -1,0 +1,112 @@
+/**
+ * @fileoverview Firestore Security Rules for the application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a strict ownership model for clients and job orders,
+ * ensuring that users can only access resources they own or are explicitly
+ * granted access to. Expenses are publicly readable but only writable by
+ * authenticated users.
+ *
+ * Data Structure:
+ * - /clients/{clientId}: Stores client information, accessible only to the client.
+ * - /clients/{clientId}/jobOrders/{jobOrderId}: Stores job orders, accessible only to the associated client.
+ * - /expenses/{expenseId}: Stores expense records, publicly readable but only writable by authenticated users.
+ *
+ * Key Security Decisions:
+ * - Clients can only manage their own data.
+ * - Job orders inherit the ownership of their parent client.
+ * - Expenses are publicly readable to allow for general reporting or dashboards.
+ * - Users must be authenticated to create, update, or delete expenses.
+ *
+ * Denormalization for Authorization:
+ * - JobOrder documents include the clientId to simplify authorization rules and
+ *   avoid the need for costly `get()` operations. This denormalization allows
+ *   security rules to quickly verify the client's ownership of the job order.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Controls access to client documents.
+     * @path /clients/{clientId}
+     * @allow (create) - Authenticated user can create a client document with their own UID as the clientId.
+     * @allow (get, list) - Authenticated user can read their own client document.
+     * @allow (update, delete) - Authenticated user can update/delete their own client document.
+     * @deny (create) - Authenticated user cannot create a client document with a different clientId.
+     * @deny (get, list) - Authenticated user cannot read another user's client document.
+     * @deny (update, delete) - Authenticated user cannot update/delete another user's client document.
+     * @principle Enforces document ownership for all operations on client documents.
+     */
+    match /clients/{clientId} {
+      // Helper function to check if the authenticated user is the owner of the client document.
+      function isOwner(clientId) {
+        return request.auth.uid == clientId;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the client document and the document exists
+      function isExistingOwner(clientId) {
+        return isOwner(clientId) && resource != null;
+      }
+
+      // Allow the client to create their own document if the clientId matches their UID.
+      allow create: if isSignedIn() && isOwner(clientId) && request.resource.data.id == clientId;
+      allow get: if isSignedIn() && isOwner(clientId);
+      allow list: if isSignedIn() && isOwner(clientId);
+      allow update: if isSignedIn() && isExistingOwner(clientId) && request.resource.data.id == resource.data.id;
+      allow delete: if isSignedIn() && isExistingOwner(clientId);
+    }
+
+    /**
+     * @description Controls access to job order documents nested under client documents.
+     * @path /clients/{clientId}/jobOrders/{jobOrderId}
+     * @allow (create) - Authenticated user can create a job order under their client document.
+     * @allow (get, list) - Authenticated user can read job orders under their client document.
+     * @allow (update, delete) - Authenticated user can update/delete job orders under their client document.
+     * @deny (create) - Authenticated user cannot create a job order under another user's client document.
+     * @deny (get, list) - Authenticated user cannot read job orders under another user's client document.
+     * @deny (update, delete) - Authenticated user cannot update/delete job orders under another user's client document.
+     * @principle Enforces ownership based on the parent client document.
+     */
+    match /clients/{clientId}/jobOrders/{jobOrderId} {
+      // Helper function to check if the authenticated user is the owner of the client document.
+      function isOwner(clientId) {
+        return request.auth.uid == clientId;
+      }
+
+      // Helper function to check if the authenticated user is the owner of the client document and the document exists
+      function isExistingOwner(clientId) {
+        return isOwner(clientId) && resource != null;
+      }
+
+      // Allow the client to create a job order under their client document if the clientId matches.
+      allow create: if isSignedIn() && isOwner(clientId) && request.resource.data.clientId == clientId;
+      allow get: if isSignedIn() && isOwner(clientId);
+      allow list: if isSignedIn() && isOwner(clientId);
+      allow update: if isSignedIn() && isExistingOwner(clientId) && resource.data.clientId == clientId;
+      allow delete: if isSignedIn() && isExistingOwner(clientId) && resource.data.clientId == clientId;
+    }
+
+    /**
+     * @description Controls access to expense documents.
+     * @path /expenses/{expenseId}
+     * @allow (get, list) - Any user can read expense documents.
+     * @allow (create, update, delete) - Only authenticated users can create, update, or delete expense documents.
+     * @deny (create) - Unauthenticated users cannot create expense documents.
+     * @deny (update) - Unauthenticated users cannot update expense documents.
+     * @deny (delete) - Unauthenticated users cannot delete expense documents.
+     * @principle Allows public read access with authenticated-user-only writes.
+     */
+    match /expenses/{expenseId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && resource != null;
+      allow delete: if isSignedIn() && resource != null;
+    }
+
+    // Helper function to determine if a user is signed in.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+  }
+}
