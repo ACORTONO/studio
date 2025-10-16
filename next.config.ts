@@ -36,4 +36,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+const applyPWA = (config: NextConfig) => {
+  if (process.env.NEXT_TURBOPACK) {
+    return config;
+  }
+  return withPWA(config);
+}
+
+export default applyPWA(nextConfig);
