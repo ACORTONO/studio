@@ -42,7 +42,7 @@ const updateJobOrderSchema = jobOrderSchema.extend({
 export async function createJobOrderAction(
   formData: z.infer<typeof jobOrderSchema>,
   existingJobOrderNumbers: string[]
-): Promise<{ success: boolean; data?: JobOrder; error?: any }> {
+): Promise<{ success: boolean; data?: Omit<JobOrder, 'id'|'userId'>; error?: any }> {
   const validation = jobOrderSchema.safeParse(formData);
   if (!validation.success) {
     return { success: false, error: validation.error.format() };
@@ -62,8 +62,7 @@ export async function createJobOrderAction(
       0
     );
     
-    const newJobOrder: JobOrder = {
-      id: crypto.randomUUID(),
+    const newJobOrder: Omit<JobOrder, 'id'|'userId'> = {
       jobOrderNumber,
       clientName: validatedData.clientName,
       contactMethod: validatedData.contactMethod,
@@ -79,6 +78,7 @@ export async function createJobOrderAction(
         id: item.id || crypto.randomUUID(),
       })),
       totalAmount,
+      status: 'Pending',
       paymentMethod: validatedData.paymentMethod,
       paymentReference: validatedData.paymentReference,
       chequeBankName: validatedData.chequeBankName,
@@ -112,6 +112,7 @@ export async function updateJobOrderAction(
 
         const updatedJobOrder: JobOrder = {
             id: validatedData.id,
+            userId: '', // This will be set in the context
             jobOrderNumber: validatedData.jobOrderNumber,
             clientName: validatedData.clientName,
             contactMethod: validatedData.contactMethod,
@@ -127,6 +128,7 @@ export async function updateJobOrderAction(
                 id: item.id || crypto.randomUUID(),
             })),
             totalAmount,
+            status: 'Pending',
             paymentMethod: validatedData.paymentMethod,
             paymentReference: validatedData.paymentReference,
             chequeBankName: validatedData.chequeBankName,
@@ -159,9 +161,9 @@ const invoiceSchemaBase = z.object({
   termsAndConditions: z.string().optional(),
   status: z.enum(["Unpaid", "Paid"]),
   items: z.array(invoiceItemSchema).min(1, "At least one item is required."),
-  discount: z.coerce.number().min(0, "Discount must be non-negative.").optional().default(0),
+  discount: z.coerce.number().min(0).optional().default(0),
   discountType: z.enum(['amount', 'percent']).default('amount'),
-  tax: z.coerce.number().min(0, "Tax must be non-negative.").optional().default(0),
+  tax: z.coerce.number().min(0).optional().default(0),
   taxType: z.enum(['amount', 'percent']).default('amount'),
   paymentMethod: z.enum(['Cash', 'Bank Transfer', 'E-Wallet', 'Cheque']).optional(),
   paymentDetails: z.string().optional(),
@@ -177,7 +179,7 @@ const updateInvoiceSchema = invoiceSchemaBase.extend({
 export async function createInvoiceAction(
   formData: z.infer<typeof invoiceSchema>,
   existingInvoiceNumbers: string[]
-): Promise<{ success: boolean; data?: Invoice; error?: any }> {
+): Promise<{ success: boolean; data?: Omit<Invoice, 'id' | 'userId'>; error?: any }> {
   const validation = invoiceSchema.safeParse(formData);
   if (!validation.success) {
     return { success: false, error: validation.error.format() };
@@ -205,8 +207,7 @@ export async function createInvoiceAction(
 
     const totalAmount = subtotal - discountAmount + taxAmount;
 
-    const newInvoice: Invoice = {
-      id: crypto.randomUUID(),
+    const newInvoice: Omit<Invoice, 'id' | 'userId'> = {
       invoiceNumber,
       clientName: validatedData.clientName,
       address: validatedData.address,
@@ -261,6 +262,7 @@ export async function updateInvoiceAction(
 
         const updatedInvoice: Invoice = {
             id: validatedData.id,
+            userId: '', // This will be set in the context
             invoiceNumber: validatedData.invoiceNumber,
             clientName: validatedData.clientName,
             address: validatedData.address,
