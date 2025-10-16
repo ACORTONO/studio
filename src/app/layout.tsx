@@ -33,7 +33,6 @@ const ConditionalLayout = ({ children }: { children: React.ReactNode }) => {
             <head>
                 <title>Job Order Generator</title>
                 <meta name="description" content="Automated Job Order form and dashboard" />
-                <link rel="manifest" href="/manifest.json" />
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link
                 rel="preconnect"
