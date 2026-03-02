@@ -1,5 +1,6 @@
-# Firebase Studio
 
-This is a NextJS starter in Firebase Studio.
+import { redirect } from 'next/navigation';
 
-To get started, take a look at src/app/page.tsx.
+export default function Home() {
+  redirect('/job-order');
+}
